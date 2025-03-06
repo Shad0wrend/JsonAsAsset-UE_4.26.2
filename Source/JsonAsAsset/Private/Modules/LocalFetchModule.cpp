@@ -56,7 +56,7 @@ TArray<FString> LocalFetchAcceptedTypes = {
 	"DataTable",
 };
 
-void LocalFetchModule::LaunchLocalFetch()
+bool LocalFetchModule::LaunchLocalFetch()
 {
 	const UJsonAsAssetSettings* Settings = GetMutableDefault<UJsonAsAssetSettings>();
 
@@ -70,7 +70,8 @@ void LocalFetchModule::LaunchLocalFetch()
 
 	FString FullPath = FPaths::ConvertRelativePathToFull(PluginFolder + "/Dependencies/LocalFetch/Release/Win64/LocalFetch.exe");
 	FString Params = "--urls=" + Settings->LocalFetchUrl;
-	FPlatformProcess::LaunchFileInDefaultExternalApplication(*FullPath, *Params, ELaunchVerb::Open);
+	
+	return FPlatformProcess::LaunchFileInDefaultExternalApplication(*FullPath, *Params, ELaunchVerb::Open);
 }
 
 void LocalFetchModule::CloseLocalFetch()

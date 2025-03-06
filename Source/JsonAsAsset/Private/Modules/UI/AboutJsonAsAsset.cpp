@@ -94,7 +94,7 @@ void SAboutJsonAsAsset::Construct(const FArguments& InArgs) {
 										.ContentPadding(0.f).ToolTipText(LOCTEXT("FModelButton", "FModel Application"))
 										[
 											SNew(SImage)
-												.Image(FJsonAsAssetStyle::Get().GetBrush(TEXT("JsonAsAsset.FModelLogo")))
+												.Image(FJsonAsAssetStyle::Get().GetBrush(TEXT("JsonAsAsset.FModel.Icon")))
 												.ColorAndOpacity(FSlateColor::UseForeground())
 										]
 								]
@@ -111,7 +111,7 @@ void SAboutJsonAsAsset::Construct(const FArguments& InArgs) {
 										.ContentPadding(0.f).ToolTipText(LOCTEXT("GithubButton", "JsonAsAsset Github Page"))
 										[
 											SNew(SImage)
-												.Image(FJsonAsAssetStyle::Get().GetBrush(TEXT("JsonAsAsset.GithubLogo")))
+												.Image(FJsonAsAssetStyle::Get().GetBrush(TEXT("JsonAsAsset.Github.Icon")))
 												.ColorAndOpacity(FSlateColor::UseForeground())
 										]
 								]

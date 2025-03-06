@@ -34,6 +34,7 @@
 #include "./Settings/Details/JsonAsAssetSettingsDetails.h"
 
 // ReSharper disable once CppUnusedIncludeDirective
+#include "Logging/MessageLog.h"
 #include "Modules/UI/AboutJsonAsAsset.h"
 #include "Modules/UI/CommandsModule.h"
 #include "Modules/UI/StyleModule.h"
@@ -67,59 +68,63 @@ void FJsonAsAssetModule::PluginButtonClicked() {
 		SavePluginConfig(Settings);
 	}
 
-	if (Settings->bEnableLocalFetch) {
-		TSharedPtr<SNotificationItem> NotificationItem = LocalFetchNotificationPtr.Pin();
+	bool bIsLocalHost = Settings->LocalFetchUrl.StartsWith("http://localhost");
 
-		if (NotificationItem.IsValid()) {
-			NotificationItem->SetFadeOutDuration(0.001);
-			NotificationItem->Fadeout();
-			LocalFetchNotificationPtr.Reset();
-		}
+	if (Settings->bEnableLocalFetch && !IsProcessRunning("LocalFetch.exe") && bIsLocalHost) {
+		bool LocalFetchStarted = LocalFetchModule::LaunchLocalFetch();
 
-		bool bIsLocalHost = Settings->LocalFetchUrl.StartsWith("http://localhost");
+		if (!LocalFetchStarted) {
+			TSharedPtr<SNotificationItem> NotificationItem = LocalFetchNotificationPtr.Pin();
 
-		if (!IsProcessRunning("LocalFetch.exe") && bIsLocalHost) {
-			FNotificationInfo Info(LOCTEXT("JsonAsAssetNotificationTitle", "Local Fetch API Required"));
+			if (NotificationItem.IsValid()) {
+				NotificationItem->SetFadeOutDuration(0.001);
+				NotificationItem->Fadeout();
+				LocalFetchNotificationPtr.Reset();
+			}
+
+			if (!IsProcessRunning("LocalFetch.exe") && bIsLocalHost) {
+				FNotificationInfo Info(LOCTEXT("JsonAsAssetNotificationTitle", "Local Fetch API Required"));
 #if ENGINE_MAJOR_VERSION >= 5
-			Info.SubText = LOCTEXT("JsonAsAssetNotificationText",
-				"Start the Local Fetch API to use JsonAsAsset seamlessly. "
-				"For guidance on Local Fetch settings, check the documentation."
-			);
+				Info.SubText = LOCTEXT("JsonAsAssetNotificationText",
+					"Start the Local Fetch API to use JsonAsAsset seamlessly. "
+					"For guidance on Local Fetch settings, check the documentation."
+				);
 #endif
 
-			Info.HyperlinkText = LOCTEXT("JsonAsAssetDocumentationLink", "Documentation");
-			Info.Hyperlink = FSimpleDelegate::CreateStatic([]() {
-				const FString URL = "https://github.com/JsonAsAsset/JsonAsAsset";
-				FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
-			});
+				Info.HyperlinkText = LOCTEXT("JsonAsAssetDocumentationLink", "Documentation");
+				Info.Hyperlink = FSimpleDelegate::CreateStatic([]() {
+					const FString URL = "https://github.com/JsonAsAsset/JsonAsAsset";
+					FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+				});
 
-			Info.bFireAndForget = false;
-			Info.FadeOutDuration = 3.0f;
-			Info.ExpireDuration = 3.0f;
-			Info.bUseLargeFont = false;
-			Info.bUseThrobber = false;
-			Info.Image = FJsonAsAssetStyle::Get().GetBrush("JsonAsAsset.Logo");
+				Info.bFireAndForget = false;
+				Info.FadeOutDuration = 3.0f;
+				Info.ExpireDuration = 3.0f;
+				Info.bUseLargeFont = false;
+				Info.bUseThrobber = false;
+				Info.Image = FJsonAsAssetStyle::Get().GetBrush("JsonAsAsset.Toolbar.Icon");
 
-			Info.ButtonDetails.Add(
-				FNotificationButtonInfo(LOCTEXT("StartLocalFetch", "Execute LocalFetch API (.EXE)"), FText::GetEmpty(),
-					FSimpleDelegate::CreateStatic([]() {
-						TSharedPtr<SNotificationItem> NotificationItem = LocalFetchNotificationPtr.Pin();
+				Info.ButtonDetails.Add(
+					FNotificationButtonInfo(LOCTEXT("StartLocalFetch", "Execute LocalFetch API (.EXE)"), FText::GetEmpty(),
+						FSimpleDelegate::CreateStatic([]() {
+							TSharedPtr<SNotificationItem> NotificationItem = LocalFetchNotificationPtr.Pin();
 
-						if (NotificationItem.IsValid()) {
-							NotificationItem->SetFadeOutDuration(0.001);
-							NotificationItem->Fadeout();
-							LocalFetchNotificationPtr.Reset();
-						}
+							if (NotificationItem.IsValid()) {
+								NotificationItem->SetFadeOutDuration(0.001);
+								NotificationItem->Fadeout();
+								LocalFetchNotificationPtr.Reset();
+							}
 
-						LocalFetchModule::LaunchLocalFetch();
-					})
-				)
-			);
+							LocalFetchModule::LaunchLocalFetch();
+						})
+					)
+				);
 
-			LocalFetchNotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
-			LocalFetchNotificationPtr.Pin()->SetCompletionState(SNotificationItem::CS_Pending);
+				LocalFetchNotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
+				LocalFetchNotificationPtr.Pin()->SetCompletionState(SNotificationItem::CS_Pending);
 
-			return;
+				return;
+			}
 		}
 	}
 
@@ -286,8 +291,8 @@ void FJsonAsAssetModule::RegisterMenus() {
 		TAttribute<FSlateIcon>::Create(
 			TAttribute<FSlateIcon>::FGetter::CreateLambda([this]() -> FSlateIcon {
 				return Settings->ExportDirectory.Path.IsEmpty() 
-					? FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), FName("JsonAsAsset.WarningLogo"))
-					: FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), FName("JsonAsAsset.Logo"));
+					? FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), FName("JsonAsAsset.Toolbar.Icon.Warning"))
+					: FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), FName("JsonAsAsset.Toolbar.Icon"));
 			})
 		),
 		EUserInterfaceActionType::Button
@@ -347,7 +352,7 @@ void FJsonAsAssetModule::AddToolbarExtension(FToolBarBuilder& Builder)
 		FOnGetContent::CreateRaw(this, &FJsonAsAssetModule::CreateToolbarDropdown),
 		FText::FromString(Plugin->GetDescriptor().VersionName),
 		LOCTEXT("JsonAsAsset", "List of actions for JsonAsAsset"),
-		FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), FName("JsonAsAsset.Logo"))
+		FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), FName("JsonAsAsset.Toolbar.Icon"))
 	);
 }
 #endif
@@ -410,7 +415,7 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("JsonAsAssetActionButton", "JsonAsAsset"),
 			LOCTEXT("JsonAsAssetActionButtonTooltip", "Execute JsonAsAsset"),
-			FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), "JsonAsAsset.Logo"),
+			FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), "JsonAsAsset.Toolbar.Icon"),
 			FUIAction(
 				FExecuteAction::CreateRaw(this, &FJsonAsAssetModule::PluginButtonClicked),
 				FCanExecuteAction::CreateLambda([this]() {

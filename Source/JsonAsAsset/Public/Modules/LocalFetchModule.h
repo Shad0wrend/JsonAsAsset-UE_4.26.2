@@ -16,7 +16,7 @@ extern TArray<FString> LocalFetchAcceptedTypes;
 class LocalFetchModule
 {
 public:
-	static void LaunchLocalFetch();
+	static bool LaunchLocalFetch();
 	static void CloseLocalFetch();
 };
 

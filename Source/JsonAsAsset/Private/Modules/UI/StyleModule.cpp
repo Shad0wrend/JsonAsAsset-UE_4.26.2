@@ -4,6 +4,26 @@
 #include "Styling/SlateStyleRegistry.h"
 #include "Interfaces/IPluginManager.h"
 
+#define IMAGE_BRUSH(RelativePath, ...) FSlateImageBrush(Style->RootToContentDir(RelativePath, TEXT(".png")), __VA_ARGS__)
+
+const FVector2D Icon40x40(40, 40);
+const FVector2D Icon80x80(40, 40);
+
+TSharedRef<FSlateStyleSet> FJsonAsAssetStyle::Create() {
+	TSharedRef<FSlateStyleSet> Style = MakeShareable(new FSlateStyleSet("JsonAsAssetStyle"));
+	Style->SetContentRoot(IPluginManager::Get().FindPlugin("JsonAsAsset")->GetBaseDir() / TEXT("Resources"));
+
+	// Toolbar
+	Style->Set("JsonAsAsset.Toolbar.Icon", new IMAGE_BRUSH(TEXT("./Toolbar/40px"), Icon40x40));
+	Style->Set("JsonAsAsset.Toolbar.Icon.Warning", new IMAGE_BRUSH(TEXT("./Toolbar/40px_Warning"), Icon40x40));
+
+	// AboutJsonAsAsset Widget
+	Style->Set("JsonAsAsset.FModel.Icon", new IMAGE_BRUSH(TEXT("./About/FModel"), Icon80x80));
+	Style->Set("JsonAsAsset.Github.Icon", new IMAGE_BRUSH(TEXT("./About/Github"), Icon40x40));
+
+	return Style;
+}
+
 TSharedPtr<FSlateStyleSet> FJsonAsAssetStyle::StyleInstance = nullptr;
 
 void FJsonAsAssetStyle::Initialize() {
@@ -22,23 +42,6 @@ void FJsonAsAssetStyle::Shutdown() {
 FName FJsonAsAssetStyle::GetStyleSetName() {
 	static FName StyleSetName(TEXT("JsonAsAssetStyle"));
 	return StyleSetName;
-}
-
-#define IMAGE_BRUSH(RelativePath, ...) FSlateImageBrush(Style->RootToContentDir(RelativePath, TEXT(".png")), __VA_ARGS__)
-
-const FVector2D Icon40x40(40, 40);
-const FVector2D Icon80x80(40, 40);
-
-TSharedRef<FSlateStyleSet> FJsonAsAssetStyle::Create() {
-	TSharedRef<FSlateStyleSet> Style = MakeShareable(new FSlateStyleSet("JsonAsAssetStyle"));
-	Style->SetContentRoot(IPluginManager::Get().FindPlugin("JsonAsAsset")->GetBaseDir() / TEXT("Resources"));
-
-	Style->Set("JsonAsAsset.Logo", new IMAGE_BRUSH(TEXT("Icon40"), Icon40x40));
-	Style->Set("JsonAsAsset.WarningLogo", new IMAGE_BRUSH(TEXT("WarningIcon40"), Icon40x40));
-	Style->Set("JsonAsAsset.FModelLogo", new IMAGE_BRUSH(TEXT("FModelButtonIcon"), Icon80x80));
-	Style->Set("JsonAsAsset.GithubLogo", new IMAGE_BRUSH(TEXT("GithubLogo"), Icon40x40));
-
-	return Style;
 }
 
 const ISlateStyle& FJsonAsAssetStyle::Get() {
