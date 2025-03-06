@@ -1,3 +1,4 @@
 [submodule "Dependencies/LocalFetch"]
 	path = Dependencies/LocalFetch
 	url = https://github.com/JsonAsAsset/LocalFetch
+
