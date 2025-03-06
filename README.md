@@ -104,7 +104,7 @@ Most/all sound classes are supported, however, SoundWave is handled manually in 
 <a name="setup-fmodel"></a>
 #### 2.1 Setup FModel
 If you haven't already, install FModel and set it up correctly.
-<img align="left" width="150" height="150" src="./Resources/FModelLogo.png?raw=true">
+<img align="left" width="150" height="150" src="https://github.com/user-attachments/assets/d8e4f9c9-1268-4aee-ab1a-dabee31b3069?raw=true">
 The JSON format/file has to be from a program that fits the format of FModel's JSON export files:
 <br><br>
 
