@@ -14,4 +14,7 @@ Adding **manual** asset type imports is done in the [`JsonAsAsset/Public/Importe
 
 ##### Settings
 
-JsonAsAsset's settings are in [`Private/Settings/JsonAsAssetSettings.h`](https://github.com/JsonAsAsset/JsonAsAsset/tree/main/Source/JsonAsAsset/Private/Settings/JsonAsAssetSettings.h)
+JsonAsAsset's settings are in [`Public/Settings/JsonAsAssetSettings.h`](https://github.com/JsonAsAsset/JsonAsAsset/blob/main/Source/JsonAsAsset/Public/Settings/JsonAsAssetSettings.h)
+
+##### General Information
+This plugin's importing feature uses data based off [CUE4Parse](https://github.com/FabianFG/CUE4Parse)'s JSON export format.
