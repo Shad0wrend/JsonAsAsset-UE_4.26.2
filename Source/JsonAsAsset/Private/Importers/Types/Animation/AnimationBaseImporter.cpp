@@ -114,16 +114,11 @@ bool IAnimationBaseImporter::Import() {
 		Skeleton->AddCurveMetaData(CurveName);
 		// Add or update the curve
 		const FFloatCurve* ExistingCurve = DataModel->FindFloatCurve(CurveId);
-		if (ExistingCurve == nullptr)
+		if (ExistingCurve != nullptr)
 		{
-			Controller.AddCurve(CurveId, CurveTypeFlags);
+			Controller.RemoveCurve(CurveId);
 		}
-		else 
-		{
-			// Remove and re add curves if it already exists
-            		Controller.RemoveCurve(CurveId);
-            		Controller.AddCurve(CurveId, CurveTypeFlags);
-		}
+		Controller.AddCurve(CurveId, CurveTypeFlags);
 #endif
 		// For Unreal Engine 5.3 and above, the smart name's display name is required
 #if ENGINE_MINOR_VERSION == 3 && ENGINE_PATCH_VERSION < 2
