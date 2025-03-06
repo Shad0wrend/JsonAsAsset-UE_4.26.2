@@ -105,6 +105,8 @@ bool IAnimationBaseImporter::Import() {
 		FAnimationCurveIdentifier CurveId = FAnimationCurveIdentifier(NewTrackName, ERawCurveTrackTypes::RCT_Float);
 #endif
 #if ENGINE_MINOR_VERSION >= 4
+		Controller.OpenBracket(FText::FromString("Curve Import"));
+
 		// Create Curve Identifier
 		FName CurveName = FName(*DisplayName);
 		FAnimationCurveIdentifier CurveId(CurveName, ERawCurveTrackTypes::RCT_Float);
@@ -115,12 +117,12 @@ bool IAnimationBaseImporter::Import() {
 		const FFloatCurve* ExistingCurve = DataModel->FindFloatCurve(CurveId);
 		if (ExistingCurve == nullptr)
 		{
-			Controller.AddCurve(CurveId, CurveTypeFlags, true);
+			Controller.AddCurve(CurveId, CurveTypeFlags);
 		}
 		else 
 		{
 			// Update existing curve flags if needed
-			Controller.SetCurveFlags(CurveId, CurveTypeFlags, true);
+			Controller.SetCurveFlags(CurveId, CurveTypeFlags);
 		}
 #endif
 		// For Unreal Engine 5.3 and above, the smart name's display name is required
@@ -172,16 +174,33 @@ bool IAnimationBaseImporter::Import() {
 			//
 			// Unreal Engine 4: Simply adding curves to RawCurveData
 			// Unreal Engine 5: Using a AnimDataController to handle adding curves
-#if ENGINE_MAJOR_VERSION == 5
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
 			Controller.SetCurveKey(CurveId, RichKey);
 #endif
 #if ENGINE_MAJOR_VERSION == 4
-			AnimSequenceBase->RawCurveData.AddFloatCurveKey(NewTrackName, CurveTypeFlags, RichKey.Time, RichKey.Value);
-			AnimSequenceBase->RawCurveData.FloatCurves.Last().FloatCurve.Keys.Last().ArriveTangent = RichKey.ArriveTangent;
-			AnimSequenceBase->RawCurveData.FloatCurves.Last().FloatCurve.Keys.Last().LeaveTangent = RichKey.LeaveTangent;
-			AnimSequenceBase->RawCurveData.FloatCurves.Last().FloatCurve.Keys.Last().InterpMode = RichKey.InterpMode;
+			FRawCurveTracks& Tracks = AnimSequenceBase->RawCurveData;
 #endif
+#if ENGINE_MAJOR_VERSION == 4
+			Tracks.AddFloatCurveKey(NewTrackName, CurveTypeFlags, RichKey.Time, RichKey.Value);
+
+			for (FFloatCurve& Track : Tracks.FloatCurves)
+			{
+				if (Track.Name == NewTrackName)
+				{
+					int32 LastIndex = Track.FloatCurve.Keys.Num() - 1;
+					Track.FloatCurve.Keys[LastIndex].ArriveTangent = RichKey.ArriveTangent;
+					Track.FloatCurve.Keys[LastIndex].LeaveTangent = RichKey.LeaveTangent;
+					Track.FloatCurve.Keys[LastIndex].InterpMode = RichKey.InterpMode;
+				}
+			}
+#endif
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 2
+#endif
+
 		}
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
+		Controller.CloseBracket();
+#endif
 	}
 
 	UAnimSequence* CastedAnimSequence = Cast<UAnimSequence>(AnimSequenceBase);
@@ -201,7 +220,7 @@ bool IAnimationBaseImporter::Import() {
 		}
 	}
 
-	// Whitelist
+	/* Deserialize properties */
 	GetObjectSerializer()->DeserializeObjectProperties(KeepPropertiesShared(Properties,
 	{
 		"RetargetSource",
@@ -211,14 +230,14 @@ bool IAnimationBaseImporter::Import() {
 		"RefPoseSeq",
 		"Notifies",
 
-		// Montages
+		/* AnimMontages */
 		"BlendIn",
 		"BlendOut",
 		"SlotAnimTracks",
 		"CompositeSections"
 	}), AnimSequenceBase);
 
-#if ENGINE_MAJOR_VERSION == 5
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
 	if (ITargetPlatform* RunningPlatform = GetTargetPlatformManagerRef().GetRunningTargetPlatform())
 	{
 		CastedAnimSequence->CacheDerivedData(RunningPlatform);

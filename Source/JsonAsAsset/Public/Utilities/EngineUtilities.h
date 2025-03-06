@@ -140,14 +140,6 @@ inline TArray<FAssetData> GetAssetsInSelectedFolder()
 	// Get all assets in the folder and its subfolders
 	AssetRegistryModule.Get().GetAssetsByPath(FName(*CurrentFolder), AssetDataList, true);
 
-	// No Assets found
-	if (AssetDataList.Num() == 0) {
-		SpawnPrompt(
-			"No Assets Found",
-			"Please go into a folder with assets in it."
-		);
-	}
-
 	return AssetDataList;
 }
 
