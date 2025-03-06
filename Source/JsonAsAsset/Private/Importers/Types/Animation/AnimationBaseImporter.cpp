@@ -120,8 +120,9 @@ bool IAnimationBaseImporter::Import() {
 		}
 		else 
 		{
-			// Update existing curve flags if needed
-			Controller.SetCurveFlags(CurveId, CurveTypeFlags);
+			// Remove and re add curves if it already exists
+            		Controller.RemoveCurve(CurveId);
+            		Controller.AddCurve(CurveId, CurveTypeFlags);
 		}
 #endif
 		// For Unreal Engine 5.3 and above, the smart name's display name is required
