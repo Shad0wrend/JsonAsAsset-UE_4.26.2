@@ -71,13 +71,18 @@ Most/all sound classes are supported, however, SoundWave is handled manually in 
 
 ###### Skeleton/Animation Asset Types
  - SkeletalMeshLODSettings
- - Animation (curves, sync markers)
+ - Animation Curves (Animation Sequences / Animation Montages)
+> Save a JSON file and have a pre-existing animation selected in the editor, then import the json
  - Blendspace
  - PhysicsAsset
 
 ###### Data Asset Types
 - DataAsset
 - DataTable
+
+###### Landscape
+- LandscapeGrassType
+- PhysicalMaterial
 
 </details>
 
@@ -149,6 +154,8 @@ Go ahead and click on the JsonAsAsset logo (<img width="25" height="25" src=http
 
 A window should pop-up, and once the console says `[CORE] Running API`, Local Fetch has been successfully started!
 
+</details>
+
 -----------------------
 
 <a name="common-errors"></a>
@@ -214,7 +221,6 @@ Thanks go to these wonderful people:
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="6.28%" height="50px"><a href="https://github.com/Tevtongermany"><br/><b>Tevtongermany</b></a><br/>Inital Logo Design</a></td>
       <td align="center" valign="top" width="6.28%" height="50px">
         <a href="https://github.com/NathanFelipeRH">
           <br/><b>Nathan Felipe</b>
