@@ -9,6 +9,7 @@
 #if ENGINE_MAJOR_VERSION >= 5
 #include "Interfaces/IMainFrameModule.h"
 #else
+// ReSharper disable once CppUnusedIncludeDirective
 #include "MainFrame/Public/Interfaces/IMainFrameModule.h"
 #endif
 
@@ -32,6 +33,7 @@
 // Settings
 #include "./Settings/Details/JsonAsAssetSettingsDetails.h"
 
+// ReSharper disable once CppUnusedIncludeDirective
 #include "Modules/UI/AboutJsonAsAsset.h"
 #include "Modules/UI/CommandsModule.h"
 #include "Modules/UI/StyleModule.h"

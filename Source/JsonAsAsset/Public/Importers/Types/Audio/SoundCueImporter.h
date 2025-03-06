@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Importers/Constructor/Graph/SoundCueImporter.h"
+#include "Importers/Constructor/Graph/SoundGraph.h"
 
 class ISoundCueImporter : public ISoundGraph {
 public:

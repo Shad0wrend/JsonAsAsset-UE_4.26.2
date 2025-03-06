@@ -2,6 +2,11 @@
 
 #pragma once
 
+/*
+ * This file is used to allow the same code used on UE5 to be used on UE4,
+ * it contains structures and classes to replicate missing objects on UE4.
+ */
+
 #if ENGINE_MAJOR_VERSION >= 5
 #include "Styling/AppStyle.h"
 using FAppStyle = FAppStyle;

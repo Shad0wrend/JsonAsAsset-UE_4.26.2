@@ -1,6 +1,6 @@
 // Copyright JAA Contributors 2024-2025
 
-#include "Importers/Constructor/Graph/SoundCueImporter.h"
+#include "Importers/Constructor/Graph/SoundGraph.h"
 
 #include "AssetToolsModule.h"
 #include "HttpModule.h"
@@ -40,7 +40,7 @@ USoundNode* ISoundGraph::CreateEmptyNode(FName Name, FName Type, USoundCue* Soun
 	);
 }
 
-void ISoundGraph::SetupNodes(USoundCue* SoundCueAsset, TMap<FString, USoundNode*> SoundCueNodes, TArray<TSharedPtr<FJsonValue>> JsonObjectArray) {
+void ISoundGraph::SetupNodes(USoundCue* SoundCueAsset, TMap<FString, USoundNode*> SoundCueNodes, TArray<TSharedPtr<FJsonValue>> JsonObjectArray) const {
 	auto MainJsonObject = JsonObjectArray[0]->AsObject();
 	auto MainJsonObjectProperties = MainJsonObject->TryGetField(TEXT("Properties"))->AsObject();
 

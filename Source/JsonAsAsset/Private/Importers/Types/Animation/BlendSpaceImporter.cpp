@@ -1,7 +1,6 @@
 ﻿// Copyright JAA Contributors 2024-2025
 
 #include "Importers/Types/Animation/BlendSpaceImporter.h"
-#include "Utilities/MathUtilities.h"
 
 bool IBlendSpaceImporter::Import() {
 	TSharedPtr<FJsonObject> AssetData = JsonObject->GetObjectField(TEXT("Properties"));
@@ -27,7 +26,7 @@ bool IBlendSpaceImporter::Import() {
 			UObject* Object = StaticLoadObject(UObject::StaticClass(), nullptr, *AnimationPath);
 
 			BlendSpace->Modify();
-			BlendSpaceDerived->CreateNewSample(Cast<UAnimSequence>(Object), FMathUtilities::ObjectToVector(JsonObjectVal->GetObjectField(TEXT("SampleValue")).Get()));
+			BlendSpaceDerived->CreateNewSample(Cast<UAnimSequence>(Object), ObjectToVector(JsonObjectVal->GetObjectField(TEXT("SampleValue")).Get()));
 			BlendSpace->PostEditChange();
 		}
 	}

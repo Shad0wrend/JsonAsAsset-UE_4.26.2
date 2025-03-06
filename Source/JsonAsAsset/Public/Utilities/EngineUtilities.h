@@ -43,7 +43,7 @@ inline bool HandlePackageCreation(UObject* Asset, UPackage* Package) {
  * @return Selected Asset
  */
 template <typename T>
-T* GetSelectedAsset(bool SupressErrors = false) {
+T* GetSelectedAsset(const bool SupressErrors = false) {
 	const FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
 	TArray<FAssetData> SelectedAssets;
 	ContentBrowserModule.Get().GetSelectedAssets(SelectedAssets);
@@ -57,7 +57,7 @@ T* GetSelectedAsset(bool SupressErrors = false) {
 		GLog->Log("JsonAsAsset: [GetSelectedAsset] None selected, returning nullptr.");
 
 		const FText DialogText = FText::Format(
-			FText::FromString(TEXT("Importing an asset of type '{0}' requires a base asset selected. Select one in your content browser.")),
+			FText::FromString(TEXT("Importing an asset of type '{0}' requires a base asset selected to modify. Select one in your content browser.")),
 			FText::FromString(T::StaticClass()->GetName())
 		);
 
@@ -349,15 +349,16 @@ inline TArray<FString> OpenFolderDialog(const FString& Title) {
 }
 
 // Filter to remove
-inline TSharedPtr<FJsonObject> RemovePropertiesShared(TSharedPtr<FJsonObject> Input, TArray<FString> RemovedProperties) {
-	const TSharedPtr<FJsonObject> RawSharedPtrData = TSharedPtr<FJsonObject>(Input);
-	
-	for (FString Property : RemovedProperties) {
-		if (RawSharedPtrData->HasField(Property))
-			RawSharedPtrData->RemoveField(Property);
+inline TSharedPtr<FJsonObject> RemovePropertiesShared(const TSharedPtr<FJsonObject>& Input, const TArray<FString>& RemovedProperties) {
+	TSharedPtr<FJsonObject> ClonedJsonObject = MakeShareable(new FJsonObject(*Input));
+    
+	for (const FString& Property : RemovedProperties) {
+		if (ClonedJsonObject->HasField(Property)) {
+			ClonedJsonObject->RemoveField(Property);
+		}
 	}
-
-	return RawSharedPtrData;
+    
+	return ClonedJsonObject;
 }
 
 // Filter to whitelist

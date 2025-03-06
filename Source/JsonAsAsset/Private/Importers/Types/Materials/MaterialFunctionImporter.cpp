@@ -57,7 +57,7 @@ bool IMaterialFunctionImporter::Import() {
 	PropagateExpressions(MaterialFunction, ExpressionNames, Exports, CreatedExpressionMap);
 	MaterialGraphNode_ConstructComments(MaterialFunction, StringExpressionCollection, Exports);
 
-	MaterialFunction->PreEditChange(NULL);
+	MaterialFunction->PreEditChange(nullptr);
 	MaterialFunction->PostEditChange();
 
 	SavePackage();

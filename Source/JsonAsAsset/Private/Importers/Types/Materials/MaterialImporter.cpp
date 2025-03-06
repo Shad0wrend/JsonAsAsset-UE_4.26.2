@@ -13,14 +13,14 @@
 #include "Framework/Notifications/NotificationManager.h"
 
 #include "Factories/MaterialFactoryNew.h"
-#include "MaterialGraph/MaterialGraph.h"
-#include <Editor/UnrealEd/Classes/MaterialGraph/MaterialGraphSchema.h>
 
-#include "Editor/MaterialEditor/Private/MaterialEditor.h"
 #include "Settings/JsonAsAssetSettings.h"
 
 #if ENGINE_MAJOR_VERSION >= 5
 #include <Editor/UnrealEd/Classes/MaterialGraph/MaterialGraphNode_Composite.h>
+#include <Editor/UnrealEd/Classes/MaterialGraph/MaterialGraphSchema.h>
+#include "Editor/MaterialEditor/Private/MaterialEditor.h"
+#include "MaterialGraph/MaterialGraph.h"
 
 void IMaterialImporter::ComposeExpressionPinBase(UMaterialExpressionPinBase* Pin, TMap<FName, UMaterialExpression*>& CreatedExpressionMap, const TSharedPtr<FJsonObject>& _JsonObject, TMap<FName, FExportData>& Exports) {
 	FJsonObject* Expression = (Exports.Find(GetExportNameOfSubobject(_JsonObject->GetStringField(TEXT("ObjectName"))))->Json)->GetObjectField(TEXT("Properties")).Get();
@@ -187,6 +187,7 @@ bool IMaterialImporter::Import() {
 	// Handle edit changes, and add it to the content browser
 	if (!HandleAssetCreation(Material)) return false;
 
+#if ENGINE_MAJOR_VERSION >= 5
 	bool bEditorGraphOpen = false;
 	FMaterialEditor* AssetEditorInstance = nullptr;
 
@@ -230,7 +231,6 @@ bool IMaterialImporter::Import() {
 
 			MaterialGraph->Modify();
 
-#if ENGINE_MAJOR_VERSION >= 5
 			// Create the composite node that will serve as the gateway into the subgraph
 			UMaterialGraphNode_Composite* GatewayNode = nullptr;
 			{
@@ -343,9 +343,9 @@ bool IMaterialImporter::Import() {
 
 			// Update Original Material
 			AssetEditorInstance->UpdateMaterialAfterGraphChange();
-#endif
 		}
 	}
+#endif
 
 	const TSharedPtr<FJsonObject>* ShadingModelsPtr;
 	

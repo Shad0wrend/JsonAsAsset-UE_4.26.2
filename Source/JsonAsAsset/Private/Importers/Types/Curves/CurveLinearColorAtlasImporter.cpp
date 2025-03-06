@@ -15,7 +15,7 @@ bool ICurveLinearColorAtlasImporter::Import() {
 	Object->Source.Init(Width, Height, 1, 1, TSF_RGBA16F);
 	const int32 TextureDataSize = Object->Source.CalcMipSize(0);
 	Object->SrcData.AddUninitialized(TextureDataSize);
-	uint32* TextureData = (uint32*)Object->Source.LockMip(0);
+	uint32* TextureData = reinterpret_cast<uint32*>(Object->Source.LockMip(0));
 	FFloat16Color InitColor(FLinearColor::White);
 	for (uint32 y = 0; y < Object->TextureSize; y++) {
 		for (uint32 x = 0; x < Object->TextureSize; x++) {

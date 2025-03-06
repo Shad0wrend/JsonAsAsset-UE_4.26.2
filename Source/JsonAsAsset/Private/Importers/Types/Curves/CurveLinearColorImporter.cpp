@@ -1,7 +1,6 @@
 ﻿// Copyright JAA Contributors 2024-2025
 
 #include "Importers/Types/Curves/CurveLinearColorImporter.h"
-#include "Utilities/MathUtilities.h"
 #include "Curves/CurveLinearColor.h"
 #include "Factories/CurveFactory.h"
 #include "UObject/SavePackage.h"
@@ -20,7 +19,7 @@ bool ICurveLinearColorImporter::Import() {
 
 		// add keys to array
 		for (int j = 0; j < Keys.Num(); j++) {
-			LinearCurveAsset->FloatCurves[i].Keys.Add(FMathUtilities::ObjectToRichCurveKey(Keys[j]->AsObject()));
+			LinearCurveAsset->FloatCurves[i].Keys.Add(ObjectToRichCurveKey(Keys[j]->AsObject()));
 		}
 	}
 

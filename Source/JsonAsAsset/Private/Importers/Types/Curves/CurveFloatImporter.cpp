@@ -1,7 +1,6 @@
 ﻿// Copyright JAA Contributors 2024-2025
 
 #include "Importers/Types/Curves/CurveFloatImporter.h"
-#include "Utilities/MathUtilities.h"
 #include "Factories/CurveFactory.h"
 #include "Dom/JsonObject.h"
 
@@ -14,7 +13,7 @@ bool ICurveFloatImporter::Import() {
 
 	// Add Rich Keys
 	for (TSharedPtr<FJsonValue>& Key : Keys) {
-		CurveAsset->FloatCurve.Keys.Add(FMathUtilities::ObjectToRichCurveKey(Key->AsObject()));
+		CurveAsset->FloatCurve.Keys.Add(ObjectToRichCurveKey(Key->AsObject()));
 	}
 
 	// Handle edit changes, and add it to the content browser

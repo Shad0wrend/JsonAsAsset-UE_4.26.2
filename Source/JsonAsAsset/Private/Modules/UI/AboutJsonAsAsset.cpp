@@ -144,6 +144,8 @@ void SAboutJsonAsAsset::Construct(const FArguments& InArgs) {
 		];
 }
 
+// ReSharper disable once CppMemberFunctionMayBeStatic
+// ReSharper disable once CppPassValueParameterByConstReference
 TSharedRef<ITableRow> SAboutJsonAsAsset::MakeAboutTextItemWidget(TSharedRef<FLineDefinition> Item, const TSharedRef<STableViewBase>& OwnerTable) {
 	if (Item->Text.IsEmpty())
 		return SNew(STableRow<TSharedPtr<FString>>, OwnerTable)
@@ -164,6 +166,7 @@ TSharedRef<ITableRow> SAboutJsonAsAsset::MakeAboutTextItemWidget(TSharedRef<FLin
 		];
 }
 
+// ReSharper disable once CppMemberFunctionMayBeStatic
 FReply SAboutJsonAsAsset::OnFModelButtonClicked() {
 	FString TheURL = "https://fmodel.app";
 	FPlatformProcess::LaunchURL(*TheURL, nullptr, nullptr);
@@ -171,6 +174,7 @@ FReply SAboutJsonAsAsset::OnFModelButtonClicked() {
 	return FReply::Handled();
 }
 
+// ReSharper disable once CppMemberFunctionMayBeStatic
 FReply SAboutJsonAsAsset::OnGithubButtonClicked() {
 	FString TheURL = "https://github.com/JsonAsAsset/JsonAsAsset";
 	FPlatformProcess::LaunchURL(*TheURL, nullptr, nullptr);

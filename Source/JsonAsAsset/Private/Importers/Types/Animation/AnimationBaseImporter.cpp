@@ -3,7 +3,6 @@
 #include "Importers/Types/Animation/AnimationBaseImporter.h"
 
 #include "Dom/JsonObject.h"
-#include "Utilities/MathUtilities.h"
 #include "Animation/AnimSequence.h"
 
 #if ENGINE_MAJOR_VERSION == 5
@@ -167,7 +166,7 @@ bool IAnimationBaseImporter::Import() {
 		for (TSharedPtr<FJsonValue> JsonKey : Keys) {
 			TSharedPtr<FJsonObject> Key = JsonKey->AsObject();
 
-			FRichCurveKey RichKey = FMathUtilities::ObjectToRichCurveKey(Key);
+			FRichCurveKey RichKey = ObjectToRichCurveKey(Key);
 
 			// Unreal Engine 5 and Unreal Engine 4
 			// have different ways of adding curves

@@ -446,7 +446,7 @@ void UPropertySerializer::DeserializePropertyValueInner(FProperty* Property, con
 			TextProperty->SetPropertyValue(Value, FInternationalization::ForUseOnlyByLocMacroAndGraphNodeTextLiterals_CreateText(*SourceString, *TextNamespace, *UniqueKey));
 		}
 	}
-	else if (const FFieldPathProperty* FieldPathProperty = CastField<const FFieldPathProperty>(Property)) {
+	else if (CastField<const FFieldPathProperty>(Property)) {
 		FFieldPath FieldPath;
 		FieldPath.Generate(*NewJsonValue->AsString());
 		*static_cast<FFieldPath*>(Value) = FieldPath;
@@ -486,11 +486,9 @@ bool UPropertySerializer::ShouldSerializeProperty(FProperty* Property) const {
 	if (Property->HasAnyPropertyFlags(CPF_Deprecated)) {
 		return false;
 	}
-	if (this == nullptr) {
-		return true;
-	}
+
 	// Skip blacklisted properties
-	if (BlacklistedProperties.Num() > 0 && BlacklistedProperties.Contains(Property)) {
+	if (BlacklistedProperties.Contains(Property)) {
 		return false;
 	}
 	return true;
@@ -557,8 +555,6 @@ TSharedRef<FJsonValue> UPropertySerializer::SerializePropertyValueInner(FPropert
 	}
 
 	if (Property->IsA<FMulticastDelegateProperty>()) {
-		FMulticastScriptDelegate* MulticastScriptDelegate = (FMulticastScriptDelegate*)Value;
-
 		return MakeShareable(new FJsonValueString(TEXT("##NOT SERIALIZED##")));
 	}
 

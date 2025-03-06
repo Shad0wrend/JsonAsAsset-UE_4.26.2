@@ -1,7 +1,6 @@
 // Copyright JAA Contributors 2024-2025
 
 #include "Importers/Constructor/Graph/MaterialGraph.h"
-#include "Utilities/MathUtilities.h"
 #include "Styling/SlateIconFinder.h"
 
 // Expressions
@@ -124,9 +123,9 @@ void IMaterialGraph::PropagateExpressions(UObject* Parent, TArray<FName>& Expres
 		if (!CreatedExpressionMap.Contains(Name)) continue;
 		UMaterialExpression* Expression = *CreatedExpressionMap.Find(Name);
 
-		//	Used for Subgraphs:
-		//  | Checks if the outer is the same as the parent
-		//  | to determine if it's in a subgraph or not.
+		// Used for Subgraph:
+		// | Checks if the outer is the same as the parent
+		// | to determine if it's in a subgraph or not.
 		if (bCheckOuter) {
 			FString Outer;
 			if (Type->Json->TryGetStringField(TEXT("Outer"), Outer) && Outer != Parent->GetName()) // Not the same as parent
@@ -411,7 +410,7 @@ FExpressionInput IMaterialGraph::PopulateExpressionInput(const FJsonObject* Json
 			bool UseConstant;
 			if (JsonProperties->TryGetBoolField(TEXT("UseConstant"), UseConstant)) ColorInput->UseConstant = UseConstant;
 			const TSharedPtr<FJsonObject>* Constant;
-			if (JsonProperties->TryGetObjectField(TEXT("Constant"), Constant)) ColorInput->Constant = FMathUtilities::ObjectToLinearColor(Constant->Get()).ToFColor(true);
+			if (JsonProperties->TryGetObjectField(TEXT("Constant"), Constant)) ColorInput->Constant = ObjectToLinearColor(Constant->Get()).ToFColor(true);
 			Input = FExpressionInput(*ColorInput);
 		}
 	} else if (Type == "Scalar") {
@@ -431,7 +430,7 @@ FExpressionInput IMaterialGraph::PopulateExpressionInput(const FJsonObject* Json
 			bool UseConstant;
 			if (JsonProperties->TryGetBoolField(TEXT("UseConstant"), UseConstant)) VectorInput->UseConstant = UseConstant;
 			const TSharedPtr<FJsonObject>* Constant;
-			if (JsonProperties->TryGetObjectField(TEXT("Constant"), Constant)) VectorInput->Constant = FMathUtilities::ObjectToVector3f(Constant->Get());
+			if (JsonProperties->TryGetObjectField(TEXT("Constant"), Constant)) VectorInput->Constant = ObjectToVector3f(Constant->Get());
 			Input = FExpressionInput(*VectorInput);
 		}
 	}

@@ -2,7 +2,6 @@
 
 #include "Importers/Types/Materials/MaterialInstanceConstantImporter.h"
 #include "Materials/MaterialInstanceConstant.h"
-#include "Utilities/MathUtilities.h"
 #include "Dom/JsonObject.h"
 #include "RHIDefinitions.h"
 #include "MaterialShared.h"
@@ -94,7 +93,7 @@ bool IMaterialInstanceConstantImporter::Import() {
 		FVectorParameterValue Parameter;
 		Parameter.ExpressionGUID = FGuid(Vector->GetStringField(TEXT("ExpressionGUID")));
 
-		Parameter.ParameterValue = FMathUtilities::ObjectToLinearColor(Vector->GetObjectField(TEXT("ParameterValue")).Get());
+		Parameter.ParameterValue = ObjectToLinearColor(Vector->GetObjectField(TEXT("ParameterValue")).Get());
 
 		const TSharedPtr<FJsonObject>* ParameterInfoPtr;
 		

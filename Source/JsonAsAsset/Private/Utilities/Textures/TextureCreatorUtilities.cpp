@@ -10,7 +10,7 @@
 #include "nvimage/DirectDrawSurface.h"
 #include "nvimage/Image.h"
 #include "Utilities/EngineUtilities.h"
-#include "Utilities/MathUtilities.h"
+#include "Utilities/JsonUtilities.h"
 #include "Utilities/Textures/TextureDecode/TextureNVTT.h"
 
 bool FTextureCreatorUtilities::CreateTexture2D(UTexture*& OutTexture2D, TArray<uint8>& Data, const TSharedPtr<FJsonObject>& Properties) const {
@@ -190,7 +190,7 @@ bool FTextureCreatorUtilities::CreateRenderTarget2D(UTexture*& OutRenderTarget2D
 	}
 
 	const TSharedPtr<FJsonObject>* ClearColor;
-	if (Properties->TryGetObjectField(TEXT("ClearColor"), ClearColor)) RenderTarget2D->ClearColor = FMathUtilities::ObjectToLinearColor(ClearColor->Get());
+	if (Properties->TryGetObjectField(TEXT("ClearColor"), ClearColor)) RenderTarget2D->ClearColor = ObjectToLinearColor(ClearColor->Get());
 
 	if (RenderTarget2D) {
 		OutRenderTarget2D = RenderTarget2D;

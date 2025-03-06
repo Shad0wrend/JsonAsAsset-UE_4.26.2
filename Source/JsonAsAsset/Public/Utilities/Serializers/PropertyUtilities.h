@@ -88,6 +88,7 @@ class JSONASASSET_API UPropertySerializer : public UObject
 public:
 	UPropertySerializer();
 
+	UPROPERTY()
 	TMap<FString, UObject*> ReferencedObjects;
 	
 	TArray<FFailedPropertyInfo> FailedProperties;
@@ -100,8 +101,8 @@ public:
 	/** Checks whenever we should serialize property in question at all */
 	bool ShouldSerializeProperty(FProperty* Property) const;
 
-	TSharedRef<FJsonValue> SerializePropertyValue(FProperty* Property, const void* Value, TArray<int32>* OutReferencedSubobjects = NULL);
-	TSharedRef<FJsonObject> SerializeStruct(UScriptStruct* Struct, const void* Value, TArray<int32>* OutReferencedSubobjects = NULL);
+	TSharedRef<FJsonValue> SerializePropertyValue(FProperty* Property, const void* Value, TArray<int32>* OutReferencedSubobjects = nullptr);
+	TSharedRef<FJsonObject> SerializeStruct(UScriptStruct* Struct, const void* Value, TArray<int32>* OutReferencedSubobjects = nullptr);
 
 	void DeserializePropertyValue(FProperty* Property, const TSharedRef<FJsonValue>& Value, void* OutValue);
 	void DeserializeStruct(UScriptStruct* Struct, const TSharedRef<FJsonObject>& Value, void* OutValue);

@@ -54,14 +54,14 @@ UPackage* FAssetUtilities::CreateAssetPackage(const FString& Name, const FString
 		// Plugins/Folder/BaseTextures -> Folder/BaseTextures
 		if (bIsPlugin) {
 			FString PluginName = ModifiablePath;
-			FString RemaningPath;
+			FString RemainingPath;
 			// PluginName = TestName
-			// RemaningPath = SetupAssets/Materials
-			PluginName.Split("/Content/", &PluginName, &RemaningPath, ESearchCase::IgnoreCase, ESearchDir::FromStart);
+			// RemainingPath = SetupAssets/Materials
+			PluginName.Split("/Content/", &PluginName, &RemainingPath, ESearchCase::IgnoreCase, ESearchDir::FromStart);
 			PluginName.Split("/", nullptr, &PluginName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
 
 			// /CRP_Sunburst/SetupAssets/Materials
-			ModifiablePath = PluginName + "/" + RemaningPath;
+			ModifiablePath = PluginName + "/" + RemainingPath;
 		}
 		// Content/Athena -> Game/SecondaryFolder
 		else {
@@ -293,15 +293,15 @@ bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& 
 	// Save texture
 	if (Settings->AssetSettings.bSavePackagesOnImport)
 	{
+		const FString PackageName = Package->GetName();
+		const FString PackageFileName = FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension());
+#if ENGINE_MAJOR_VERSION >= 5
 		FSavePackageArgs SaveArgs;
 		{
 			SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
 			SaveArgs.SaveFlags = SAVE_NoError;
 		}
-
-		const FString PackageName = Package->GetName();
-		const FString PackageFileName = FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension());
-#if ENGINE_MAJOR_VERSION >= 5
+		
 		UPackage::SavePackage(Package, nullptr, *PackageFileName, SaveArgs);
 #else
 		UPackage::SavePackage(Package, nullptr, RF_Standalone, *PackageFileName);

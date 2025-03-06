@@ -44,7 +44,7 @@
 #include "Importers/Types/Tables/CurveTableImporter.h"
 
 #include "Importers/Types/Audio/SoundCueImporter.h"
-#include "Importers/Types/SkeletonImporter.h"
+#include "Importers/Types/Animation/SkeletonImporter.h"
 #include "Importers/Types/Niagara/NiagaraParameterCollectionImporter.h"
 #include "Importers/Types/DataAssetImporter.h"
 #include "Importers/Types/Physics/PhysicsAssetImporter.h"
@@ -74,6 +74,23 @@ IImporter::IImporter(const FString& FileName, const FString& FilePath,
 	PropertySerializer = NewObject<UPropertySerializer>();
 	GObjectSerializer = NewObject<UObjectSerializer>();
 	GObjectSerializer->SetPropertySerializer(PropertySerializer);
+	
+	// Make Properties if it doesn't exist
+	if (!JsonObject->HasField(TEXT("Properties"))) {
+		JsonObject->SetObjectField(TEXT("Properties"), TSharedPtr<FJsonObject>());
+	}
+
+	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
+
+	// Property MASH
+	for (FString& PropertyName : PropertyMash) {
+		if (JsonObject->HasField(PropertyName)) {
+			TSharedPtr<FJsonValue> FieldValue = JsonObject->TryGetField(PropertyName);
+			if (FieldValue.IsValid()) {
+				Properties->SetField(PropertyName, FieldValue);
+			}
+		}
+	}
 }
 
 // -----------------------------------------------------------------------------------------------

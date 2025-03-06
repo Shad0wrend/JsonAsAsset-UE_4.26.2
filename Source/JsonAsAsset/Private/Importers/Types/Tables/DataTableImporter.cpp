@@ -1,9 +1,8 @@
 ﻿// Copyright JAA Contributors 2024-2025
 
 #include "Importers/Types/Tables/DataTableImporter.h"
-#include "Dom/JsonObject.h"
 
-// Shout-out to UEAssetToolkit
+/* Shout-out to UEAssetToolkit */
 bool IDataTableImporter::Import() {
 	TSharedPtr<FJsonObject> AssetData = JsonObject->GetObjectField(TEXT("Properties"));
 	UDataTable* DataTable = NewObject<UDataTable>(Package, UDataTable::StaticClass(), *FileName, RF_Public | RF_Standalone);
@@ -21,7 +20,7 @@ bool IDataTableImporter::Import() {
 	// Find Table Row Struct
 	UScriptStruct* TableRowStruct = FindObject<UScriptStruct>(ANY_PACKAGE, *TableStruct); {
 		if (TableRowStruct == NULL) {
-			AppendNotification(FText::FromString("DataTable Missing: " + TableStruct), FText::FromString(FileName), 2.0f, SNotificationItem::CS_Fail, true, 350.0f);
+			AppendNotification(FText::FromString("DataTable Struct Missing: " + TableStruct), FText::FromString("You need the parent's data table structure defined exactly where it's supposed to."), 2.0f, SNotificationItem::CS_Fail, true, 350.0f);
 
 			return false;
 		} else {
@@ -40,7 +39,7 @@ bool IDataTableImporter::Import() {
 
 		// Deserialize, add row
 		ObjectPropertySerializer->DeserializeStruct(TableRowStruct, StructData.ToSharedRef(), ScopedStruct->GetStructMemory());
-		DataTable->AddRow(*Pair.Key, *(const FTableRowBase*)ScopedStruct->GetStructMemory());
+		DataTable->AddRow(*Pair.Key, *reinterpret_cast<const FTableRowBase*>(ScopedStruct->GetStructMemory()));
 	}
 
 	// Handle edit changes, and add it to the content browser

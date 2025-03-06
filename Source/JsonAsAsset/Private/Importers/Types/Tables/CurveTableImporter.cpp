@@ -37,7 +37,7 @@ bool ICurveTableImporter::Import() {
 
 		if (CurveTableMode == ECurveTableMode::RichCurves) {
 			FRichCurve& NewRichCurve = CurveTable->AddRichCurve(FName(*Pair.Key)); {
-				RealCurve = NewRichCurve;
+				RealCurve = static_cast<FRealCurve>(NewRichCurve);
 			}
 
 			const TArray<TSharedPtr<FJsonValue>>* KeysPtr;
@@ -68,7 +68,7 @@ bool ICurveTableImporter::Import() {
 				}
 		} else {
 			FSimpleCurve& NewSimpleCurve = CurveTable->AddSimpleCurve(FName(*Pair.Key)); {
-				RealCurve = NewSimpleCurve;
+				RealCurve = static_cast<FRealCurve>(NewSimpleCurve);
 			}
 
 			// Method of Interpolation

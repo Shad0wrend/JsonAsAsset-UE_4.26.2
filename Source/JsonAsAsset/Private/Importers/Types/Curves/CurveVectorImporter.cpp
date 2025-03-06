@@ -1,7 +1,6 @@
 ﻿// Copyright JAA Contributors 2024-2025
 
 #include "Importers/Types/Curves/CurveVectorImporter.h"
-#include "Utilities/MathUtilities.h"
 #include "Factories/CurveFactory.h"
 #include "Curves/CurveVector.h"
 
@@ -19,7 +18,7 @@ bool ICurveVectorImporter::Import() {
 
 		// add keys to array
 		for (int j = 0; j < Keys.Num(); j++) {
-			CurveVectorAsset->FloatCurves[i].Keys.Add(FMathUtilities::ObjectToRichCurveKey(Keys[j]->AsObject()));
+			CurveVectorAsset->FloatCurves[i].Keys.Add(ObjectToRichCurveKey(Keys[j]->AsObject()));
 		}
 	}
 

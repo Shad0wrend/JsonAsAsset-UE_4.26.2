@@ -6,24 +6,6 @@
 
 #include "Utilities/EngineUtilities.h"
 
-USkeletalBodySetup* IPhysicsAssetImporter::CreateNewBody(UPhysicsAsset* PhysAsset, FName ExportName, FName BoneName)
-{
-	USkeletalBodySetup* NewBodySetup = NewObject<USkeletalBodySetup>(PhysAsset, ExportName, RF_Transactional);
-	NewBodySetup->BoneName = BoneName;
-
-	PhysAsset->SkeletalBodySetups.Add(NewBodySetup);
-
-	return NewBodySetup;
-}
-
-UPhysicsConstraintTemplate* IPhysicsAssetImporter::CreateNewConstraint(UPhysicsAsset* PhysAsset, FName ExportName)
-{
-	UPhysicsConstraintTemplate* NewConstraintSetup = NewObject<UPhysicsConstraintTemplate>(PhysAsset, ExportName, RF_Transactional);
-	PhysAsset->ConstraintSetup.Add(NewConstraintSetup);
-
-	return NewConstraintSetup;
-}
-
 bool IPhysicsAssetImporter::Import()
 {
 	UPhysicsAsset* PhysicsAsset = NewObject<UPhysicsAsset>(Package, UPhysicsAsset::StaticClass(), *FileName, RF_Public | RF_Standalone);
@@ -103,4 +85,22 @@ bool IPhysicsAssetImporter::Import()
 	PhysicsAsset->UpdateBoundsBodiesArray();
 	
 	return OnAssetCreation(PhysicsAsset);
+}
+
+USkeletalBodySetup* IPhysicsAssetImporter::CreateNewBody(UPhysicsAsset* PhysAsset, FName ExportName, FName BoneName)
+{
+	USkeletalBodySetup* NewBodySetup = NewObject<USkeletalBodySetup>(PhysAsset, ExportName, RF_Transactional);
+	NewBodySetup->BoneName = BoneName;
+
+	PhysAsset->SkeletalBodySetups.Add(NewBodySetup);
+
+	return NewBodySetup;
+}
+
+UPhysicsConstraintTemplate* IPhysicsAssetImporter::CreateNewConstraint(UPhysicsAsset* PhysAsset, FName ExportName)
+{
+	UPhysicsConstraintTemplate* NewConstraintSetup = NewObject<UPhysicsConstraintTemplate>(PhysAsset, ExportName, RF_Transactional);
+	PhysAsset->ConstraintSetup.Add(NewConstraintSetup);
+
+	return NewConstraintSetup;
 }
