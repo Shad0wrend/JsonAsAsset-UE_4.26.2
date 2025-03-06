@@ -675,6 +675,13 @@ void FJsonAsAssetModule::ImportConvexCollision() const
 			FString JsonFileName = StaticMeshName + ".json";
 			FString JsonFilePath = OutFolderNames[0] / JsonFileName;
 
+			UBodySetup* BodySetup = nullptr;
+#if !(ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27)
+			BodySetup = StaticMesh->GetBodySetup();
+#else
+			BodySetup = StaticMesh->BodySetup;
+#endif
+
 			if (FPaths::FileExists(JsonFilePath)) {
 				UE_LOG(LogTemp, Log, TEXT("Found JSON file for Static Mesh: %s"), *JsonFilePath);
 
@@ -711,10 +718,10 @@ void FJsonAsAssetModule::ImportConvexCollision() const
 										if (AggGeomObject.IsValid()) {
 											FKAggregateGeom AggGeom;
 
-											GObjectSerializer->DeserializeObjectProperties(PropertiesObject, StaticMesh->GetBodySetup());
-											StaticMesh->GetBodySetup()->CollisionTraceFlag = ECollisionTraceFlag::CTF_UseDefault;
+											GObjectSerializer->DeserializeObjectProperties(PropertiesObject, BodySetup);
+											BodySetup->CollisionTraceFlag = ECollisionTraceFlag::CTF_UseDefault;
 											StaticMesh->MarkPackageDirty();
-											StaticMesh->GetBodySetup()->PostEditChange();
+											BodySetup->PostEditChange();
 											StaticMesh->Modify(true);
 
 											// Notification
@@ -737,11 +744,11 @@ void FJsonAsAssetModule::ImportConvexCollision() const
 			}
 
 			// Notify the editor about the changes
-			StaticMesh->GetBodySetup()->InvalidatePhysicsData();
-			StaticMesh->GetBodySetup()->CreatePhysicsMeshes();
+			BodySetup->InvalidatePhysicsData();
+			BodySetup->CreatePhysicsMeshes();
 
 			StaticMesh->MarkPackageDirty();
-			StaticMesh->GetBodySetup()->PostEditChange();
+			BodySetup->PostEditChange();
 			StaticMesh->PostLoad();
 		}
 	}

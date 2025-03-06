@@ -15,6 +15,10 @@
 #include "TlHelp32.h"
 #include "Json.h"
 
+#if (ENGINE_MAJOR_VERSION != 4 || ENGINE_MINOR_VERSION < 27)
+#include "Engine/DeveloperSettings.h"
+#endif
+
 inline bool HandlePackageCreation(UObject* Asset, UPackage* Package) {
 	FAssetRegistryModule::AssetCreated(Asset);
 	if (!Asset->MarkPackageDirty()) return false;

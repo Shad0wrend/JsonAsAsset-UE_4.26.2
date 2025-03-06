@@ -46,10 +46,13 @@ bool ICurveLinearColorAtlasImporter::Import() {
 	}
 
 	bool bSquareResolution = false;
+
+#if !(ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27)
 	if (Properties->TryGetBoolField(TEXT("bSquareResolution"), bSquareResolution))
 	{
 		Object->bSquareResolution = bSquareResolution;
 	}
+#endif
 
 #if ENGINE_MAJOR_VERSION == 5
 	float TextureSize = 0.0f;
@@ -64,10 +67,12 @@ bool ICurveLinearColorAtlasImporter::Import() {
 		Object->TextureSize = TextureSize;
 	}
 
+#if !(ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27)
 	if (Properties->TryGetNumberField(TEXT("TextureHeight"), TextureHeight))
 	{
 		Object->TextureHeight = TextureHeight;
 	}
+#endif
 
 	FProperty* TextureSizeProperty = FindFProperty<FProperty>(Object->GetClass(), "TextureSize");
 	FPropertyChangedEvent TextureSizePropertyPropertyChangedEvent(TextureSizeProperty, EPropertyChangeType::ValueSet);
