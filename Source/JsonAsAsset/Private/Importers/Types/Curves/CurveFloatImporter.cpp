@@ -5,8 +5,10 @@
 #include "Dom/JsonObject.h"
 
 bool ICurveFloatImporter::Import() {
+	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
+
 	// Quick way to access the curve keys
-	TArray<TSharedPtr<FJsonValue>> Keys = JsonObject->GetObjectField(TEXT("Properties"))->GetObjectField(TEXT("FloatCurve"))->GetArrayField(TEXT("Keys"));
+	TArray<TSharedPtr<FJsonValue>> Keys = Properties->GetObjectField(TEXT("FloatCurve"))->GetArrayField(TEXT("Keys"));
 
 	UCurveFloatFactory* CurveFactory = NewObject<UCurveFloatFactory>();
 	UCurveFloat* CurveAsset = Cast<UCurveFloat>(CurveFactory->FactoryCreateNew(UCurveFloat::StaticClass(), OutermostPkg, *FileName, RF_Standalone | RF_Public, nullptr, GWarn));

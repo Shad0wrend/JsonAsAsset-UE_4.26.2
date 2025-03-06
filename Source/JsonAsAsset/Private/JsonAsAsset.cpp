@@ -68,21 +68,22 @@ void FJsonAsAssetModule::PluginButtonClicked() {
 		SavePluginConfig(Settings);
 	}
 
-	bool bIsLocalHost = Settings->LocalFetchUrl.StartsWith("http://localhost");
+	if (Settings->bEnableLocalFetch) {
+		TSharedPtr<SNotificationItem> NotificationItem = LocalFetchNotificationPtr.Pin();
 
-	if (Settings->bEnableLocalFetch && !IsProcessRunning("LocalFetch.exe") && bIsLocalHost) {
-		bool LocalFetchStarted = LocalFetchModule::LaunchLocalFetch();
+		if (NotificationItem.IsValid()) {
+			NotificationItem->SetFadeOutDuration(0.001);
+			NotificationItem->Fadeout();
+			LocalFetchNotificationPtr.Reset();
+		}
 
-		if (!LocalFetchStarted) {
-			TSharedPtr<SNotificationItem> NotificationItem = LocalFetchNotificationPtr.Pin();
+		bool bIsLocalHost = Settings->LocalFetchUrl.StartsWith("http://localhost");
 
-			if (NotificationItem.IsValid()) {
-				NotificationItem->SetFadeOutDuration(0.001);
-				NotificationItem->Fadeout();
-				LocalFetchNotificationPtr.Reset();
-			}
+		if (bIsLocalHost && !IsProcessRunning("LocalFetch.exe"))
+		{
+			bool bLocalFetchLaunched = LocalFetchModule::LaunchLocalFetch();
 
-			if (!IsProcessRunning("LocalFetch.exe") && bIsLocalHost) {
+			if (!bLocalFetchLaunched) {
 				FNotificationInfo Info(LOCTEXT("JsonAsAssetNotificationTitle", "Local Fetch API Required"));
 #if ENGINE_MAJOR_VERSION >= 5
 				Info.SubText = LOCTEXT("JsonAsAssetNotificationText",
@@ -124,7 +125,7 @@ void FJsonAsAssetModule::PluginButtonClicked() {
 				LocalFetchNotificationPtr.Pin()->SetCompletionState(SNotificationItem::CS_Pending);
 
 				return;
-			}
+			}	
 		}
 	}
 

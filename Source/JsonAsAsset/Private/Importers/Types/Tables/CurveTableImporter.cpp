@@ -14,7 +14,9 @@ void CCurveTableDerived::ChangeTableMode(ECurveTableMode Mode) {
 }
 
 bool ICurveTableImporter::Import() {
-	TSharedPtr<FJsonObject> RowData = JsonObject->GetObjectField(TEXT("Rows"));
+	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
+
+	TSharedPtr<FJsonObject> RowData = Properties->GetObjectField(TEXT("Rows"));
 	UCurveTable* CurveTable = NewObject<UCurveTable>(Package, UCurveTable::StaticClass(), *FileName, RF_Public | RF_Standalone);
 	CCurveTableDerived* DerivedCurveTable = Cast<CCurveTableDerived>(CurveTable);
 
@@ -22,7 +24,7 @@ bool ICurveTableImporter::Import() {
 	ECurveTableMode CurveTableMode = ECurveTableMode::RichCurves; {
 		FString CurveMode;
 		
-		if (JsonObject->TryGetStringField(TEXT("CurveTableMode"), CurveMode))
+		if (Properties->TryGetStringField(TEXT("CurveTableMode"), CurveMode))
 			CurveTableMode = static_cast<ECurveTableMode>(StaticEnum<ECurveTableMode>()->GetValueByNameString(CurveMode));
 
 		DerivedCurveTable->ChangeTableMode(CurveTableMode);

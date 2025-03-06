@@ -36,20 +36,6 @@ protected:
     UPackage* Package;
     UPackage* OutermostPkg;
 
-    /*
-     * We mash these properties back into the properties object if needed
-     * [basically when CUE4Parse doesn't format it properly]
-     */
-    TArray<FString> PropertyMash = {
-        "ChildClasses",
-        "Guid",
-        "NameMappings",
-        "ReferenceSkeleton",
-        "FinalRefBonePose",
-        "AnimRetargetSources",
-        "NameMappings"
-    };
-
     /* ----------------------------------------------------------------------------------- */
     
 public:

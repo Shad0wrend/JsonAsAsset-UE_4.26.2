@@ -82,13 +82,18 @@ IImporter::IImporter(const FString& FileName, const FString& FilePath,
 
 	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
 
-	// Property MASH
-	for (FString& PropertyName : PropertyMash) {
-		if (JsonObject->HasField(PropertyName)) {
-			TSharedPtr<FJsonValue> FieldValue = JsonObject->TryGetField(PropertyName);
-			if (FieldValue.IsValid()) {
-				Properties->SetField(PropertyName, FieldValue);
-			}
+	// Move asset properties defined outside "Properties" and move it inside
+	for (const auto& Pair : JsonObject->Values)
+	{
+		const FString& PropertyName = Pair.Key;
+    
+		if (!PropertyName.Equals(TEXT("Type")) &&
+			!PropertyName.Equals(TEXT("Name")) &&
+			!PropertyName.Equals(TEXT("Class")) &&
+			!PropertyName.Equals(TEXT("Flags")) &&
+			!PropertyName.Equals(TEXT("Properties")))
+		{
+			Properties->SetField(PropertyName, Pair.Value);
 		}
 	}
 }

@@ -6,8 +6,9 @@
 #include "UObject/SavePackage.h"
 
 bool ICurveLinearColorImporter::Import() {
-	// Array of containers
-	TArray<TSharedPtr<FJsonValue>> FloatCurves = JsonObject->GetArrayField(TEXT("FloatCurves"));
+	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
+
+	TArray<TSharedPtr<FJsonValue>> FloatCurves = Properties->GetArrayField(TEXT("FloatCurves"));
 
 	UCurveLinearColorFactory* CurveFactory = NewObject<UCurveLinearColorFactory>();
 	UCurveLinearColor* LinearCurveAsset = Cast<UCurveLinearColor>(CurveFactory->FactoryCreateNew(UCurveLinearColor::StaticClass(), OutermostPkg, *FileName, RF_Standalone | RF_Public, nullptr, GWarn));

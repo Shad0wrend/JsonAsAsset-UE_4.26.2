@@ -8,9 +8,17 @@
 
 bool IPhysicsAssetImporter::Import()
 {
+	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
+
+	/* CollisionDisableTable is required to port physics assets */
+	if (!Properties->HasField(TEXT("CollisionDisableTable"))) {
+		SpawnPrompt("Missing CollisionDisableTable", "The provided physics asset json file is missing the 'CollisionDisableTable' property. This property is required.\n\nPlease use the FModel available on JsonAsAsset's Discord Server to correctly import the physics asset.");
+
+		return false;
+	}
+
 	UPhysicsAsset* PhysicsAsset = NewObject<UPhysicsAsset>(Package, UPhysicsAsset::StaticClass(), *FileName, RF_Public | RF_Standalone);
 
-	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
 	TMap<FName, FExportData> Exports = CreateExports();
 	
 	/* SkeletalBodySetups ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -31,7 +39,7 @@ bool IPhysicsAssetImporter::Import()
 	PhysicsAsset->UpdateBoundsBodiesArray();
 
 	/* CollisionDisableTable ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	TArray<TSharedPtr<FJsonValue>> CollisionDisableTable = JsonObject->GetArrayField(TEXT("CollisionDisableTable"));
+	TArray<TSharedPtr<FJsonValue>> CollisionDisableTable = Properties->GetArrayField(TEXT("CollisionDisableTable"));
 
 	for (const TSharedPtr<FJsonValue> TableJSONElement : CollisionDisableTable)
 	{
@@ -67,7 +75,8 @@ bool IPhysicsAssetImporter::Import()
 		"SkeletalBodySetups",
 		"ConstraintSetup",
 		"BoundsBodies",
-		"ThumbnailInfo"
+		"ThumbnailInfo",
+		"CollisionDisableTable"
 	}), PhysicsAsset);
 
 	/* If the user selected a skeletal mesh in the browser, set it in the physics asset */

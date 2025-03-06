@@ -5,8 +5,10 @@
 #include "Curves/CurveVector.h"
 
 bool ICurveVectorImporter::Import() {
+	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
+
 	// Array of containers
-	TArray<TSharedPtr<FJsonValue>> FloatCurves = JsonObject->GetArrayField(TEXT("FloatCurves"));
+	TArray<TSharedPtr<FJsonValue>> FloatCurves = Properties->GetArrayField(TEXT("FloatCurves"));
 
 	UCurveVectorFactory* CurveVectorFactory = NewObject<UCurveVectorFactory>();
 	UCurveVector* CurveVectorAsset = Cast<UCurveVector>(CurveVectorFactory->FactoryCreateNew(UCurveVector::StaticClass(), OutermostPkg, *FileName, RF_Standalone | RF_Public, nullptr, GWarn));
