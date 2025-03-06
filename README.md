@@ -16,6 +16,7 @@ A user friendly plugin for [Unreal Engine](https://www.unrealengine.com/en-US) t
 ### Example Use:
 
 - Porting **materials**, data assets, data tables *[(see more here)](#intro)*
+- Porting **physics assets** for skeletal meshes
 - Porting **sound effects** to Unreal Engine
 - Automating the porting process for users
 
