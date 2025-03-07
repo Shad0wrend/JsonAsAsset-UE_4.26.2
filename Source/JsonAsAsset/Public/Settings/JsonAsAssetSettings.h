@@ -133,33 +133,36 @@ public:
 	bool bEnableLocalFetch;
 
 	/**
-	 * Specifies the directory path to the Paks folder
+	 * Specific Paks folder of your game
 	 */
 	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Configuration", meta=(EditCondition="bEnableLocalFetch"))
 	FDirectoryPath ArchiveDirectory;
 
-	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Configuration", meta=(EditCondition="bEnableLocalFetch"))
+	/**
+	 * Unreal Engine version that your game is running
+	 */
+	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Configuration", meta=(EditCondition="bEnableLocalFetch", DisplayName="Unreal Engine"))
 	TEnumAsByte<ECUE4ParseVersion> UnrealVersion;
 
 	/**
-	 * Specifies the file path to the mappings file.
+	 * Specifies the file path to your mappings file
 	 */
-	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Configuration", meta=(EditCondition="bEnableLocalFetch", FilePathFilter="usmap", RelativeToGameDir))
+	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Configuration", meta=(EditCondition="bEnableLocalFetch", FilePathFilter="usmap", RelativeToGameDir, DisplayName="Mappings File .usmap"))
 	FFilePath MappingFilePath;
 
 	/**
-	 * Specifies the main archive key used for decrypting encrypted game files.
+	 * Specifies the main encryption key used for decrypting encrypted game files.
 	 *
 	 * Default value:
 	 *   AES Key: 0x00000000000000000000000000000000000000000000000000000000000
 	 *
 	 * Note: This key is optional for most Unreal Engine games. Override it only if your build uses encryption.
 	 */
-	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Encryption", meta=(EditCondition="bEnableLocalFetch", DisplayName="Archive Key"))
+	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Encryption", meta=(EditCondition="bEnableLocalFetch", DisplayName="Encryption Key"))
 	FString ArchiveKey = "0x00000000000000000000000000000000000000000000000000000000000";
 
 	/**
-	 * Specifies additional archive keys used for decrypting encrypted game files.
+	 * Specifies additional encryption keys used for decrypting encrypted game files.
 	 *
 	 * Note: These keys are optional for most Unreal Engine games. Override them only if your build uses encryption.
 	 */
