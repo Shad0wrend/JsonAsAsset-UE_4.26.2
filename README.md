@@ -29,9 +29,9 @@ The goal of this project is to simplify the process for the porting and modding 
 <br> 
 
 > 1. [Introduction to JsonAsAsset](#intro)
-> 1. [Installation](#install)  
->    2.1 [Setup FModel](#setup-fmodel)  
->    2.2 [Setup Settings](#setup-settings)  
+> 2. [Installation](#install)  
+>    2.1 [FModel](#setup-fmodel)  
+>    2.2 [Settings](#setup-settings)
 > 3. [Local Fetch](#local-fetch)  
 >    3.1 [Setup Local Fetch Settings](#setup-local-fetch)  
 >    3.2 [Launching Local Fetch](#launch-local-fetch)  
@@ -40,7 +40,7 @@ The goal of this project is to simplify the process for the porting and modding 
 <br> 
 
 > - [Common Errors 🐛](#common-errors)
-> - [Licensing 📜](#licensing)
+> - [Licensing 📗](#licensing)
 
 -----------------
 
@@ -306,6 +306,6 @@ Thanks go to these wonderful people:
 #### [Would you like to contribute?](https://github.com/JsonAsAsset/JsonAsAsset/blob/main/Source/README.md#key-information-for-contributors-)
 
 <a name="licensing"></a>
-#### Licensing 📜
+#### Licensing 📗
 
 JsonAsAsset is licensed under the MIT License, read more in the [LICENSE](https://github.com/JsonAsAsset/JsonAsAsset/blob/main/LICENSE) file. The plugin also uses [Detex](https://github.com/hglm/detex) and [NVIDIA Texture Tools](https://docs.nvidia.com/texture-tools/index.html).
