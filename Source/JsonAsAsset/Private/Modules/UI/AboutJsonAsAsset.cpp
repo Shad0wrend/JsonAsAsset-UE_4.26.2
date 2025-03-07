@@ -91,7 +91,7 @@ void SAboutJsonAsAsset::Construct(const FArguments& InArgs) {
 									SAssignNew(FModelButton, SButton)
 										.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 										.OnClicked(this, &SAboutJsonAsAsset::OnFModelButtonClicked)
-										.ContentPadding(0.f).ToolTipText(LOCTEXT("FModelButton", "FModel Application"))
+										.ContentPadding(0.f).ToolTipText(LOCTEXT("FModelButton", "FModel"))
 										[
 											SNew(SImage)
 												.Image(FJsonAsAssetStyle::Get().GetBrush(TEXT("JsonAsAsset.FModel.Icon")))
@@ -108,7 +108,7 @@ void SAboutJsonAsAsset::Construct(const FArguments& InArgs) {
 									SAssignNew(GithubButton, SButton)
 										.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 										.OnClicked(this, &SAboutJsonAsAsset::OnGithubButtonClicked)
-										.ContentPadding(0.f).ToolTipText(LOCTEXT("GithubButton", "JsonAsAsset Github Page"))
+										.ContentPadding(0.f).ToolTipText(LOCTEXT("GithubButton", "Github"))
 										[
 											SNew(SImage)
 												.Image(FJsonAsAssetStyle::Get().GetBrush(TEXT("JsonAsAsset.Github.Icon")))
