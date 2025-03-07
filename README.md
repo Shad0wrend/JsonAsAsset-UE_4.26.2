@@ -164,7 +164,7 @@ You can automatically have your AES Keys changed if your game has a API ran by s
 
 ------------
 
-###### Launching Local Fetch
+#### 3.1 Launching Local Fetch
 
 <img align="right" width="240" height="145" src=https://github.com/user-attachments/assets/290b8ea3-6777-443f-bacf-b8df5738ec8f>
 
@@ -181,7 +181,7 @@ Make sure to keep this window open until you are done with JsonAsAsset.
 -----------------------
 
 <a name="common-errors"></a>
-#### Common Errors 🐛
+## Common Errors 🐛
 
 <details>
   <summary>Attempted to create a package with name containing double slashes. PackageName: ...</summary>
@@ -212,11 +212,11 @@ This is a known issue in our code that we haven't fully resolved yet. While prev
 
 There may be a few reasons why the application automatically closes, but mostly the issue stems from something missing:
 
-### 1. Your settings are wrong, and need modifications
-> If you don't have anything in the settings, how is it gonna execute correctly? Make sure all the information about your game is set in the settings.
+### 1. Your settings aren't correct, and need modifications
+> Make sure all the information about your game is set in the settings.
 
 ### 2. ASP.NET 8.0 not installed
-> Running the API requires ASP.NET 8.0 to be installed, please install this [here](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-aspnetcore-8.0.2-windows-x64-installer).
+> Running the API requires ASP.NET 8.0 to be installed, please install this [here](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-aspnetcore-8.0.1-windows-x64-installer).
 
 </details>
 
