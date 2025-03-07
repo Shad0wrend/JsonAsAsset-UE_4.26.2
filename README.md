@@ -16,7 +16,7 @@ A user friendly plugin for [Unreal Engine](https://www.unrealengine.com/en-US) t
 
 ### Example Use:
 
-- Porting **materials**, data assets, data tables *[(see more here)](#intro)*
+- Porting **materials**, data assets, data tables *[(see more here)](#introduction)*
 - Porting **physics assets** for skeletal meshes
 - Porting **sound effects** to Unreal Engine
 - Automating the porting process for users
@@ -28,13 +28,14 @@ The goal of this project is to simplify the process for the porting and modding 
 **Table of Contents**:
 <br> 
 
-> 1. [Introduction to JsonAsAsset](#intro)
-> 2. [Installation](#install)  
+> 1. [Introduction to JsonAsAsset](#introduction)
+> 2. [→ Installation](#install)  
 >    2.1 [FModel](#setup-fmodel)  
 >    2.2 [Settings](#setup-settings)
-> 3. [Local Fetch](#local-fetch)  
->    3.1 [Setup Local Fetch Settings](#setup-local-fetch)  
->    3.2 [Launching Local Fetch](#launch-local-fetch)  
+> 3. [→ Using JsonAsAsset](#plugin-usage)
+> 4. [Local Fetch](#local-fetch)  
+>    4.1 [Setup Local Fetch Settings](#setup-local-fetch)  
+>    4.2 [Launching Local Fetch](#launch-local-fetch)  
 
 **Extras**:
 <br> 
@@ -44,9 +45,9 @@ The goal of this project is to simplify the process for the porting and modding 
 
 -----------------
 
-<a name="intro"></a>
+<a name="introduction"></a>
 ## 1. Introduction to JsonAsAsset
-> [!NOTE]
+> [!WARNING]
 > Please note that this plugin is intended solely for **personal and educational use**. Do not use it to create or distribute **commercial products** without obtaining the necessary **licenses and permissions**. It is important to respect **intellectual property rights** and only use assets that you are **authorized to use**. We do not assume any responsibility for the way the created content is used.
 
 JsonAsAsset is a user-friendly Unreal Engine plugin for importing assets from packaged games using JSON files. With a sleek interface, it simplifies mapping JSON data to Unreal Engine structures, supporting both manual and automated workflows.
@@ -82,7 +83,7 @@ Most/all sound classes are supported, however, SoundWave is handled manually in 
  - PhysicsAsset
 
 ###### Data Asset Types
-If your game uses custom C++ classes or C++ structures, you need to have them defined to import them using JsonAsAsset. Either create them manually from SDKs, or automate them. [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects)
+**NOTE:** If your game uses custom C++ classes or structures, you need to define them to import via JsonAsAsset (create them manually from SDKs or automate them). See [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects) for game-specific template projects.
 - DataAsset
 - DataTable
 
@@ -94,8 +95,8 @@ If your game uses custom C++ classes or C++ structures, you need to have them de
 
 <a name="install"></a>
 ## 2. Installation
-> [!WARNING]
-> JsonAsAsset may not work with every Unreal Engine 5 version. Please check the [Releases page](/../../releases) for compatibility details.
+> [!NOTE]
+> JsonAsAsset may not work with every Unreal Engine version. Please check the [Releases page](/../../releases) for compatibility details.
 
 Follow these steps to install **JsonAsAsset**:
 
@@ -109,13 +110,13 @@ Follow these steps to install **JsonAsAsset**:
 7. **Open Your Project**  
    Launch your Unreal Engine project.
 8. **Access the Plugins Window:**  
-   Navigate to **Edit → Plugins**.
+   Navigate to **Edit → Plugins**. <img align="right" width="387.4" height="75.4" src=https://github.com/user-attachments/assets/c0867324-5129-49e4-9f9c-9804c93cdf73>
 10. **Enable JsonAsAsset:**  
    In the Plugins window, search for `JsonAsAsset` and enable it.
 11. **Restart the Editor:**  
    Restart the Unreal Engine editor to apply the changes.
 
--------------------
+--------------------
 
 <a name="setup-fmodel"></a>
 #### 2.1 Setup FModel
@@ -143,64 +144,61 @@ The JSON format/file has to be from a program that fits the format of FModel's J
    
    If not, copy your export directory from FModel.
 
--------------------
+----------
 
-That’s the basic setup! To bulk import assets and **what they reference**, you must set up [`Local Fetch`](#setup-local-fetch)!
+That’s the basic setup! Here's how to use JsonAsAsset.
+
+<a name="plugin-usage"></a>
+##### Using JsonAsAsset
+
+1. Find a asset in [FModel](https://fmodel.app), and save it by right clicking and pressing `Save Properties`. Locate the file on your computer and copy the location.
+
+2. Press onto the [JsonAsAsset](https://github.com/JsonAsAsset/JsonAsAsset) button on your tool-bar, and a file import should pop-up. <img align="right" width="220" height="98" src=https://github.com/user-attachments/assets/514d7661-f2f6-4343-8c9c-ed875ddb5156>
+
+3. Paste in the file's path, select the file and press open.
+
+4. The asset will import, and bring you to the created asset in the content browser. (if the asset type is supported)
+
+To bulk import assets and **what they reference**, you must set up [`Local Fetch`](#setup-local-fetch)!
 
 <a name="local-fetch"></a>
-## 3. Local Fetch
+## 4. Local Fetch
 
-Local Fetch is a way to automate importing assets that other assets reference, for example, porting SoundClasses will port the parent class and submixes if needed. Local Fetch in the techinal aspect is a API that hosts a CUE4Parse Provider as localhost.
+[Local Fetch](https://github.com/JsonAsAsset/LocalFetch) is a way to automate importing assets that other assets reference, built into JsonAsAsset. Learn how to [set up Local Fetch](#setup-local-fetch).
 
 <details>
-  <summary>Supported Local Fetch Asset Types</summary>
+  <summary>Supported Asset Types</summary>
 
-###### Sound Classes
-Most/all sound classes are supported, however, SoundWave is handled manually in SoundCue.
+<br>
 
-###### Materials
- - Material
- - MaterialFunction
- - MaterialParameterCollection
- - PhysicalMaterial
- - SubsurfaceProfile
+| **Category**                   | **Items / Description**                                                                                                                                                                                                                                                                                                                                                                                   |
+|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Sound Classes                  | Most/all sound classes are supported.                                                                                                                                                                                                                                                                                                             |
+| Materials                      | Material, MaterialFunction, MaterialParameterCollection, PhysicalMaterial, SubsurfaceProfile                                                                                                                                                                                                                                                                                                               |
+| Material Data                  | Unreal Engine games made below 4.12 (a guess) will have material data; games made above that version will not have any material data (the data is stripped and cannot be imported) unless you are using a User Generated Content editor, in which case the material data may be present.                                                                                                                 |
+| Curve Asset Types              | CurveFloat, CurveTable, CurveVector, CurveLinearColor, CurveLinearColorAtlas                                                                                                                                                                                                                                                                                                                               |
+| Skeleton/Animation Asset Types | SkeletalMeshLODSettings                                                                                                                                                                                                                                                                                                                                                                                   |
+| Data Asset Types               | DataAsset, DataTable.  |
+| Landscape                      | LandscapeGrassType, PhysicalMaterial                                                                                                                                                                                                                                                                                                                                                                      |
 
-**Material Data**:
-<br> Unreal Engine games made below 4.12 (a guess) will have material data, any games made above that version will most definitely not have any material data, and therefore the actual data will be stripped and cannot be imported. **Unless** you are using a User Generated Content editor, then it's possible the material data will be there.
-  
-###### Curve Asset Types
- - CurveFloat
- - CurveTable
- - CurveVector
- - CurveLinearColor
- - CurveLinearColorAtlas
-
-###### Skeleton/Animation Asset Types
- - SkeletalMeshLODSettings
-
-###### Data Asset Types
-If your game uses custom C++ classes or C++ structures, you need to have them defined to import them using JsonAsAsset. Either create them manually from SDKs, or automate them. [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects)
-- DataAsset
-- DataTable
-
-###### Landscape
-- LandscapeGrassType
-- PhysicalMaterial
+**NOTE:** If your game uses custom C++ classes or structures, you need to define them to import via JsonAsAsset (create them manually from SDKs or automate them). See [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects) for game-specific template projects.
 
 </details>
 
-------------
+------------------------
 
 <a name="setup-local-fetch"></a>
-#### 3.1 Local Fetch Settings
+#### 4.1 Local Fetch Settings
 
 1. **Open Plugin Settings:**  
    Click on the JsonAsAsset dropdown, then select Open Plugin Settings.
    
 3. **Enable Local Fetch:**  
    Locate the property **Enable Local Fetch** and turn it on.
+    <img align="right" width="452" height="84" src=https://github.com/user-attachments/assets/1747162c-81df-442c-a6ce-d88e563a4ca2>
 
 4. **Setup Local Fetch's Settings:**  
+    Make sure to set these in your settings:
    - **Archive Directory**: specific Paks folder of your game
    - **Unreal Engine**: version that your game is running
    - **Mappings File**: file path to your mappings file
@@ -212,7 +210,7 @@ You can automatically have your AES Keys changed if your game has a API ran by s
 ------------
 
 <a name="launch-local-fetch"></a>
-#### 3.2 Launch Local Fetch
+#### 4.2 Launch Local Fetch
 
 <img align="right" width="240" height="145" src=https://github.com/user-attachments/assets/290b8ea3-6777-443f-bacf-b8df5738ec8f>
 
@@ -300,7 +298,7 @@ Thanks go to these wonderful people:
   </tbody>
 </table>
 
-- Thanks to the people who contributed to [UEAssetToolkit](https://github.com/Buckminsterfullerene02/UEAssetToolkit-Fixes)!
+- Thanks to the people who contributed to [UEAssetToolkit](https://github.com/Buckminsterfullerene02/UEAssetToolkit-Fixes)! They have helped a lot.
 - Logo uses a font by [Brylark](https://ko-fi.com/brylark), support him at his ko-fi!
 
 #### [Would you like to contribute?](https://github.com/JsonAsAsset/JsonAsAsset/blob/main/Source/README.md#key-information-for-contributors-)
