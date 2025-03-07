@@ -82,6 +82,7 @@ Most/all sound classes are supported, however, SoundWave is handled manually in 
  - PhysicsAsset
 
 ###### Data Asset Types
+If your game uses custom C++ classes or C++ structures, you need to have them defined to import them using JsonAsAsset. Either create them manually from SDKs, or automate them. [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects)
 - DataAsset
 - DataTable
 
@@ -94,7 +95,7 @@ Most/all sound classes are supported, however, SoundWave is handled manually in 
 <a name="install"></a>
 ## 2. Installation
 > [!WARNING]
-> JsonAsAsset may not work with every Unreal Engine 5 version. Please check the [Releases page](/../../releases) for compatibility details.  
+> JsonAsAsset may not work with every Unreal Engine 5 version. Please check the [Releases page](/../../releases) for compatibility details.
 
 Follow these steps to install **JsonAsAsset**:
 
@@ -178,6 +179,7 @@ Most/all sound classes are supported, however, SoundWave is handled manually in 
  - SkeletalMeshLODSettings
 
 ###### Data Asset Types
+If your game uses custom C++ classes or C++ structures, you need to have them defined to import them using JsonAsAsset. Either create them manually from SDKs, or automate them. [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects)
 - DataAsset
 - DataTable
 
