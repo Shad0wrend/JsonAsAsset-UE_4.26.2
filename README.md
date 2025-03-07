@@ -32,7 +32,9 @@ The goal of this project is to simplify the process for the porting and modding 
 > 1. [Installation](#install)  
 >    2.1 [Setup FModel](#setup-fmodel)  
 >    2.2 [Setup Settings](#setup-settings)  
-> 3. [Local Fetch](#setup-local-fetch)
+> 3. [Local Fetch](#local-fetch)  
+>    3.1 [Setup Local Fetch Settings](#setup-local-fetch)  
+>    3.2 [Launching Local Fetch](#launch-local-fetch)  
 
 **Extras**:
 <br> 
@@ -144,8 +146,15 @@ The JSON format/file has to be from a program that fits the format of FModel's J
 
 That’s the basic setup! To bulk import assets and **what they reference**, you must set up [`Local Fetch`](#setup-local-fetch)!
 
+<a name="local-fetch"></a>
+## 3. Local Fetch
+
+Local Fetch is a way to automate importing assets that other assets reference, for example, porting SoundClasses will port the parent class and submixes if needed. Local Fetch in the techinal aspect is a API that hosts a CUE4Parse Provider as localhost.
+
+------------
+
 <a name="setup-local-fetch"></a>
-## 3. Setting Up Local Fetch
+#### 3.1 Local Fetch Settings
 
 1. **Open Plugin Settings:**  
    Click on the JsonAsAsset dropdown, then select Open Plugin Settings.
@@ -164,7 +173,8 @@ You can automatically have your AES Keys changed if your game has a API ran by s
 
 ------------
 
-#### 3.1 Launching Local Fetch
+<a name="launch-local-fetch"></a>
+#### 3.2 Launch Local Fetch
 
 <img align="right" width="240" height="145" src=https://github.com/user-attachments/assets/290b8ea3-6777-443f-bacf-b8df5738ec8f>
 
@@ -177,6 +187,8 @@ A window should pop-up, and once the console says `[CORE] Running API`, Local Fe
 Make sure to keep this window open until you are done with JsonAsAsset.
 
 </details>
+
+JsonAsAsset will now use Local Fetch to import if a missing asset is referenced.
 
 -----------------------
 
