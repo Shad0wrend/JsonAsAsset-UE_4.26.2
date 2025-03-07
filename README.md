@@ -171,17 +171,19 @@ To bulk import assets and **what they reference**, you must set up [`Local Fetch
 
 <br>
 
-| **Category**                   | **Items / Description**                                                                                                                                                                                                                                                                                                                                                                                   |
+| **Category** | **Items / Description** |
 |--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Sound Classes                  | Most/all sound classes are supported.                                                                                                                                                                                                                                                                                                             |
-| Materials                      | Material, MaterialFunction, MaterialParameterCollection, PhysicalMaterial, SubsurfaceProfile                                                                                                                                                                                                                                                                                                               |
-| Material Data                  | Unreal Engine games made below 4.12 (a guess) will have material data; games made above that version will not have any material data (the data is stripped and cannot be imported) unless you are using a User Generated Content editor, in which case the material data may be present.                                                                                                                 |
-| Curve Asset Types              | CurveFloat, CurveTable, CurveVector, CurveLinearColor, CurveLinearColorAtlas                                                                                                                                                                                                                                                                                                                               |
-| Skeleton/Animation Asset Types | SkeletalMeshLODSettings                                                                                                                                                                                                                                                                                                                                                                                   |
-| Data Asset Types               | DataAsset, DataTable.  |
-| Landscape                      | LandscapeGrassType, PhysicalMaterial                                                                                                                                                                                                                                                                                                                                                                      |
+| Sound Classes | Most/all sound classes are supported. |
+| Materials | Material, MaterialFunction, MaterialParameterCollection, PhysicalMaterial, SubsurfaceProfile |
+| Curve Asset Types | CurveFloat, CurveTable, CurveVector, CurveLinearColor, CurveLinearColorAtlas |
+| Skeleton/Animation Asset Types | SkeletalMeshLODSettings |
+| Data Asset Types | DataAsset, DataTable. |
+| Landscape | LandscapeGrassType, PhysicalMaterial |
 
 **NOTE:** If your game uses custom C++ classes or structures, you need to define them to import via JsonAsAsset (create them manually from SDKs or automate them). See [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects) for game-specific template projects.
+
+**Material Data**:
+<br> Unreal Engine games made below 4.12 (a guess) will have material data, any games made above that version will most definitely not have any material data, and therefore the actual data will be stripped and cannot be imported. **Unless** you are using a User Generated Content editor, then it's possible the material data will be there.
 
 </details>
 
@@ -192,12 +194,13 @@ To bulk import assets and **what they reference**, you must set up [`Local Fetch
 
 1. **Open Plugin Settings:**  
    Click on the JsonAsAsset dropdown, then select Open Plugin Settings.
-   
-3. **Enable Local Fetch:**  
-   Locate the property **Enable Local Fetch** and turn it on.
-    <img align="right" width="452" height="84" src=https://github.com/user-attachments/assets/1747162c-81df-442c-a6ce-d88e563a4ca2>
 
-4. **Setup Local Fetch's Settings:**  
+<img align="right" width="452" height="84" src=https://github.com/user-attachments/assets/1747162c-81df-442c-a6ce-d88e563a4ca2>
+
+2. **Enable Local Fetch:**  
+   Locate the property **Enable Local Fetch** and turn it on.
+
+3. **Setup Local Fetch's Settings:**  
     Make sure to set these in your settings:
    - **Archive Directory**: specific Paks folder of your game
    - **Unreal Engine**: version that your game is running
