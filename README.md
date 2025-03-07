@@ -151,6 +151,42 @@ That’s the basic setup! To bulk import assets and **what they reference**, you
 
 Local Fetch is a way to automate importing assets that other assets reference, for example, porting SoundClasses will port the parent class and submixes if needed. Local Fetch in the techinal aspect is a API that hosts a CUE4Parse Provider as localhost.
 
+<details>
+  <summary>Supported Local Fetch Asset Types</summary>
+
+###### Sound Classes
+Most/all sound classes are supported, however, SoundWave is handled manually in SoundCue.
+
+###### Materials
+ - Material
+ - MaterialFunction
+ - MaterialParameterCollection
+ - PhysicalMaterial
+ - SubsurfaceProfile
+
+**Material Data**:
+<br> Unreal Engine games made below 4.12 (a guess) will have material data, any games made above that version will most definitely not have any material data, and therefore the actual data will be stripped and cannot be imported. **Unless** you are using a User Generated Content editor, then it's possible the material data will be there.
+  
+###### Curve Asset Types
+ - CurveFloat
+ - CurveTable
+ - CurveVector
+ - CurveLinearColor
+ - CurveLinearColorAtlas
+
+###### Skeleton/Animation Asset Types
+ - SkeletalMeshLODSettings
+
+###### Data Asset Types
+- DataAsset
+- DataTable
+
+###### Landscape
+- LandscapeGrassType
+- PhysicalMaterial
+
+</details>
+
 ------------
 
 <a name="setup-local-fetch"></a>
