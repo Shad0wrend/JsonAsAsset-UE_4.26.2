@@ -55,54 +55,27 @@ JsonAsAsset is a user-friendly Unreal Engine plugin for importing assets from pa
 <details>
   <summary>Supported Asset Types</summary>
 
-###### Animation Asset Types
+<br>
 
-These add onto a pre-existing asset, select a asset beforehand to import animation curves.
+| Asset Category | Asset Types / Description |
+|--------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| Curve Asset Types | CurveFloat, CurveTable, CurveVector, CurveLinearColor, CurveLinearColorAtlas |
+| Data Asset Types | DataAsset, DataTable, StringTable, SlateBrushAsset, SlateWidgetStyleAsset, AnimBoneCompressionSettings, AnimCurveCompressionSettings |
+| Materials | Material, MaterialFunction, MaterialParameterCollection, SubsurfaceProfile |
+| Sound Classes | Most/all sound classes are supported. SoundWave is downloaded by [Local Fetch](#local-fetch). |
+| Skeleton/Animation Asset Types | SkeletalMeshLODSettings, Blendspace |
+| Physics Asset Types | PhysicsAsset, PhysicalMaterial |
+| Landscape | LandscapeGrassType, FoliageType_InstancedStaticMesh, FoliageType_Actor |
 
-- AnimSequence
-- AnimMontage
-
-###### Curve Asset Types
- - CurveFloat
- - CurveTable
- - CurveVector
- - CurveLinearColor
- - CurveLinearColorAtlas
-
-###### Data Asset Types
-**NOTE:** If your game uses custom C++ classes or structures, you need to define them to import via JsonAsAsset (create them manually from SDKs or automate them). See [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects) for game-specific template projects.
-- DataAsset
-- DataTable
-- StringTable
-- SlateBrushAsset
-- SlateWidgetStyleAsset
-- AnimBoneCompressionSettings
-- AnimCurveCompressionSettings
-
-###### Materials
- - Material
- - MaterialFunction
- - MaterialParameterCollection
- - SubsurfaceProfile
+##### The following asset types add onto a pre-existing asset
+| Asset Category | Asset Types / Description |
+|-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| Animations | AnimSequence, AnimMontage [Animation Curves] |
 
 **Material Data**:
 <br> Unreal Engine games made below 4.12 (a guess) will have material data, any games made above that version will most definitely not have any material data, and therefore the actual data will be stripped and cannot be imported. **Unless** you are using a User Generated Content editor, then it's possible the material data will be there.
 
-###### Sound Classes
-Most/all sound classes are supported, however, SoundWave is handled manually in SoundCue.
-
-###### Skeleton/Animation Asset Types
- - SkeletalMeshLODSettings
- - Blendspace
-
-###### Physics Asset Types
- - PhysicsAsset
- - PhysicalMaterial
-
-###### Landscape
-- LandscapeGrassType
-- FoliageType_InstancedStaticMesh
-- FoliageType_Actor
+**NOTE:** If your game uses custom C++ classes or structures, you need to define them to import via JsonAsAsset (create them manually from SDKs or automate them). See [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects) for game-specific template projects.
 
 </details>
 
