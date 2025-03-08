@@ -95,6 +95,11 @@ TArray<FString> ImporterAcceptedTypes = {
 
 	"DataAsset",
 	"DataTable",
+	
+	"", /* separator */
+
+	"SlateBrushAsset",
+	"SlateWidgetStyleAsset",
 
 	"", /* separator */
 	
@@ -116,11 +121,6 @@ TArray<FString> ImporterAcceptedTypes = {
 
 	"SkeletalMeshLODSettings",
 	"Skeleton",
-
-	"", /* separator */
-	
-	"SlateBrushAsset",
-	"SlateWidgetStyleAsset",
 
 #if JSONASASSET_PARTICLESYSTEM_ALLOW
 	"# Particle Assets", /* Particle Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
