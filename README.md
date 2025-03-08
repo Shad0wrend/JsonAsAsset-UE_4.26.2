@@ -186,7 +186,7 @@ To bulk import assets and **what they reference**, you must set up [`Local Fetch
 | Materials | Material, MaterialFunction, MaterialParameterCollection, PhysicalMaterial, SubsurfaceProfile |
 | Curve Asset Types | CurveFloat, CurveTable, CurveVector, CurveLinearColor, CurveLinearColorAtlas |
 | Skeleton/Animation Asset Types | SkeletalMeshLODSettings |
-| Data Asset Types | DataAsset, DataTable. |
+| Data Asset Types | DataAsset, DataTable |
 | Landscape | LandscapeGrassType, PhysicalMaterial |
 
 **NOTE:** If your game uses custom C++ classes or structures, you need to define them to import via JsonAsAsset (create them manually from SDKs or automate them). See [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects) for game-specific template projects.
