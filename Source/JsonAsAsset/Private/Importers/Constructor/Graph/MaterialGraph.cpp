@@ -18,8 +18,8 @@ static TWeakPtr<SNotificationItem> MaterialGraphNotification;
 
 TArray<FString> IMaterialGraph::IgnoredExpressions;
 
-IMaterialGraph::IMaterialGraph(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects):
-	IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects)
+IMaterialGraph::IMaterialGraph(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass):
+	IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass)
 {
 	/* Handled manually by IMaterialGraph */
 	IgnoredExpressions = {

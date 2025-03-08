@@ -17,7 +17,7 @@ bool IDataTableImporter::Import() {
 
 	/* Find Table Row Struct */
 	UScriptStruct* TableRowStruct = FindObject<UScriptStruct>(ANY_PACKAGE, *TableStruct); {
-		if (TableRowStruct == NULL) {
+		if (TableRowStruct == nullptr) {
 			AppendNotification(FText::FromString("DataTable Struct Missing: " + TableStruct), FText::FromString("You need the parent's data table structure defined exactly where it's supposed to."), 2.0f, SNotificationItem::CS_Fail, true, 350.0f);
 
 			return false;

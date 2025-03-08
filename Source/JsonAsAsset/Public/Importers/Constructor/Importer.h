@@ -38,18 +38,18 @@ class IImporter {
 public:
     /* Constructors ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     IImporter()
-        : Package(nullptr), OutermostPkg(nullptr), ParentObject(nullptr),
+        : Package(nullptr), OutermostPkg(nullptr), AssetClass(nullptr), ParentObject(nullptr),
           PropertySerializer(nullptr), GObjectSerializer(nullptr) {}
 
     /* Importer Constructor */
     IImporter(const FString& FileName, const FString& FilePath, 
               const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, 
-              UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects = {});
+              UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects = {}, UClass* AssetClass = nullptr);
 
     virtual ~IImporter() {}
 
     /* Easy way to find importers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-    using ImporterFactoryDelegate = TFunction<IImporter*(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& Exports)>;
+    using ImporterFactoryDelegate = TFunction<IImporter*(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& Exports, UClass* AssetClass)>;
 
     static TMap<TArray<FString>, ImporterFactoryDelegate>& GetFactoryRegistry() {
         static TMap<TArray<FString>, ImporterFactoryDelegate> Registry;
@@ -57,16 +57,13 @@ public:
     }
 
     template <typename T>
-    static IImporter* CreateImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& Exports) {
-        return new T(FileName, FilePath, JsonObject, Package, OutermostPkg, Exports);
+    static IImporter* CreateImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& Exports, UClass* AssetClass) {
+        return new T(FileName, FilePath, JsonObject, Package, OutermostPkg, Exports, AssetClass);
     }
 
-    static ImporterFactoryDelegate* FindFactoryForAssetType(const FString& AssetType)
-    {
-        for (auto& Pair : GetFactoryRegistry())
-        {
-            if (Pair.Key.Contains(AssetType))
-            {
+    static ImporterFactoryDelegate* FindFactoryForAssetType(const FString& AssetType) {
+        for (auto& Pair : GetFactoryRegistry()) {
+            if (Pair.Key.Contains(AssetType)) {
                 return &Pair.Value;
             }
         }
@@ -83,6 +80,7 @@ protected:
     UPackage* OutermostPkg;
 
     TSharedPtr<FJsonObject> AssetData;
+    UClass* AssetClass;
 
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     

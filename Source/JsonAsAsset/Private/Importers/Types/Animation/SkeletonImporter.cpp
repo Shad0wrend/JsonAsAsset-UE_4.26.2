@@ -1,7 +1,6 @@
 ﻿/* Copyright JAA Contributors 2024-2025 */
 
 #include "Importers/Types/Animation/SkeletonImporter.h"
-#include "Dom/JsonObject.h"
 
 bool ISkeletonImporter::Import() {
 	USkeleton* Skeleton = GetSelectedAsset<USkeleton>();

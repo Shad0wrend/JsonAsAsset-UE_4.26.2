@@ -8,11 +8,9 @@
 template <typename AssetType>
 class ITemplatedImporter : public IImporter {
 public:
-	const UClass* AssetClass;
-
-	ITemplatedImporter(const UClass* AssetClass, const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects) :
-		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects),
-		AssetClass(AssetClass) {}
+	ITemplatedImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass):
+		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass) {
+	}
 
 	virtual bool Import() override;
 };

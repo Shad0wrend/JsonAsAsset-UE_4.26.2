@@ -7,6 +7,10 @@
 #include "Windows/WindowsHWrapper.h"
 #include <TlHelp32.h>
 
+#if ENGINE_MAJOR_VERSION == 4
+#include "Utilities/EngineUtilities.h"
+#endif
+
 #ifdef _MSC_VER
 #undef GetObject
 #endif

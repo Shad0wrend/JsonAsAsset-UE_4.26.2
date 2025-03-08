@@ -41,9 +41,11 @@
 /* Importer Constructor */
 IImporter::IImporter(const FString& FileName, const FString& FilePath, 
 		  const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, 
-		  UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects)
+		  UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects,
+		  UClass* AssetClass)
 	: AllJsonObjects(AllJsonObjects), JsonObject(JsonObject), FileName(FileName),
-	  FilePath(FilePath), Package(Package), OutermostPkg(OutermostPkg), ParentObject(nullptr)
+	  FilePath(FilePath), Package(Package), OutermostPkg(OutermostPkg), AssetClass(AssetClass),
+	  ParentObject(nullptr)
 {
 	PropertySerializer = NewObject<UPropertySerializer>();
 	GObjectSerializer = NewObject<UObjectSerializer>();
@@ -82,7 +84,13 @@ TArray<FString> ImporterAcceptedTypes = {
 
 	"AnimSequence",
 	"AnimMontage",
+
+	"", /* separator */
+	
 	"BlendSpace",
+	"BlendSpace1D",
+	"AimOffsetBlendSpace",
+	"AimOffsetBlendSpace1D",
 	
 	"# Curve Assets", /* Curve Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	
@@ -181,7 +189,7 @@ bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FSt
 		const bool InheritsDataAsset = Class->IsChildOf(UDataAsset::StaticClass());
 
 		/* Check if this export can be imported */
-		if (!CanImport(Type) || InheritsDataAsset) continue;
+		if (!(CanImport(Type) || InheritsDataAsset)) continue;
 
 		/* Convert from relative path to full path */
 		if (FPaths::IsRelative(File)) File = FPaths::ConvertRelativePathToFull(File);
@@ -194,12 +202,12 @@ bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FSt
 		
 		/* Try to find the importer using a factory delegate */
 		if (const ImporterFactoryDelegate* Factory = FindFactoryForAssetType(Type)) {
-			Importer = (*Factory)(Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
+			Importer = (*Factory)(Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports, Class);
 		}
 
 		/* If it inherits DataAsset, use the data asset importer */
-		if (!Importer && InheritsDataAsset) {
-			Importer = new IDataAssetImporter(Class, Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
+		if (Importer == nullptr && InheritsDataAsset) {
+			Importer = new IDataAssetImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports, Class);
 		}
 
 		/*
@@ -207,7 +215,7 @@ bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FSt
 		 */
 		if (Importer == nullptr) {
 			Importer = new ITemplatedImporter<UObject>(
-				Class, Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports
+				Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports, Class
 			);
 		}
 
