@@ -241,7 +241,7 @@ Please set your Export Directory to your actual "Output/Exports" directory
 
 ***WRONG***: T:/FModel/Output
 
-***RIGHJT***: T:/FModel/Output/Exports
+***RIGHT***: T:/FModel/Output/Exports
 </details>
 
 <details>
