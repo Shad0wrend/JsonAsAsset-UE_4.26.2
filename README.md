@@ -239,9 +239,9 @@ JsonAsAsset will now use Local Fetch to import if a missing asset is referenced.
   
 Please set your Export Directory to your actual "Output/Exports" directory
 
-***INCORRECT***: T:/FModel/Output
+***WRONG***: T:/FModel/Output
 
-***CORRECT***: T:/FModel/Output/Exports
+***RIGHJT***: T:/FModel/Output/Exports
 </details>
 
 <details>
