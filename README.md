@@ -86,6 +86,8 @@ Most/all sound classes are supported, however, SoundWave is handled manually in 
 **NOTE:** If your game uses custom C++ classes or structures, you need to define them to import via JsonAsAsset (create them manually from SDKs or automate them). See [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects) for game-specific template projects.
 - DataAsset
 - DataTable
+- SlateBrushAsset
+- SlateWidgetStyleAsset
 
 ###### Landscape
 - LandscapeGrassType
