@@ -9,7 +9,7 @@
 #if ENGINE_MAJOR_VERSION >= 5
 #include "Interfaces/IMainFrameModule.h"
 #else
-/ ReSharper disable once CppUnusedIncludeDirective */
+/* ReSharper disable once CppUnusedIncludeDirective */
 #include "MainFrame/Public/Interfaces/IMainFrameModule.h"
 #endif
 
