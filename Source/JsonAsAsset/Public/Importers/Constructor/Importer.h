@@ -102,7 +102,11 @@ public:
         return ImporterAcceptedTypes.Contains(ImporterType)
 
         /* Added because we want to support as much sound classes as possible. SoundNode and SoundWave shouldn't be handled here */
-        || ImporterType.StartsWith("Sound") && ImporterType != "SoundWave" && !ImporterType.StartsWith("SoundNode"); 
+        || ImporterType.StartsWith("Sound") && ImporterType != "SoundWave" && !ImporterType.StartsWith("SoundNode")
+        || ImporterType.StartsWith("SubmixEffect")
+
+        /* Support as much foliage types possible */
+        || ImporterType.StartsWith("FoliageType"); 
     }
 
     static bool CanImportAny(TArray<FString>& Types) {

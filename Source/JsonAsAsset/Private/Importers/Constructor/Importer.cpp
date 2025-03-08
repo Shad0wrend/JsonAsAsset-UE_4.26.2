@@ -100,15 +100,23 @@ TArray<FString> ImporterAcceptedTypes = {
 	"SlateWidgetStyleAsset",
 
 	"", /* separator */
+	
+	"AnimBoneCompressionSettings",
+	"AnimCurveCompressionSettings",
+
+	"# Landscape Assets", /* Landscape Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 		
 	"LandscapeGrassType",
+	
+	"FoliageType_InstancedStaticMesh",
+	"FoliageType_Actor",
 	
 	"# Table Assets", /* Data Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	"CurveTable",
 	"DataTable",
 	"StringTable",
-
+	
 	"# Material Assets", /* Material Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	"Material",
@@ -146,6 +154,7 @@ TArray<FString> ImporterAcceptedTypes = {
 	"SoundClass",
 	"SoundMix",
 	"SoundModulationPatch",
+	"SubmixEffectDynamicsProcessorPreset",
 
 	"# Texture Assets", /* Texture Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 

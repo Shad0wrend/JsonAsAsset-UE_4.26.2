@@ -111,6 +111,8 @@ void UObjectSerializer::DeserializeExports(TArray<TSharedPtr<FJsonValue>> Export
 		FString ClassName = ExportObject->GetStringField(TEXT("Class"));
 		UClass* FoundClass = FindObject<UClass>(ANY_PACKAGE, *ClassName);
 
+		if (!FoundClass) continue;
+		
 		UObject* NewUObject = NewObject<UObject>(ParentAsset, FoundClass, FName(*Name));
 
 		if (ExportObject->HasField(TEXT("Properties")))

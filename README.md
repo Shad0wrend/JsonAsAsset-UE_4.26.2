@@ -76,6 +76,8 @@ These add onto a pre-existing asset, select a asset beforehand to import animati
 - StringTable
 - SlateBrushAsset
 - SlateWidgetStyleAsset
+- AnimBoneCompressionSettings
+- AnimCurveCompressionSettings
 
 ###### Materials
  - Material
@@ -99,6 +101,8 @@ Most/all sound classes are supported, however, SoundWave is handled manually in 
 
 ###### Landscape
 - LandscapeGrassType
+- FoliageType_InstancedStaticMesh
+- FoliageType_Actor
 
 </details>
 
