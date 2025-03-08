@@ -85,7 +85,6 @@ TArray<FString> ImporterAcceptedTypes = {
 	
 	"# Curve Assets", /* Curve Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	
-	"CurveTable",
 	"CurveFloat",
 	"CurveVector",
 	"CurveLinearColor",
@@ -94,16 +93,21 @@ TArray<FString> ImporterAcceptedTypes = {
 	"# Data Assets", /* Data Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	"DataAsset",
-	"DataTable",
-	
+
 	"", /* separator */
 
 	"SlateBrushAsset",
 	"SlateWidgetStyleAsset",
 
 	"", /* separator */
-	
+		
 	"LandscapeGrassType",
+	
+	"# Table Assets", /* Data Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+	"CurveTable",
+	"DataTable",
+	"StringTable",
 
 	"# Material Assets", /* Material Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
