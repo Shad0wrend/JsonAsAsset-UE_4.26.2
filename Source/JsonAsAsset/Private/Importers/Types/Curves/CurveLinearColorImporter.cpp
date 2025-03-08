@@ -5,9 +5,7 @@
 #include "Factories/CurveFactory.h"
 
 bool ICurveLinearColorImporter::Import() {
-	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
-
-	TArray<TSharedPtr<FJsonValue>> FloatCurves = Properties->GetArrayField(TEXT("FloatCurves"));
+	TArray<TSharedPtr<FJsonValue>> FloatCurves = AssetData->GetArrayField(TEXT("FloatCurves"));
 
 	UCurveLinearColorFactory* CurveFactory = NewObject<UCurveLinearColorFactory>();
 	UCurveLinearColor* LinearCurveAsset = Cast<UCurveLinearColor>(CurveFactory->FactoryCreateNew(UCurveLinearColor::StaticClass(), OutermostPkg, *FileName, RF_Standalone | RF_Public, nullptr, GWarn));

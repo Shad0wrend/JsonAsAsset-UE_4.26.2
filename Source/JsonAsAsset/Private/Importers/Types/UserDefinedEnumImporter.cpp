@@ -12,13 +12,11 @@ bool IUserDefinedEnumImporter::Import() {
 	UserDefinedEnum->SetMetaData(TEXT("BlueprintType"), TEXT("true"));
 	UserDefinedEnum->Modify();
 
-	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
-
 	/* CppForm ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	UEnum::ECppForm CppForm = UEnum::ECppForm::Regular;
 
-	if (JsonObject->HasField(TEXT("CppForm"))) {
-		FString CppForm_String = JsonObject->GetStringField(TEXT("CppForm"));
+	if (AssetData->HasField(TEXT("CppForm"))) {
+		FString CppForm_String = AssetData->GetStringField(TEXT("CppForm"));
 
 		/*
 		 * Selector based on text
@@ -28,8 +26,8 @@ bool IUserDefinedEnumImporter::Import() {
 	}
 
 	/* EnumNames ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	if (JsonObject->HasTypedField<EJson::Object>(TEXT("Names"))) {
-		TSharedPtr<FJsonObject> Names = JsonObject->GetObjectField(TEXT("Names"));
+	if (AssetData->HasTypedField<EJson::Object>(TEXT("Names"))) {
+		TSharedPtr<FJsonObject> Names = AssetData->GetObjectField(TEXT("Names"));
 
 		/* Final EnumNames variable */
 		TArray<TPair<FName, int64>> EnumNames;
@@ -49,7 +47,7 @@ bool IUserDefinedEnumImporter::Import() {
 	}
 	
 	/* DisplayNameMap ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	TArray<TSharedPtr<FJsonValue>> DisplayNameMap = Properties->GetArrayField(TEXT("DisplayNameMap"));
+	TArray<TSharedPtr<FJsonValue>> DisplayNameMap = AssetData->GetArrayField(TEXT("DisplayNameMap"));
 	TMap<FName, FText> DisplayNames;
 
 	for (const TSharedPtr<FJsonValue>& DisplayEntry : DisplayNameMap) {

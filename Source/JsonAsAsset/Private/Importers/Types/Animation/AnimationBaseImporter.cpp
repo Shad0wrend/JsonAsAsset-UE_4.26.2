@@ -14,7 +14,6 @@
 #endif
 
 bool IAnimationBaseImporter::Import() {
-	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
 	FString AssetName = JsonObject->GetStringField(TEXT("Name"));
 
 	TArray<TSharedPtr<FJsonValue>> FloatCurves;
@@ -49,8 +48,8 @@ bool IAnimationBaseImporter::Import() {
 	/* Some CUE4Parse versions have different named objects for curves ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	const TSharedPtr<FJsonObject>* RawCurveData;
 	
-	if (Properties->TryGetObjectField(TEXT("RawCurveData"), RawCurveData))
-		FloatCurves = Properties->GetObjectField(TEXT("RawCurveData"))->GetArrayField(TEXT("FloatCurves"));
+	if (AssetData->TryGetObjectField(TEXT("RawCurveData"), RawCurveData))
+		FloatCurves = AssetData->GetObjectField(TEXT("RawCurveData"))->GetArrayField(TEXT("FloatCurves"));
 	
 	if (JsonObject->TryGetObjectField(TEXT("CompressedCurveData"), RawCurveData))
 		FloatCurves = JsonObject->GetObjectField(TEXT("CompressedCurveData"))->GetArrayField(TEXT("FloatCurves"));
@@ -189,8 +188,8 @@ bool IAnimationBaseImporter::Import() {
 
 	const TArray<TSharedPtr<FJsonValue>>* AuthoredSyncMarkersValue;
 	
-	if (Properties->TryGetArrayField(TEXT("AuthoredSyncMarkers"), AuthoredSyncMarkersValue) && CastedAnimSequence) {
-		TArray<TSharedPtr<FJsonValue>> AuthoredSyncMarkers = Properties->GetArrayField(TEXT("AuthoredSyncMarkers"));
+	if (AssetData->TryGetArrayField(TEXT("AuthoredSyncMarkers"), AuthoredSyncMarkersValue) && CastedAnimSequence) {
+		TArray<TSharedPtr<FJsonValue>> AuthoredSyncMarkers = AssetData->GetArrayField(TEXT("AuthoredSyncMarkers"));
 
 		for (TSharedPtr<FJsonValue> SyncMarker : AuthoredSyncMarkers) {
 			FAnimSyncMarker AuthoredSyncMarker = FAnimSyncMarker();
@@ -201,7 +200,7 @@ bool IAnimationBaseImporter::Import() {
 	}
 
 	/* Deserialize properties */
-	GetObjectSerializer()->DeserializeObjectProperties(KeepPropertiesShared(Properties, {
+	GetObjectSerializer()->DeserializeObjectProperties(KeepPropertiesShared(AssetData, {
 		"RetargetSource",
 		
 		"AdditiveAnimType",

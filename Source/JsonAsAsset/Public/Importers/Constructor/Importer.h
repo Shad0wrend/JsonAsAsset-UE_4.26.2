@@ -82,6 +82,8 @@ protected:
     UPackage* Package;
     UPackage* OutermostPkg;
 
+    TSharedPtr<FJsonObject> AssetData;
+
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     
 public:

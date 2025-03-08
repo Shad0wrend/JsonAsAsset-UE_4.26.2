@@ -3,7 +3,6 @@
 #include "Importers/Types/Animation/BlendSpaceImporter.h"
 
 bool IBlendSpaceImporter::Import() {
-	TSharedPtr<FJsonObject> AssetData = JsonObject->GetObjectField(TEXT("Properties"));
 	UBlendSpace* BlendSpace = NewObject<UBlendSpace>(Package, UBlendSpace::StaticClass(), *FileName, RF_Public | RF_Standalone);
 	
 	BlendSpace->Modify();
@@ -38,8 +37,7 @@ bool IBlendSpaceImporter::Import() {
 	
 	GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(AssetData,
 	{
-		"SampleData",
-		"GridSamples"
+		"SampleData"
 	}), BlendSpace);
 
 	return OnAssetCreation(BlendSpace);

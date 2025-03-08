@@ -54,7 +54,7 @@ IImporter::IImporter(const FString& FileName, const FString& FilePath,
 		JsonObject->SetObjectField(TEXT("Properties"), TSharedPtr<FJsonObject>());
 	}
 
-	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
+	AssetData = JsonObject->GetObjectField(TEXT("Properties"));
 
 	/* Move asset properties defined outside "Properties" and move it inside */
 	for (const auto& Pair : JsonObject->Values) {
@@ -66,7 +66,7 @@ IImporter::IImporter(const FString& FileName, const FString& FilePath,
 			!PropertyName.Equals(TEXT("Flags")) &&
 			!PropertyName.Equals(TEXT("Properties")))
 		{
-			Properties->SetField(PropertyName, Pair.Value);
+			AssetData->SetField(PropertyName, Pair.Value);
 		}
 	}
 }

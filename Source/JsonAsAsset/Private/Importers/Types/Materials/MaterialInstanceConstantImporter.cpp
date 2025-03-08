@@ -7,13 +7,11 @@
 #include "MaterialShared.h"
 
 bool IMaterialInstanceConstantImporter::Import() {
-	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
-
 	UMaterialInstanceConstant* MaterialInstanceConstant = NewObject<UMaterialInstanceConstant>(Package, UMaterialInstanceConstant::StaticClass(), *FileName, RF_Public | RF_Standalone);
 	HandleAssetCreation(MaterialInstanceConstant);
 
 	TArray<TSharedPtr<FJsonObject>> EditorOnlyData;
-	GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(Properties,
+	GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(AssetData,
 	{
 		"CachedReferencedTextures"
 	}), MaterialInstanceConstant);
@@ -27,7 +25,7 @@ bool IMaterialInstanceConstantImporter::Import() {
 	}
 
 	const TSharedPtr<FJsonObject>* ParentPtr;
-	if (Properties->TryGetObjectField(TEXT("Parent"), ParentPtr)) {
+	if (AssetData->TryGetObjectField(TEXT("Parent"), ParentPtr)) {
 #if ENGINE_MAJOR_VERSION >= 5
 		LoadObject(ParentPtr, MaterialInstanceConstant->Parent);
 #else
@@ -38,7 +36,7 @@ bool IMaterialInstanceConstantImporter::Import() {
 	}
 
 	const TSharedPtr<FJsonObject>* SubsurfaceProfilePtr;
-	if (Properties->TryGetObjectField(TEXT("SubsurfaceProfile"), SubsurfaceProfilePtr)) {
+	if (AssetData->TryGetObjectField(TEXT("SubsurfaceProfile"), SubsurfaceProfilePtr)) {
 #if ENGINE_MAJOR_VERSION >= 5
 		LoadObject(SubsurfaceProfilePtr, MaterialInstanceConstant->SubsurfaceProfile);
 #else
@@ -49,11 +47,11 @@ bool IMaterialInstanceConstantImporter::Import() {
 	}
 
 	bool bOverrideSubsurfaceProfile;
-	if (Properties->TryGetBoolField(TEXT("bOverrideSubsurfaceProfile"), bOverrideSubsurfaceProfile))
+	if (AssetData->TryGetBoolField(TEXT("bOverrideSubsurfaceProfile"), bOverrideSubsurfaceProfile))
 		MaterialInstanceConstant->bOverrideSubsurfaceProfile = bOverrideSubsurfaceProfile;
 
 	TArray<FScalarParameterValue> ScalarParameterValues;
-	TArray<TSharedPtr<FJsonValue>> Scalars = Properties->GetArrayField(TEXT("ScalarParameterValues"));
+	TArray<TSharedPtr<FJsonValue>> Scalars = AssetData->GetArrayField(TEXT("ScalarParameterValues"));
 
 	for (int32 i = 0; i < Scalars.Num(); i++) {
 		TSharedPtr<FJsonObject> Scalar = Scalars[i]->AsObject();
@@ -86,7 +84,7 @@ bool IMaterialInstanceConstantImporter::Import() {
 	MaterialInstanceConstant->ScalarParameterValues = ScalarParameterValues;
 	TArray<FVectorParameterValue> VectorParameterValues;
 
-	TArray<TSharedPtr<FJsonValue>> Vectors = Properties->GetArrayField(TEXT("VectorParameterValues"));
+	TArray<TSharedPtr<FJsonValue>> Vectors = AssetData->GetArrayField(TEXT("VectorParameterValues"));
 	for (int32 i = 0; i < Vectors.Num(); i++) {
 		TSharedPtr<FJsonObject> Vector = Vectors[i]->AsObject();
 
@@ -120,7 +118,7 @@ bool IMaterialInstanceConstantImporter::Import() {
 	MaterialInstanceConstant->VectorParameterValues = VectorParameterValues;
 	TArray<FTextureParameterValue> TextureParameterValues;
 
-	TArray<TSharedPtr<FJsonValue>> Textures = Properties->GetArrayField(TEXT("TextureParameterValues"));
+	TArray<TSharedPtr<FJsonValue>> Textures = AssetData->GetArrayField(TEXT("TextureParameterValues"));
 	for (int32 i = 0; i < Textures.Num(); i++) {
 		TSharedPtr<FJsonObject> Texture = Textures[i]->AsObject();
 
@@ -166,11 +164,11 @@ bool IMaterialInstanceConstantImporter::Import() {
 	TArray<TSharedPtr<FJsonValue>> Local_StaticComponentMaskParametersObjects;
 	const TSharedPtr<FJsonObject>* StaticParams;
 
-	if (Properties->TryGetObjectField(TEXT("StaticParametersRuntime"), StaticParams)) {
+	if (AssetData->TryGetObjectField(TEXT("StaticParametersRuntime"), StaticParams)) {
 		Local_StaticParameterObjects = StaticParams->Get()->GetArrayField(TEXT("StaticSwitchParameters"));
 	} else if (EditorOnlyData.Num() > 0) {
 		for (TSharedPtr<FJsonObject> Ed : EditorOnlyData) {
-			const TSharedPtr<FJsonObject> Props = Ed->GetObjectField(TEXT("Properties"));
+			const TSharedPtr<FJsonObject> Props = Ed->GetObjectField(TEXT("AssetData"));
 
 			if (Props->TryGetObjectField(TEXT("StaticParameters"), StaticParams)) {
 				for (TSharedPtr<FJsonValue> Parameter : StaticParams->Get()->GetArrayField(TEXT("StaticSwitchParameters"))) {
@@ -182,7 +180,7 @@ bool IMaterialInstanceConstantImporter::Import() {
 				}
 			}
 		}
-	} else if (Properties->TryGetObjectField(TEXT("StaticParameters"), StaticParams)) {
+	} else if (AssetData->TryGetObjectField(TEXT("StaticParameters"), StaticParams)) {
 		Local_StaticParameterObjects = StaticParams->Get()->GetArrayField(TEXT("StaticSwitchParameters"));
 	}
 

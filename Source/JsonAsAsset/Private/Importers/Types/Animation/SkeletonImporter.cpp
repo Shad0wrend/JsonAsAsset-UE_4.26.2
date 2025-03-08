@@ -4,7 +4,6 @@
 #include "Dom/JsonObject.h"
 
 bool ISkeletonImporter::Import() {
-	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
 	USkeleton* Skeleton = GetSelectedAsset<USkeleton>();
 
 	/* Must have a skeleton selected */
@@ -15,7 +14,7 @@ bool ISkeletonImporter::Import() {
 	SetupSerializer(Skeleton);
 	
 	GetObjectSerializer()->DeserializeExports(AllJsonObjects);
-	GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(Properties,
+	GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(AssetData,
 	{
 		"FinalRefBonePose",
 		"FinalNameToIndexMap",

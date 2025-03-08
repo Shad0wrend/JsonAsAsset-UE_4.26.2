@@ -17,16 +17,16 @@ bool IMaterialFunctionImporter::Import() {
 	/* Handle edit changes, and add it to the content browser */
 	if (!HandleAssetCreation(MaterialFunction)) return false;
 
-	MaterialFunction->StateId = FGuid(JsonObject->GetObjectField(TEXT("Properties"))->GetStringField(TEXT("StateId")));
+	MaterialFunction->StateId = FGuid(AssetData->GetStringField(TEXT("StateId")));
 	
 	/* Misc properties */
 	bool bPrefixParameterNames;
 	FString Description;
 	bool bExposeToLibrary;
 	
-	if (JsonObject->GetObjectField(TEXT("Properties"))->TryGetStringField(TEXT("Description"), Description)) MaterialFunction->Description = Description;
-	if (JsonObject->GetObjectField(TEXT("Properties"))->TryGetBoolField(TEXT("bExposeToLibrary"), bExposeToLibrary)) MaterialFunction->bExposeToLibrary = bExposeToLibrary;
-	if (JsonObject->GetObjectField(TEXT("Properties"))->TryGetBoolField(TEXT("bPrefixParameterNames"), bPrefixParameterNames)) MaterialFunction->bPrefixParameterNames = bPrefixParameterNames;
+	if (AssetData->TryGetStringField(TEXT("Description"), Description)) MaterialFunction->Description = Description;
+	if (AssetData->TryGetBoolField(TEXT("bExposeToLibrary"), bExposeToLibrary)) MaterialFunction->bExposeToLibrary = bExposeToLibrary;
+	if (AssetData->TryGetBoolField(TEXT("bPrefixParameterNames"), bPrefixParameterNames)) MaterialFunction->bPrefixParameterNames = bPrefixParameterNames;
 
 	/* Define editor only data from the JSON */
 	TMap<FName, FExportData> Exports;

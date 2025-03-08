@@ -3,14 +3,13 @@
 #include "Importers/Types/Tables/DataTableImporter.h"
 
 bool IDataTableImporter::Import() {
-	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
 	UDataTable* DataTable = NewObject<UDataTable>(Package, UDataTable::StaticClass(), *FileName, RF_Public | RF_Standalone);
 	
 	/* ScriptClass for the Data Table */
 	FString TableStruct; {
 		/* --- Properties --> RowStruct --> ObjectName */
 		/* --- Class'StructClass' --> StructClass */
-		Properties->GetObjectField(TEXT("RowStruct"))
+		AssetData->GetObjectField(TEXT("RowStruct"))
 			->GetStringField(TEXT("ObjectName")).
 			Split("'", nullptr, &TableStruct);
 		TableStruct.Split("'", &TableStruct, nullptr);
@@ -29,7 +28,7 @@ bool IDataTableImporter::Import() {
 
 	/* Access Property Serializer */
 	UPropertySerializer* ObjectPropertySerializer = GetObjectSerializer()->GetPropertySerializer();
-	TSharedPtr<FJsonObject> RowData = Properties->GetObjectField(TEXT("Rows"));
+	TSharedPtr<FJsonObject> RowData = AssetData->GetObjectField(TEXT("Rows"));
 
 	/* Loop throughout row data, and deserialize */
 	for (TPair<FString, TSharedPtr<FJsonValue>>& Pair : RowData->Values) {

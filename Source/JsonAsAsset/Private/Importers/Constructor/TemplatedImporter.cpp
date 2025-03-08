@@ -7,27 +7,20 @@ template class ITemplatedImporter<UObject>;
 
 template <typename AssetType>
 bool ITemplatedImporter<AssetType>::Import() {
-	try {
-		TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
-		GetObjectSerializer()->SetPackageForDeserialization(Package);
+	GetObjectSerializer()->SetPackageForDeserialization(Package);
 
-		AssetType* Asset = NewObject<AssetType>(Package, AssetClass ? AssetClass : AssetType::StaticClass(), FName(FileName), RF_Public | RF_Standalone);
+	AssetType* Asset = NewObject<AssetType>(Package, AssetClass ? AssetClass : AssetType::StaticClass(), FName(FileName), RF_Public | RF_Standalone);
 
-		Asset->MarkPackageDirty();
+	Asset->MarkPackageDirty();
 
-		UObjectSerializer* ObjectSerializer = GetObjectSerializer();
-		ObjectSerializer->SetPackageForDeserialization(Package);
-		ObjectSerializer->SetExportForDeserialization(JsonObject);
-		ObjectSerializer->ParentAsset = Asset;
+	UObjectSerializer* ObjectSerializer = GetObjectSerializer();
+	ObjectSerializer->SetPackageForDeserialization(Package);
+	ObjectSerializer->SetExportForDeserialization(JsonObject);
+	ObjectSerializer->ParentAsset = Asset;
 
-		ObjectSerializer->DeserializeExports(AllJsonObjects);
-		
-		GetObjectSerializer()->DeserializeObjectProperties(Properties, Asset);
+	ObjectSerializer->DeserializeExports(AllJsonObjects);
+	
+	GetObjectSerializer()->DeserializeObjectProperties(AssetData, Asset);
 
-		return OnAssetCreation(Asset);
-	} catch (const char* Exception) {
-		UE_LOG(LogJson, Error, TEXT("%s"), *FString(Exception));
-	}
-
-	return false;
+	return OnAssetCreation(Asset);
 }

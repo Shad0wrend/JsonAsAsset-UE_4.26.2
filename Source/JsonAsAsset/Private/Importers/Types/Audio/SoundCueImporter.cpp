@@ -7,8 +7,6 @@ bool ISoundCueImporter::Import() {
 	/* Create Sound Cue */
 	USoundCue* SoundCue = NewObject<USoundCue>(Package, *FileName, RF_Public | RF_Standalone);
 	SoundCue->PreEditChange(nullptr);
-
-	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
 	
 	/* Start importing nodes ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	if (SoundCue) {
@@ -19,7 +17,7 @@ bool ISoundCueImporter::Import() {
 	}
 	/* End of importing nodes ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-	GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(Properties, TArray<FString>
+	GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(AssetData, TArray<FString>
 	{
 		"FirstNode"
 	}), SoundCue);

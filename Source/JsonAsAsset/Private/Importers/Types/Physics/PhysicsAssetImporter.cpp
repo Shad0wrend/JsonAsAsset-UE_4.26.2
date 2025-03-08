@@ -6,12 +6,9 @@
 
 #include "Utilities/EngineUtilities.h"
 
-bool IPhysicsAssetImporter::Import()
-{
-	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
-
+bool IPhysicsAssetImporter::Import() {
 	/* CollisionDisableTable is required to port physics assets */
-	if (!Properties->HasField(TEXT("CollisionDisableTable"))) {
+	if (!AssetData->HasField(TEXT("CollisionDisableTable"))) {
 		SpawnPrompt("Missing CollisionDisableTable", "The provided physics asset json file is missing the 'CollisionDisableTable' property. This property is required.\n\nPlease use the FModel available on JsonAsAsset's Discord Server to correctly import the physics asset.");
 
 		return false;
@@ -22,7 +19,7 @@ bool IPhysicsAssetImporter::Import()
 	TMap<FName, FExportData> Exports = CreateExports();
 	
 	/* SkeletalBodySetups ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	ProcessJsonArrayField(Properties, TEXT("SkeletalBodySetups"), [&](const TSharedPtr<FJsonObject>& ObjectField) {
+	ProcessJsonArrayField(AssetData, TEXT("SkeletalBodySetups"), [&](const TSharedPtr<FJsonObject>& ObjectField) {
 		FName ExportName = GetExportNameOfSubobject(ObjectField->GetStringField(TEXT("ObjectName")));
 		FJsonObject* ExportJson = Exports.Find(ExportName)->Json;
 
@@ -39,7 +36,7 @@ bool IPhysicsAssetImporter::Import()
 	PhysicsAsset->UpdateBoundsBodiesArray();
 
 	/* CollisionDisableTable ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	TArray<TSharedPtr<FJsonValue>> CollisionDisableTable = Properties->GetArrayField(TEXT("CollisionDisableTable"));
+	TArray<TSharedPtr<FJsonValue>> CollisionDisableTable = AssetData->GetArrayField(TEXT("CollisionDisableTable"));
 
 	for (const TSharedPtr<FJsonValue> TableJSONElement : CollisionDisableTable) {
 		const TSharedPtr<FJsonObject> TableObjectElement = TableJSONElement->AsObject();
@@ -55,7 +52,7 @@ bool IPhysicsAssetImporter::Import()
 	}
 
 	/* ConstraintSetup ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	ProcessJsonArrayField(Properties, TEXT("ConstraintSetup"), [&](const TSharedPtr<FJsonObject>& ObjectField) {
+	ProcessJsonArrayField(AssetData, TEXT("ConstraintSetup"), [&](const TSharedPtr<FJsonObject>& ObjectField) {
 		FName ExportName = GetExportNameOfSubobject(ObjectField->GetStringField(TEXT("ObjectName")));
 		FJsonObject* ExportJson = Exports.Find(ExportName)->Json;
 
@@ -69,7 +66,7 @@ bool IPhysicsAssetImporter::Import()
 	});
 
 	/* Simple data at end ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(Properties,
+	GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(AssetData,
 	{
 		"SkeletalBodySetups",
 		"ConstraintSetup",

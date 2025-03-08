@@ -77,8 +77,6 @@ bool IMaterialImporter::Import() {
 	UMaterialFactoryNew* MaterialFactory = NewObject<UMaterialFactoryNew>();
 	UMaterial* Material = Cast<UMaterial>(MaterialFactory->FactoryCreateNew(UMaterial::StaticClass(), OutermostPkg, *FileName, RF_Standalone | RF_Public, nullptr, GWarn));
 
-	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
-
 	Material->GetReferencedTextures();
 
 	/* Clear any default expressions the engine adds */
@@ -341,7 +339,7 @@ bool IMaterialImporter::Import() {
 
 	const TSharedPtr<FJsonObject>* ShadingModelsPtr;
 	
-	if (Properties->TryGetObjectField(TEXT("ShadingModels"), ShadingModelsPtr)) {
+	if (AssetData->TryGetObjectField(TEXT("ShadingModels"), ShadingModelsPtr)) {
 		int ShadingModelField;
 		
 		if (ShadingModelsPtr->Get()->TryGetNumberField(TEXT("ShadingModelField"), ShadingModelField)) {
@@ -353,7 +351,7 @@ bool IMaterialImporter::Import() {
 		}
 	}
 
-	TSharedPtr<FJsonObject> SerializerProperties = TSharedPtr<FJsonObject>(Properties);
+	TSharedPtr<FJsonObject> SerializerProperties = TSharedPtr<FJsonObject>(AssetData);
 	GetObjectSerializer()->DeserializeObjectProperties(SerializerProperties, Material);
 
 	Material->UpdateCachedExpressionData();

@@ -6,20 +6,18 @@
 #include "Internationalization/StringTableCore.h"
 
 bool IStringTableImporter::Import() {
-	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
-
 	/* Create StringTable from Package */
 	UStringTable* StringTable = NewObject<UStringTable>(Package, UStringTable::StaticClass(), *FileName, RF_Public | RF_Standalone);
 
-	if (Properties->HasField(TEXT("StringTable"))) {
-		TSharedPtr<FJsonObject> AssetData = Properties->GetObjectField(TEXT("StringTable"));
+	if (AssetData->HasField(TEXT("StringTable"))) {
+		TSharedPtr<FJsonObject> StringTableData = AssetData->GetObjectField(TEXT("StringTable"));
 		FStringTableRef MutableStringTable = StringTable->GetMutableStringTable();
 
 		/* Set Table Namespace */
-		MutableStringTable->SetNamespace(AssetData->GetStringField(TEXT("TableNamespace")));
+		MutableStringTable->SetNamespace(StringTableData->GetStringField(TEXT("TableNamespace")));
 
 		/* Set "SourceStrings" from KeysToEntries */
-		const TSharedPtr<FJsonObject> KeysToEntries = AssetData->GetObjectField(TEXT("KeysToEntries"));
+		const TSharedPtr<FJsonObject> KeysToEntries = StringTableData->GetObjectField(TEXT("KeysToEntries"));
 	
 		for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : KeysToEntries->Values) {
 			FString Key = Pair.Key;
@@ -29,7 +27,7 @@ bool IStringTableImporter::Import() {
 		}
 
 		/* Set Metadata from KeysToMetaData */
-		const TSharedPtr<FJsonObject> KeysToMetaData = AssetData->GetObjectField(TEXT("KeysToMetaData"));
+		const TSharedPtr<FJsonObject> KeysToMetaData = StringTableData->GetObjectField(TEXT("KeysToMetaData"));
 
 		for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : KeysToMetaData->Values) {
 			const FString TableKey = Pair.Key;

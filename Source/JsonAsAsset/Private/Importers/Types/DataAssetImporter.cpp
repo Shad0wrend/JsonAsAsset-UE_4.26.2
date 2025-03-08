@@ -4,8 +4,6 @@
 #include "Engine/DataAsset.h"
 
 bool IDataAssetImporter::Import() {
-	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
-
 	UDataAsset* DataAsset = NewObject<UDataAsset>(Package, DataAssetClass, FName(FileName), RF_Public | RF_Standalone);
 	DataAsset->MarkPackageDirty();
 
@@ -16,7 +14,7 @@ bool IDataAssetImporter::Import() {
 
 	ObjectSerializer->DeserializeExports(AllJsonObjects);
 
-	ObjectSerializer->DeserializeObjectProperties(Properties, DataAsset);
+	ObjectSerializer->DeserializeObjectProperties(AssetData, DataAsset);
 	
 	return OnAssetCreation(DataAsset);
 }
