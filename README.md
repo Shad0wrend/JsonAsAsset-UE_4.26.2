@@ -60,8 +60,9 @@ JsonAsAsset is a user-friendly Unreal Engine plugin for importing assets from pa
 | Asset Category | Asset Types / Description |
 |--------------------------------|------------------------------------------------------------------------------------------------------------------------|
 | Curve Asset Types | CurveFloat, CurveTable, CurveVector, CurveLinearColor, CurveLinearColorAtlas |
-| Data Asset Types | DataAsset, DataTable, StringTable, SlateBrushAsset, SlateWidgetStyleAsset, AnimBoneCompressionSettings, AnimCurveCompressionSettings |
-| Materials | Material, MaterialFunction, MaterialParameterCollection, SubsurfaceProfile |
+| Data Asset Types | DataAsset, SlateBrushAsset, SlateWidgetStyleAsset, AnimBoneCompressionSettings, AnimCurveCompressionSettings, UserDefinedEnum |
+| Table Types | CurveTable, DataTable, StringTable |
+| Materials | Material, MaterialFunction, MaterialInstanceConstant, MaterialParameterCollection, SubsurfaceProfile |
 | Sound Classes | Most/all sound classes are supported. SoundWave is downloaded by [Local Fetch](#local-fetch). |
 | Skeleton/Animation Asset Types | SkeletalMeshLODSettings, Blendspace |
 | Physics Asset Types | PhysicsAsset, PhysicalMaterial |
@@ -71,6 +72,7 @@ JsonAsAsset is a user-friendly Unreal Engine plugin for importing assets from pa
 | Asset Category | Asset Types / Description |
 |-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
 | Animations | AnimSequence, AnimMontage [Animation Curves] |
+| Skeletons | Skeleton [Animation Retargeting, Sockets, Virtual Bones]  |
 
 **Material Data**:
 <br> Unreal Engine games made below 4.12 (a guess) will have material data, any games made above that version will most definitely not have any material data, and therefore the actual data will be stripped and cannot be imported. **Unless** you are using a User Generated Content editor, then it's possible the material data will be there.
@@ -160,7 +162,7 @@ To bulk import assets and **what they reference**, you must set up [`Local Fetch
 | **Category** | **Items / Description** |
 |--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Sound Classes | Most/all sound classes are supported. |
-| Materials | Material, MaterialFunction, MaterialParameterCollection, PhysicalMaterial, SubsurfaceProfile |
+| Materials | Material, MaterialFunction, MaterialInstanceConstant, MaterialParameterCollection, PhysicalMaterial, SubsurfaceProfile |
 | Curve Asset Types | CurveFloat, CurveTable, CurveVector, CurveLinearColor, CurveLinearColorAtlas |
 | Skeleton/Animation Asset Types | SkeletalMeshLODSettings |
 | Data Asset Types | DataAsset, DataTable |
