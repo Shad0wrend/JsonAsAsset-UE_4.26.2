@@ -55,19 +55,13 @@ JsonAsAsset is a user-friendly Unreal Engine plugin for importing assets from pa
 <details>
   <summary>Supported Asset Types</summary>
 
-###### Sound Classes
-Most/all sound classes are supported, however, SoundWave is handled manually in SoundCue.
+###### Animation Asset Types
 
-###### Materials
- - Material
- - MaterialFunction
- - MaterialParameterCollection
- - PhysicalMaterial
- - SubsurfaceProfile
+These add onto a pre-existing asset, select a asset beforehand to import animation curves.
 
-**Material Data**:
-<br> Unreal Engine games made below 4.12 (a guess) will have material data, any games made above that version will most definitely not have any material data, and therefore the actual data will be stripped and cannot be imported. **Unless** you are using a User Generated Content editor, then it's possible the material data will be there.
-  
+- AnimSequence
+- AnimMontage
+
 ###### Curve Asset Types
  - CurveFloat
  - CurveTable
@@ -75,23 +69,36 @@ Most/all sound classes are supported, however, SoundWave is handled manually in 
  - CurveLinearColor
  - CurveLinearColorAtlas
 
-###### Skeleton/Animation Asset Types
- - SkeletalMeshLODSettings
- - Animation Curves (Animation Sequences / Animation Montages)
-> Save a JSON file and have a pre-existing animation selected in the editor, then import the json
- - Blendspace
- - PhysicsAsset
-
 ###### Data Asset Types
 **NOTE:** If your game uses custom C++ classes or structures, you need to define them to import via JsonAsAsset (create them manually from SDKs or automate them). See [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects) for game-specific template projects.
 - DataAsset
 - DataTable
+- StringTable
 - SlateBrushAsset
 - SlateWidgetStyleAsset
 
+###### Materials
+ - Material
+ - MaterialFunction
+ - MaterialParameterCollection
+ - SubsurfaceProfile
+
+**Material Data**:
+<br> Unreal Engine games made below 4.12 (a guess) will have material data, any games made above that version will most definitely not have any material data, and therefore the actual data will be stripped and cannot be imported. **Unless** you are using a User Generated Content editor, then it's possible the material data will be there.
+
+###### Sound Classes
+Most/all sound classes are supported, however, SoundWave is handled manually in SoundCue.
+
+###### Skeleton/Animation Asset Types
+ - SkeletalMeshLODSettings
+ - Blendspace
+
+###### Physics Asset Types
+ - PhysicsAsset
+ - PhysicalMaterial
+
 ###### Landscape
 - LandscapeGrassType
-- PhysicalMaterial
 
 </details>
 
