@@ -362,15 +362,14 @@ bool IMaterialImporter::Import() {
 	}
 
 	TSharedPtr<FJsonObject> SerializerProperties = TSharedPtr<FJsonObject>(Properties);
-	if (SerializerProperties->HasField(TEXT("ShadingModel"))) // ShadingModel set manually
-		SerializerProperties->RemoveField(TEXT("ShadingModel"));
 
 	GetObjectSerializer()->DeserializeObjectProperties(SerializerProperties, Material);
 
-	FString ShadingModel;
-	if (Properties->TryGetStringField(TEXT("ShadingModel"), ShadingModel) && ShadingModel != "EMaterialShadingModel::MSM_FromMaterialExpression")
-		Material->SetShadingModel(static_cast<EMaterialShadingModel>(StaticEnum<EMaterialShadingModel>()->GetValueByNameString(ShadingModel)));
-
+	Material->UpdateCachedExpressionData();
+	
+	FMaterialUpdateContext MaterialUpdateContext;
+	MaterialUpdateContext.AddMaterial(Material);
+	
 	Material->ForceRecompileForRendering();
 
 	Material->PostEditChange();
