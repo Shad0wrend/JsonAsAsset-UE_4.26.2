@@ -153,14 +153,11 @@ void IMaterialGraph::PropagateExpressions(UObject* Parent, TArray<FName>& Expres
 				if (MaterialFunctionCall->MaterialFunction == nullptr) {
 					FString ObjectPath;
 					MaterialFunctionPtr->Get()->GetStringField(TEXT("ObjectPath")).Split(".", &ObjectPath, nullptr);
-					if (!ImportAssetReference(ObjectPath)) {} // AppendNotification(FText::FromString("Material Function Missing: " + ObjectPath), FText::FromString("Material Graph"), 2.0f, SNotificationItem::CS_Fail, true);
-					else {
 #if ENGINE_MAJOR_VERSION >= 5
-						LoadObject(MaterialFunctionPtr, MaterialFunctionCall->MaterialFunction);
+					LoadObject(MaterialFunctionPtr, MaterialFunctionCall->MaterialFunction);
 #else
-						LoadObject(MaterialFunctionPtr, MaterialFunctionObjectPtr);
+					LoadObject(MaterialFunctionPtr, MaterialFunctionObjectPtr);
 #endif
-					}
 				}
 			}
 		}

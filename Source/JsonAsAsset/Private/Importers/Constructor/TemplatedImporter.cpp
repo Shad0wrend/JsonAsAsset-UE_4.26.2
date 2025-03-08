@@ -12,6 +12,15 @@ bool ITemplatedImporter<AssetType>::Import() {
 		GetObjectSerializer()->SetPackageForDeserialization(Package);
 
 		AssetType* Asset = NewObject<AssetType>(Package, AssetClass ? AssetClass : AssetType::StaticClass(), FName(FileName), RF_Public | RF_Standalone);
+
+		Asset->MarkPackageDirty();
+
+		UObjectSerializer* ObjectSerializer = GetObjectSerializer();
+		ObjectSerializer->SetPackageForDeserialization(Package);
+		ObjectSerializer->SetExportForDeserialization(JsonObject);
+		ObjectSerializer->ParentAsset = Asset;
+
+		ObjectSerializer->DeserializeExports(AllJsonObjects);
 		
 		GetObjectSerializer()->DeserializeObjectProperties(Properties, Asset);
 

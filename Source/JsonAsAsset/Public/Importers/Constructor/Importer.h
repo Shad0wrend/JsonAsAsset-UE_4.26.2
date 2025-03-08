@@ -26,7 +26,7 @@ public:
               UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects = {});
 
     virtual ~IImporter() {}
-
+    
 protected:
     /* Class variables ------------------------------------------------------------------ */
     TArray<TSharedPtr<FJsonValue>> AllJsonObjects;
@@ -78,7 +78,6 @@ public:
     /* LoadObject functions ---------------------------------------------------------------------- */
 public:
     void ImportReference(const FString& File) const;
-    bool ImportAssetReference(const FString& GamePath) const;
     bool ImportExports(TArray<TSharedPtr<FJsonValue>> Exports, FString File, bool bHideNotifications = false) const;
 
 public:
