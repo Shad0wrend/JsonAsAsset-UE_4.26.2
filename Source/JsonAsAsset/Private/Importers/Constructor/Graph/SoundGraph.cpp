@@ -1,4 +1,4 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #include "Importers/Constructor/Graph/SoundGraph.h"
 
@@ -21,7 +21,7 @@ void ISoundGraph::ConstructNodes(USoundCue* SoundCue, TArray<TSharedPtr<FJsonVal
 		FString NodeType = CurrentNodeObject->GetStringField(TEXT("Type"));
 		FString NodeName = CurrentNodeObject->GetStringField(TEXT("Name"));
 
-		// Filter only exports with SoundNode at the start
+		/* Filter only exports with SoundNode at the start */
 		if (NodeType.StartsWith("SoundNode")) {
 			USoundNode* SoundCueNode = CreateEmptyNode(FName(*NodeName), FName(*NodeType), SoundCue);
 
@@ -33,7 +33,7 @@ void ISoundGraph::ConstructNodes(USoundCue* SoundCue, TArray<TSharedPtr<FJsonVal
 USoundNode* ISoundGraph::CreateEmptyNode(FName Name, FName Type, USoundCue* SoundCue) {
 	UClass* Class = FindObject<UClass>(ANY_PACKAGE, *Type.ToString());
 
-	// TODO: Construct the sound node manually to have the exact same object name
+	/* TODO: Construct the sound node manually to have the exact same object name */
 	return SoundCue->ConstructSoundNode<USoundNode>(
 		Class,
 		false
@@ -44,7 +44,7 @@ void ISoundGraph::SetupNodes(USoundCue* SoundCueAsset, TMap<FString, USoundNode*
 	auto MainJsonObject = JsonObjectArray[0]->AsObject();
 	auto MainJsonObjectProperties = MainJsonObject->TryGetField(TEXT("Properties"))->AsObject();
 
-	// If Node is connected to Root Node
+	/* If Node is connected to Root Node */
 	if (MainJsonObjectProperties->HasField(TEXT("FirstNode"))) {
 		auto FirstNodeProp = MainJsonObjectProperties->TryGetField(TEXT("FirstNode"))->AsObject();
 		auto FirstNodeName = FirstNodeProp->TryGetField(TEXT("ObjectName"))->AsString();
@@ -56,13 +56,13 @@ void ISoundGraph::SetupNodes(USoundCue* SoundCueAsset, TMap<FString, USoundNode*
 		USoundNode** FirstNode = SoundCueNodes.Find(ChildNodeName);
 		UEdGraphNode* RootNode = SoundCueAsset->SoundCueGraph->Nodes[0];
 
-		// Connect Node to Root Node
+		/* Connect Node to Root Node */
 		if (FirstNode && RootNode) {
 			ConnectEdGraphNode((*FirstNode)->GetGraphNode(), RootNode, 0);
 		}
 	}
 
-	// Connections done here
+	/* Connections done here */
 	for (TSharedPtr<FJsonValue> JsonValue : JsonObjectArray) {
 		TSharedPtr<FJsonObject> CurrentNodeObject = JsonValue->AsObject();
 
@@ -73,7 +73,7 @@ void ISoundGraph::SetupNodes(USoundCue* SoundCueAsset, TMap<FString, USoundNode*
 		FString NodeType = CurrentNodeObject->GetStringField(TEXT("Type"));
 		FString NodeName = CurrentNodeObject->GetStringField(TEXT("Name"));
 
-		// Make sure it has Properties and it's a SoundNode
+		/* Make sure it has Properties and it's a SoundNode */
 		if (!CurrentNodeObject->HasField(TEXT("Properties")) || !NodeType.StartsWith("SoundNode")) {
 			continue;
 		}
@@ -83,17 +83,17 @@ void ISoundGraph::SetupNodes(USoundCue* SoundCueAsset, TMap<FString, USoundNode*
 		USoundNode** CurrentNode = SoundCueNodes.Find(NodeName);
 		USoundNode* Node = *CurrentNode;
 		
-		// Filter only node with ChildNodes and handle the pins
+		/* Filter only node with ChildNodes and handle the pins */
 		if (NodeProperties->HasField(TEXT("ChildNodes"))) {
 			TArray<TSharedPtr<FJsonValue>> CurrentNodeChildNodes = NodeProperties->TryGetField(TEXT("ChildNodes"))->AsArray();
 
-			// Save an index of the current connection
+			/* Save an index of the current connection */
 			int32 ConnectionIndex = 0;
 
 			for (TSharedPtr<FJsonValue> CurrentNodeValue : CurrentNodeChildNodes) {
 				auto CurrentNodeChildNode = CurrentNodeValue->AsObject();
 
-				// Insert a child node if it doesn't exist
+				/* Insert a child node if it doesn't exist */
 				if (!Node->ChildNodes.IsValidIndex(ConnectionIndex)) {
 					Node->InsertChildNode(ConnectionIndex);
 				}
@@ -108,7 +108,7 @@ void ISoundGraph::SetupNodes(USoundCue* SoundCueAsset, TMap<FString, USoundNode*
 					USoundNode** CurrentChildNode = SoundCueNodes.Find(CurrentChildNodeName);
 					int CurrentPin = ConnectionIndex + 1;
 
-					// Connect it
+					/* Connect it */
 					if (CurrentNode && CurrentChildNode) {
 						ConnectSoundNode(*CurrentChildNode, *CurrentNode, CurrentPin);
 					}
@@ -118,13 +118,13 @@ void ISoundGraph::SetupNodes(USoundCue* SoundCueAsset, TMap<FString, USoundNode*
 			}
 		}
 
-		// Deserialize Node Properties
+		/* Deserialize Node Properties */
 		GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(NodeProperties, TArray<FString>
 		{
 			"ChildNodes"
 		}), *CurrentNode);
 
-		// Import Sound Wave
+		/* Import Sound Wave */
 		if (Cast<USoundNodeWavePlayer>(Node) != nullptr) {
 			auto WavePlayerNode = Cast<USoundNodeWavePlayer>(Node);
 
@@ -133,14 +133,14 @@ void ISoundGraph::SetupNodes(USoundCue* SoundCueAsset, TMap<FString, USoundNode*
 
 				USoundWave* SoundWave = Cast<USoundWave>(StaticLoadObject(USoundWave::StaticClass(), nullptr, *AssetPtr));
 				
-				// Already exists
+				/* Already exists */
 				if (SoundWave != nullptr) {
 					WavePlayerNode->SetSoundWave(SoundWave);
 				} else {
-					// Get URL from Settings
+					/* Get URL from Settings */
 					const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 
-					// Import SoundWave
+					/* Import SoundWave */
 					FString AudioURL = FString::Format(*(Settings->LocalFetchUrl + "/api/v1/export?raw=false&path={0}"), { AssetPtr });
 					FString AbsoluteSavePath = FString::Format(*("{0}Cache/{1}." + Settings->AssetSettings.SoundImportSettings.AudioFileExtension), { FPaths::ProjectDir(), FPaths::GetBaseFilename(AssetPtr) });
 
@@ -162,8 +162,7 @@ void ISoundGraph::ConnectSoundNode(const USoundNode* NodeToConnect, const USound
 	}
 }
 
-void ISoundGraph::ImportSoundWave(const FString& URL, FString SavePath, FString AssetPtr, USoundNodeWavePlayer* Node) const
-{
+void ISoundGraph::ImportSoundWave(const FString& URL, FString SavePath, FString AssetPtr, USoundNodeWavePlayer* Node) const {
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = FHttpModule::Get().CreateRequest();
 	
 	HttpRequest->OnProcessRequestComplete().BindLambda([this, SavePath, AssetPtr, Node](const FHttpRequestPtr& Request, const FHttpResponsePtr& Response, const bool bWasSuccessful)
@@ -176,8 +175,7 @@ void ISoundGraph::ImportSoundWave(const FString& URL, FString SavePath, FString 
 	HttpRequest->ProcessRequest();
 }
 
-void ISoundGraph::OnDownloadSoundWave(FHttpRequestPtr Request, const FHttpResponsePtr& Response, bool bWasSuccessful, FString SavePath, FString AssetPtr, USoundNodeWavePlayer* Node)
-{
+void ISoundGraph::OnDownloadSoundWave(FHttpRequestPtr Request, const FHttpResponsePtr& Response, bool bWasSuccessful, FString SavePath, FString AssetPtr, USoundNodeWavePlayer* Node) {
 	if (bWasSuccessful && Response.IsValid()) {
 		FFileHelper::SaveArrayToFile(Response->GetContent(), *SavePath);
 

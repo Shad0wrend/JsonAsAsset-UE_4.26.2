@@ -1,4 +1,4 @@
-﻿// Copyright JAA Contributors 2024-2025
+﻿/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
@@ -41,6 +41,10 @@ inline FVector ObjectToVector3f(const FJsonObject* Object) {
 	return FVector(Object->GetNumberField(TEXT("X")), Object->GetNumberField(TEXT("Y")), Object->GetNumberField(TEXT("Z")));
 }
 #endif
+
+inline FRotator ObjectToRotator(const FJsonObject* Object) {
+	return FRotator(Object->GetNumberField(TEXT("Pitch")), Object->GetNumberField(TEXT("Yaw")), Object->GetNumberField(TEXT("Roll")));
+}
 
 inline FLinearColor ObjectToLinearColor(const FJsonObject* Object) {
 	return FLinearColor(Object->GetNumberField(TEXT("R")), Object->GetNumberField(TEXT("G")), Object->GetNumberField(TEXT("B")), Object->GetNumberField(TEXT("A")));

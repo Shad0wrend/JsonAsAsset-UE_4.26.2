@@ -1,4 +1,4 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #include "Importers/Types/Materials/MaterialInstanceConstantImporter.h"
 #include "Materials/MaterialInstanceConstant.h"
@@ -186,9 +186,9 @@ bool IMaterialInstanceConstantImporter::Import() {
 		Local_StaticParameterObjects = StaticParams->Get()->GetArrayField(TEXT("StaticSwitchParameters"));
 	}
 
-	// --------- STATIC PARAMETERS -----------
+	/* ~~~~~~~~- STATIC PARAMETERS ~~~~~~~~~~- */
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
-	FStaticParameterSet NewStaticParameterSet; // Unreal Engine 5.2 and beyond have a different method
+	FStaticParameterSet NewStaticParameterSet; /* Unreal Engine 5.2 and beyond have a different method */
 #endif
 
 	TArray<FStaticSwitchParameter> StaticSwitchParameters;
@@ -196,14 +196,14 @@ bool IMaterialInstanceConstantImporter::Import() {
 		TSharedPtr<FJsonObject> ParameterObject = StaticParameter_Value->AsObject();
 		TSharedPtr<FJsonObject> Local_MaterialParameterInfo = ParameterObject->GetObjectField(TEXT("ParameterInfo"));
 
-		// Create Material Parameter Info
+		/* Create Material Parameter Info */
 		FMaterialParameterInfo MaterialParameterParameterInfo = FMaterialParameterInfo(
 			FName(Local_MaterialParameterInfo->GetStringField(TEXT("Name"))),
 			static_cast<EMaterialParameterAssociation>(StaticEnum<EMaterialParameterAssociation>()->GetValueByNameString(Local_MaterialParameterInfo->GetStringField(TEXT("Association")))),
 			Local_MaterialParameterInfo->GetIntegerField(TEXT("Index"))
 		);
 
-		// Now, create the actual switch parameter
+		/* Now, create the actual switch parameter */
 		FStaticSwitchParameter Parameter = FStaticSwitchParameter(
 			MaterialParameterParameterInfo,
 			ParameterObject->GetBoolField(TEXT("Value")),
@@ -216,7 +216,7 @@ bool IMaterialInstanceConstantImporter::Import() {
 			MaterialInstanceConstant->GetEditorOnlyData()->StaticParameters.StaticSwitchParameters.Add(Parameter);
 		#endif
 		#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
-			// Unreal Engine 5.2 and beyond have a different method
+			/* Unreal Engine 5.2 and beyond have a different method */
 			NewStaticParameterSet.StaticSwitchParameters.Add(Parameter); 
 		#endif
 	}
@@ -226,7 +226,7 @@ bool IMaterialInstanceConstantImporter::Import() {
 		TSharedPtr<FJsonObject> ParameterObject = StaticParameter_Value->AsObject();
 		TSharedPtr<FJsonObject> Local_MaterialParameterInfo = ParameterObject->GetObjectField(TEXT("ParameterInfo"));
 
-		// Create Material Parameter Info
+		/* Create Material Parameter Info */
 		FMaterialParameterInfo MaterialParameterParameterInfo = FMaterialParameterInfo(
 			FName(Local_MaterialParameterInfo->GetStringField(TEXT("Name"))),
 			static_cast<EMaterialParameterAssociation>(StaticEnum<EMaterialParameterAssociation>()->GetValueByNameString(Local_MaterialParameterInfo->GetStringField(TEXT("Association")))),

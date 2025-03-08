@@ -1,9 +1,8 @@
-﻿// Copyright JAA Contributors 2024-2025
+﻿/* Copyright JAA Contributors 2024-2025 */
 
 #include "Importers/Types/Curves/CurveLinearColorAtlasImporter.h"
 #include "Curves/CurveLinearColorAtlas.h"
 #include "Curves/CurveLinearColor.h"
-#include "Dom/JsonObject.h"
 
 bool ICurveLinearColorAtlasImporter::Import() {
 	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
@@ -28,28 +27,24 @@ bool ICurveLinearColorAtlasImporter::Import() {
 	Object->UpdateResource();
 
 	bool bHasAnyDirtyTextures = false;
-	if (Properties->TryGetBoolField(TEXT("bHasAnyDirtyTextures"), bHasAnyDirtyTextures))
-	{
+	if (Properties->TryGetBoolField(TEXT("bHasAnyDirtyTextures"), bHasAnyDirtyTextures)) {
 		Object->bHasAnyDirtyTextures = bHasAnyDirtyTextures;
 	}
 
 	bool bIsDirty = false;
-	if (Properties->TryGetBoolField(TEXT("bIsDirty"), bIsDirty))
-	{
+	if (Properties->TryGetBoolField(TEXT("bIsDirty"), bIsDirty)) {
 		Object->bIsDirty = bIsDirty;
 	}
 
 	bool bShowDebugColorsForNullGradients = false;
-	if (Properties->TryGetBoolField(TEXT("bShowDebugColorsForNullGradients"), bShowDebugColorsForNullGradients))
-	{
+	if (Properties->TryGetBoolField(TEXT("bShowDebugColorsForNullGradients"), bShowDebugColorsForNullGradients)) {
 		Object->bShowDebugColorsForNullGradients = bShowDebugColorsForNullGradients;
 	}
 
 	bool bSquareResolution = false;
 
 #if !(ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27)
-	if (Properties->TryGetBoolField(TEXT("bSquareResolution"), bSquareResolution))
-	{
+	if (Properties->TryGetBoolField(TEXT("bSquareResolution"), bSquareResolution)) {
 		Object->bSquareResolution = bSquareResolution;
 	}
 #endif
@@ -62,14 +57,12 @@ bool ICurveLinearColorAtlasImporter::Import() {
 	double TextureHeight = 0.0f;
 #endif
 	
-	if (Properties->TryGetNumberField(TEXT("TextureSize"), TextureSize))
-	{
+	if (Properties->TryGetNumberField(TEXT("TextureSize"), TextureSize)) {
 		Object->TextureSize = TextureSize;
 	}
 
 #if !(ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27)
-	if (Properties->TryGetNumberField(TEXT("TextureHeight"), TextureHeight))
-	{
+	if (Properties->TryGetNumberField(TEXT("TextureHeight"), TextureHeight)) {
 		Object->TextureHeight = TextureHeight;
 	}
 #endif
@@ -78,7 +71,7 @@ bool ICurveLinearColorAtlasImporter::Import() {
 	FPropertyChangedEvent TextureSizePropertyPropertyChangedEvent(TextureSizeProperty, EPropertyChangeType::ValueSet);
 	Object->PostEditChangeProperty(TextureSizePropertyPropertyChangedEvent);
 
-	// Add gradient curves
+	/* Add gradient curves */
 	FProperty* GradientCurvesProperty = FindFProperty<FProperty>(Object->GetClass(), "GradientCurves");
 	FPropertyChangedEvent PropertyChangedEvent(GradientCurvesProperty, EPropertyChangeType::ArrayAdd);
 
@@ -92,7 +85,7 @@ bool ICurveLinearColorAtlasImporter::Import() {
 #else
 	CurvesLocal = LoadObject(GradientCurves, CurvesLocal);
 
-	// Convert TObjectPtr<UCurveLinearColor> to UCurveLinearColor* and assign to Object->GradientCurves
+	/* Convert TObjectPtr<UCurveLinearColor> to UCurveLinearColor* and assign to Object->GradientCurves */
 	TArray<UCurveLinearColor*> RawCurves;
 	for (const TObjectPtr<UCurveLinearColor>& Curve : CurvesLocal) {
 		RawCurves.Add(Curve.Get());
@@ -101,6 +94,6 @@ bool ICurveLinearColorAtlasImporter::Import() {
 	Object->GradientCurves = RawCurves;
 #endif
 
-	// Handle edit changes, and add it to the content browser
+	/* Handle edit changes, and add it to the content browser */
 	return OnAssetCreation(Object);
 }

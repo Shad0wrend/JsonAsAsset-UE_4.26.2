@@ -1,46 +1,44 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #include "Importers/Constructor/Importer.h"
 
 #include "Settings/JsonAsAssetSettings.h"
 
-// Content Browser Modules
+/* Content Browser Modules */
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 
-// Utilities
+/* Utilities */
 #include "Utilities/AssetUtilities.h"
 
 #include "Misc/MessageDialog.h"
 #include "UObject/SavePackage.h"
 
-// Slate Icons
+/* Slate Icons */
 #include "Styling/SlateIconFinder.h"
 
-// ----> Importers
-// Particle System Importing is not finalized
+/* Particle System Importing is not finalized */
 #ifndef JSONASASSET_PARTICLESYSTEM_ALLOW
 #define JSONASASSET_PARTICLESYSTEM_ALLOW 0
 #endif
 
 #include "Importers/Types/DataAssetImporter.h"
-// <---- Importers
 
-// Templated Class
+/* Templated Class */
 #include "Importers/Constructor/TemplatedImporter.h"
 
-// ----------------------- Templated Engine Classes ----------------------------------------------
+/* ~~~~~~~~~~~~~ Templated Engine Classes ~~~~~~~~~~~~~ */
 #include "Materials/MaterialParameterCollection.h"
 #include "Engine/SubsurfaceProfile.h"
 #include "Curves/CurveLinearColor.h"
 #include "Logging/MessageLog.h"
 #include "Sound/SoundNode.h"
-// -----------------------------------------------------------------------------------------------
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #define LOCTEXT_NAMESPACE "IImporter"
 
-// Importer Construction
+/* Importer Constructor */
 IImporter::IImporter(const FString& FileName, const FString& FilePath, 
 		  const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, 
 		  UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects)
@@ -51,16 +49,15 @@ IImporter::IImporter(const FString& FileName, const FString& FilePath,
 	GObjectSerializer = NewObject<UObjectSerializer>();
 	GObjectSerializer->SetPropertySerializer(PropertySerializer);
 	
-	// Make Properties if it doesn't exist
+	/* Create Properties field if it doesn't exist */
 	if (!JsonObject->HasField(TEXT("Properties"))) {
 		JsonObject->SetObjectField(TEXT("Properties"), TSharedPtr<FJsonObject>());
 	}
 
 	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
 
-	// Move asset properties defined outside "Properties" and move it inside
-	for (const auto& Pair : JsonObject->Values)
-	{
+	/* Move asset properties defined outside "Properties" and move it inside */
+	for (const auto& Pair : JsonObject->Values) {
 		const FString& PropertyName = Pair.Key;
     
 		if (!PropertyName.Equals(TEXT("Type")) &&
@@ -74,8 +71,12 @@ IImporter::IImporter(const FString& FileName, const FString& FilePath,
 	}
 }
 
-// -----------------------------------------------------------------------------------------------
-
+/*
+ * Define supported asset class names here
+ *
+ * An empty string "" is a separator line
+ * A string starting with "# ..." is a category
+ */
 TArray<FString> ImporterAcceptedTypes = {
 	"# Animation Assets", /* Animation Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -165,13 +166,7 @@ TArray<FString> ImporterAcceptedTypes = {
 	"UserDefinedEnum"
 };
 
-// Handles the JSON of a file.
-// I want to replace Handle with Import in most of these functions
-bool IImporter::ImportExports(TArray<TSharedPtr<FJsonValue>> Exports, FString File, const bool bHideNotifications) const
-{
-	TArray<FString> Types;
-	for (const TSharedPtr<FJsonValue>& Obj : Exports) Types.Add(Obj->AsObject()->GetStringField(TEXT("Type")));
-
+bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FString File, const bool bHideNotifications) {
 	for (const TSharedPtr<FJsonValue>& ExportPtr : Exports) {
 		TSharedPtr<FJsonObject> DataObject = ExportPtr->AsObject();
 
@@ -183,12 +178,12 @@ bool IImporter::ImportExports(TArray<TSharedPtr<FJsonValue>> Exports, FString Fi
 		if (Class == nullptr) continue;
 
 		/* If the class inherits DataAsset, it is importable */
-		bool InheritsDataAsset = Class->IsChildOf(UDataAsset::StaticClass());
+		const bool InheritsDataAsset = Class->IsChildOf(UDataAsset::StaticClass());
 
+		/* Check if this export can be imported */
 		if (!CanImport(Type) || InheritsDataAsset) continue;
 
-		// Convert from relative to full
-		// NOTE: Used for references
+		/* Convert from relative path to full path */
 		if (FPaths::IsRelative(File)) File = FPaths::ConvertRelativePathToFull(File);
 
 		UPackage* LocalOutermostPkg;
@@ -206,17 +201,27 @@ bool IImporter::ImportExports(TArray<TSharedPtr<FJsonValue>> Exports, FString Fi
 		if (!Importer && InheritsDataAsset) {
 			Importer = new IDataAssetImporter(Class, Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
 		}
-		
+
+		/*
+		 * By default, (with no existing importer) use the templated importer with the asset class.
+		 */
 		if (Importer == nullptr) {
-			Importer = new ITemplatedImporter<UObject>(Class, Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
+			Importer = new ITemplatedImporter<UObject>(
+				Class, Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports
+			);
 		}
 
-		bool Successful = false;
+		/* Import the asset ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+		bool Successful = false; {
+			try {
+				Successful = Importer->Import();
+			} catch (const char* Exception) {
+				UE_LOG(LogJson, Error, TEXT("Importer exception: %s"), *FString(Exception));
+			}
+		}
 
-		try {
-			Successful = Importer->Import();
-		} catch (const char* Exception) {
-			UE_LOG(LogJson, Error, TEXT("Importer exception: %s"), *FString(Exception));
+		if (bHideNotifications) {
+			return Successful;
 		}
 
 		if (Successful) {
@@ -225,7 +230,7 @@ bool IImporter::ImportExports(TArray<TSharedPtr<FJsonValue>> Exports, FString Fi
 			if (!(Type == "AnimSequence" || Type == "AnimMontage"))
 				Importer->SavePackage();
 
-			// Notification for asset
+			/* Import Successful Notification */
 			AppendNotification(
 				FText::FromString("Imported type: " + Type),
 				FText::FromString(Name),
@@ -239,15 +244,18 @@ bool IImporter::ImportExports(TArray<TSharedPtr<FJsonValue>> Exports, FString Fi
 			FMessageLog MessageLogger = FMessageLog(FName("JsonAsAsset"));
 
 			MessageLogger.Message(EMessageSeverity::Info, FText::FromString("Imported Asset: " + Name + " (" + Type + ")"));
-		} else AppendNotification(
-			FText::FromString("Import Failed: " + Type),
-			FText::FromString(Name),
-			2.0f,
-			FSlateIconFinder::FindCustomIconBrushForClass(FindObject<UClass>(nullptr, *("/Script/Engine." + Type)), TEXT("ClassThumbnail")),
-			SNotificationItem::CS_Fail,
-			false,
-			350.0f
-		);
+		} else {
+			/* Import Failed Notification */
+			AppendNotification(
+				FText::FromString("Import Failed: " + Type),
+				FText::FromString(Name),
+				2.0f,
+				FSlateIconFinder::FindCustomIconBrushForClass(FindObject<UClass>(nullptr, *("/Script/Engine." + Type)), TEXT("ClassThumbnail")),
+				SNotificationItem::CS_Fail,
+				false,
+				350.0f
+			);
+		}
 	}
 
 	return true;
@@ -263,7 +271,7 @@ TArray<TSharedPtr<FJsonValue>> IImporter::GetObjectsWithTypeStartingWith(const F
 			if (JsonObjectType.IsValid() && JsonObjectType->HasField(TEXT("Type"))) {
 				FString TypeValue = JsonObjectType->GetStringField(TEXT("Type"));
 
-				// Check if the "Type" field starts with the specified string
+				/* Check if the "Type" field starts with the specified string */
 				if (TypeValue.StartsWith(StartsWithStr)) {
 					FilteredObjects.Add(JsonObjectValue);
 				}
@@ -274,7 +282,6 @@ TArray<TSharedPtr<FJsonValue>> IImporter::GetObjectsWithTypeStartingWith(const F
 	return FilteredObjects;
 }
 
-// This is called at the end of asset creation, bringing the user to the asset and fully loading it
 bool IImporter::HandleAssetCreation(UObject* Asset) const {
 	FAssetRegistryModule::AssetCreated(Asset);
 	if (!Asset->MarkPackageDirty()) return false;
@@ -285,7 +292,7 @@ bool IImporter::HandleAssetCreation(UObject* Asset) const {
 	
 	Package->FullyLoad();
 
-	// Browse to newly added Asset
+	/* Browse to newly added Asset in the Content Browser */
 	const TArray<FAssetData>& Assets = {Asset};
 	const FContentBrowserModule& ContentBrowserModule = FModuleManager::Get().LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
 	ContentBrowserModule.Get().SyncBrowserToAssets(Assets);
@@ -293,15 +300,13 @@ bool IImporter::HandleAssetCreation(UObject* Asset) const {
 	return true;
 }
 
-// Function to check if an asset needs to be imported. Once imported, the asset will be set and returned.
 template <typename T>
 TObjectPtr<T> IImporter::DownloadWrapper(TObjectPtr<T> InObject, FString Type, FString Name, FString Path) {
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
-	bool bEnableLocalFetch = Settings->bEnableLocalFetch;
 
 	FMessageLog MessageLogger = FMessageLog(FName("JsonAsAsset"));
 
-	if (bEnableLocalFetch && (
+	if (Settings->bEnableLocalFetch && (
 		InObject == nullptr ||
 			Settings->AssetSettings.TextureImportSettings.bDownloadExistingTextures &&
 			Type == "Texture2D"
@@ -312,7 +317,7 @@ TObjectPtr<T> IImporter::DownloadWrapper(TObjectPtr<T> InObject, FString Type, F
 		if (DefaultObject != nullptr && !Name.IsEmpty() && !Path.IsEmpty()) {
 			bool bRemoteDownloadStatus = false;
 
-			// Notification
+			/* Try importing the asset */
 			if (FAssetUtilities::ConstructAsset(FSoftObjectPath(Type + "'" + Path + "." + Name + "'").ToString(), Type, InObject, bRemoteDownloadStatus)) {
 				const FText AssetNameText = FText::FromString(Name);
 				const FSlateBrush* IconBrush = FSlateIconFinder::FindCustomIconBrushForClass(FindObject<UClass>(nullptr, *("/Script/Engine." + Type)), TEXT("ClassThumbnail"));
@@ -349,7 +354,6 @@ TObjectPtr<T> IImporter::DownloadWrapper(TObjectPtr<T> InObject, FString Type, F
 	return InObject;
 }
 
-// Loads a single <T> object ptr -------------------------------------------------------
 template void IImporter::LoadObject<UMaterialInterface>(const TSharedPtr<FJsonObject>*, TObjectPtr<UMaterialInterface>&);
 template void IImporter::LoadObject<USubsurfaceProfile>(const TSharedPtr<FJsonObject>*, TObjectPtr<USubsurfaceProfile>&);
 template void IImporter::LoadObject<UTexture>(const TSharedPtr<FJsonObject>*, TObjectPtr<UTexture>&);
@@ -368,7 +372,7 @@ void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectP
 
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 
-	// Rare case of needing a GameName
+	/* Rare case of needing a GameName */
 	if (!Settings->AssetSettings.GameName.IsEmpty()) {
 		ObjectPath = ObjectPath.Replace(*(Settings->AssetSettings.GameName + "/Content"), TEXT("/Game"));
 	}
@@ -384,7 +388,7 @@ void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectP
 		ObjectName.Split(".", &Outer, &ObjectName);
 	}
 
-	// Try to load object using the object path and the object name combined
+	/* Try to load object using the object path and the object name combined */
 	TObjectPtr<T> LoadedObject = Cast<T>(StaticLoadObject(T::StaticClass(), nullptr, *(ObjectPath + "." + ObjectName)));
 
 	if (!Outer.IsEmpty())
@@ -401,7 +405,7 @@ void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectP
 		}
 	}
 	
-	// Material Expression case
+	/* Material Expression case */
 	if (!LoadedObject && ObjectName.Contains("MaterialExpression")) {
 		FString AssetName;
 		ObjectPath.Split("/", nullptr, &AssetName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
@@ -416,7 +420,6 @@ void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectP
 	}
 }
 
-// Loads an array of <T> object ptrs -------------------------------------------------------
 template TArray<TObjectPtr<UCurveLinearColor>> IImporter::LoadObject<UCurveLinearColor>(const TArray<TSharedPtr<FJsonValue>>&, TArray<TObjectPtr<UCurveLinearColor>>);
 
 template <typename T>
@@ -425,6 +428,7 @@ TArray<TObjectPtr<T>> IImporter::LoadObject(const TArray<TSharedPtr<FJsonValue>>
 		const TSharedPtr<FJsonObject> ObjectPtr = ArrayElement->AsObject();
 
 		FString ObjectType, ObjectName, ObjectPath;
+		
 		ObjectPtr->GetStringField(TEXT("ObjectName")).Split("'", &ObjectType, &ObjectName);
 		ObjectPtr->GetStringField(TEXT("ObjectPath")).Split(".", &ObjectPath, nullptr);
 		ObjectName = ObjectName.Replace(TEXT("'"), TEXT(""));
@@ -436,10 +440,8 @@ TArray<TObjectPtr<T>> IImporter::LoadObject(const TArray<TSharedPtr<FJsonValue>>
 	return Array;
 }
 
-// Sends off to the ImportExports function once read
-void IImporter::ImportReference(const FString& File) const
-{
-	/* ----  Parse JSON into UE JSON Reader ---- */
+void IImporter::ImportReference(const FString& File) {
+	/* ~~~~  Parse JSON into UE JSON Reader ~~~~ */
 	FString ContentBefore;
 	FFileHelper::LoadFileToString(ContentBefore, *File);
 
@@ -449,12 +451,12 @@ void IImporter::ImportReference(const FString& File) const
 
 	TSharedPtr<FJsonObject> JsonParsed;
 	const TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(Content);
-	/* ---------------------------------------- */
+	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	if (FJsonSerializer::Deserialize(JsonReader, JsonParsed)) {
 		const TArray<TSharedPtr<FJsonValue>> DataObjects = JsonParsed->GetArrayField(TEXT("data"));
 
-		ImportExports(DataObjects, File);
+		ReadExportsAndImport(DataObjects, File);
 	}
 }
 
@@ -478,12 +480,10 @@ TMap<FName, FExportData> IImporter::CreateExports() {
 	return OutExports;
 }
 
-// Called before HandleAssetCreation, simply saves the asset if user opted
-void IImporter::SavePackage() const
-{
+void IImporter::SavePackage() const {
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 
-	// Ensure the package is valid before proceeding
+	/* Ensure the package is valid before proceeding */
 	if (Package == nullptr) {
 		UE_LOG(LogTemp, Error, TEXT("Package is null"));
 		return;
@@ -492,7 +492,7 @@ void IImporter::SavePackage() const
 	const FString PackageName = Package->GetName();
 	const FString PackageFileName = FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension());
 
-	// User option to save packages on import
+	/* User option to save packages on import */
 	if (Settings->AssetSettings.bSavePackagesOnImport) {
 #if ENGINE_MAJOR_VERSION >= 5
 		FSavePackageArgs SaveArgs; {
@@ -508,18 +508,19 @@ void IImporter::SavePackage() const
 	}
 }
 
-bool IImporter::OnAssetCreation(UObject* Asset) const
-{
+bool IImporter::OnAssetCreation(UObject* Asset) const {
 	SavePackage();
 	
 	return HandleAssetCreation(Asset);
 }
 
 FName IImporter::GetExportNameOfSubobject(const FString& PackageIndex) {
-	FString Name;
-	PackageIndex.Split("'", nullptr, &Name);
-	Name.Split(":", nullptr, &Name);
-	Name = Name.Replace(TEXT("'"), TEXT(""));
+	FString Name; {
+		PackageIndex.Split("'", nullptr, &Name);
+		Name.Split(":", nullptr, &Name);
+		Name = Name.Replace(TEXT("'"), TEXT(""));
+	}
+	
 	return FName(Name);
 }
 
@@ -529,8 +530,8 @@ TArray<TSharedPtr<FJsonValue>> IImporter::FilterExportsByOuter(const FString& Ou
 	for (const TSharedPtr<FJsonValue> Value : AllJsonObjects) {
 		const TSharedPtr<FJsonObject> ValueObject = TSharedPtr<FJsonObject>(Value->AsObject());
 
-		FString ExOuter;
-		if (ValueObject->TryGetStringField(TEXT("Outer"), ExOuter) && ExOuter == Outer) 
+		FString ExportOuter;
+		if (ValueObject->TryGetStringField(TEXT("Outer"), ExportOuter) && ExportOuter == Outer) 
 			ReturnValue.Add(TSharedPtr<FJsonValue>(Value));
 	}
 

@@ -1,4 +1,4 @@
-﻿// Copyright JAA Contributors 2024-2025
+﻿/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
@@ -13,21 +13,17 @@
  */
 extern TArray<FString> LocalFetchAcceptedTypes;
 
-class LocalFetchModule
-{
+class LocalFetchModule {
 public:
 	static bool LaunchLocalFetch();
 	static void CloseLocalFetch();
 };
 
-// Used for settings and in Local Fetch
-// I wanted to rename "Value" to "Key", because it makes more sense, but it'll break references
 USTRUCT()
 struct FAesKey
 {
 	GENERATED_BODY()
 public:
-	// Construct an AES Key with an empty Key and Value
 	FAesKey() {
 	}
 

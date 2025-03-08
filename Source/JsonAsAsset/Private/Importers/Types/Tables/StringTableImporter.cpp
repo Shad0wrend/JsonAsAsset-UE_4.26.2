@@ -1,4 +1,4 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #include "Importers/Types/Tables/StringTableImporter.h"
 
@@ -44,6 +44,6 @@ bool IStringTableImporter::Import() {
 		}
 	}
 
-	// Handle edit changes, and add it to the content browser
+	/* Handle edit changes, and add it to the content browser */
 	return OnAssetCreation(StringTable);
 }

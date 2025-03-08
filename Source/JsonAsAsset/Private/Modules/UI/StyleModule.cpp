@@ -1,4 +1,4 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #include "Modules/UI/StyleModule.h"
 #include "Styling/SlateStyleRegistry.h"
@@ -13,11 +13,11 @@ TSharedRef<FSlateStyleSet> FJsonAsAssetStyle::Create() {
 	TSharedRef<FSlateStyleSet> Style = MakeShareable(new FSlateStyleSet("JsonAsAssetStyle"));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("JsonAsAsset")->GetBaseDir() / TEXT("Resources"));
 
-	// Toolbar
+	/* Toolbar ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	Style->Set("JsonAsAsset.Toolbar.Icon", new IMAGE_BRUSH(TEXT("./Toolbar/40px"), Icon40x40));
 	Style->Set("JsonAsAsset.Toolbar.Icon.Warning", new IMAGE_BRUSH(TEXT("./Toolbar/40px_Warning"), Icon40x40));
 
-	// AboutJsonAsAsset Widget
+	/* AboutJsonAsAsset Widget ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	Style->Set("JsonAsAsset.FModel.Icon", new IMAGE_BRUSH(TEXT("./About/FModel"), Icon80x80));
 	Style->Set("JsonAsAsset.Github.Icon", new IMAGE_BRUSH(TEXT("./About/Github"), Icon40x40));
 

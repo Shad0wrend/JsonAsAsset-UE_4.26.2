@@ -1,4 +1,4 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
@@ -16,7 +16,6 @@ struct FFailedPropertyInfo
 	GENERATED_BODY()
 
 public:
-
 	FString ClassName;
 	FString ObjectPath;
 	FString SuperStructName;

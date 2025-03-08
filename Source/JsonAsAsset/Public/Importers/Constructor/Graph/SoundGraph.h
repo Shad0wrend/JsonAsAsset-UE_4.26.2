@@ -1,4 +1,4 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
@@ -6,25 +6,27 @@
 #include "Interfaces/IHttpRequest.h"
 #include "Sound/SoundNodeWavePlayer.h"
 
-// Sound Graph Handler
-// Handles everything needed to create a sound graph from JSON.
+/*
+ * Sound Graph Handler
+ * Handles everything needed to create a sound graph from JSON.
+*/
 class ISoundGraph : public IImporter {
 public:
 	ISoundGraph(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects):
 		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects) {
 	}
 
-	// Graph Functions
+	/* Graph Functions */
 	static void ConnectEdGraphNode(UEdGraphNode* NodeToConnect, UEdGraphNode* NodeToConnectTo, int Pin);
 	static void ConnectSoundNode(const USoundNode* NodeToConnect, const USoundNode* NodeToConnectTo, int Pin);
 
-	// Creates a empty USoundNode
+	/* Creates an empty USoundNode */
 	static USoundNode* CreateEmptyNode(FName Name, FName Type, USoundCue* SoundCue);
 
 	static void ConstructNodes(USoundCue* SoundCue, TArray<TSharedPtr<FJsonValue>> JsonArray, TMap<FString, USoundNode*>& OutNodes);
 	void SetupNodes(USoundCue* SoundCueAsset, TMap<FString, USoundNode*> SoundCueNodes, TArray<TSharedPtr<FJsonValue>> JsonObjectArray) const;
 
-	// Sound Wave Import
+	/* Sound Wave Import */
 	void ImportSoundWave(const FString& URL, FString SavePath, FString AssetPtr, USoundNodeWavePlayer* Node) const;
 	static void OnDownloadSoundWave(FHttpRequestPtr Request, const FHttpResponsePtr& Response, bool bWasSuccessful, FString SavePath, FString AssetPtr, USoundNodeWavePlayer* Node);
 };

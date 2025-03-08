@@ -1,4 +1,4 @@
-﻿// Copyright JAA Contributors 2024-2025
+﻿/* Copyright JAA Contributors 2024-2025 */
 
 #include "Importers/Types/Niagara/NiagaraParameterCollectionImporter.h"
 #include "Materials/MaterialParameterCollection.h"

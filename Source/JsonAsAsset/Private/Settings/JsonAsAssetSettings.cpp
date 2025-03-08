@@ -1,4 +1,4 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #include "Settings/JsonAsAssetSettings.h"
 #include "Widgets/Input/SButton.h"
@@ -15,8 +15,7 @@ UJsonAsAssetSettings::UJsonAsAssetSettings():
 	SectionName = TEXT("JsonAsAsset");
 }
 
-FText UJsonAsAssetSettings::GetSectionText() const
-{
+FText UJsonAsAssetSettings::GetSectionText() const {
 	return LOCTEXT("SettingsDisplayName", "JsonAsAsset");
 }
 

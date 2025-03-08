@@ -1,8 +1,8 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 using UnrealBuildTool;
 
-// NOTE: Please make sure to put UE5 only modules in the if statement below, we want UE4 and UE5 compatibility
+/* NOTE: Please make sure to put UE5 only modules in the if statement below, we want UE4 and UE5 compatibility */
 public class JsonAsAsset : ModuleRules
 {
 	public JsonAsAsset(ReadOnlyTargetRules Target) : base(Target)
@@ -10,10 +10,10 @@ public class JsonAsAsset : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
             
 #if UE_5_0_OR_LATER
-	    // Unreal Engine 5 and later
+	    /* Unreal Engine 5 and later */
 	    CppStandard = CppStandardVersion.Cpp20;
 #else
-		// Unreal Engine 4
+		/* Unreal Engine 4 */
 		CppStandard = CppStandardVersion.Cpp17;
 #endif
 
@@ -57,7 +57,7 @@ public class JsonAsAsset : ModuleRules
 			"RenderCore",
 
 #if UE_5_0_OR_LATER
-			// Only Unreal Engine 5
+			/* Only Unreal Engine 5 */
 
 			"AnimationDataController",
 			"ToolWidgets"

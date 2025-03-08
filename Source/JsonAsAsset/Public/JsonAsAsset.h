@@ -1,4 +1,4 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
@@ -17,7 +17,7 @@ public:
     virtual void StartupModule() override;
     virtual void ShutdownModule() override;
 
-    // Executes File Dialog
+    /* Execute File Dialog */
     void PluginButtonClicked();
 
 private:

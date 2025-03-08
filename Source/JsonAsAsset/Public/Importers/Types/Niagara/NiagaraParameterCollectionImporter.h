@@ -1,4 +1,4 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
@@ -6,8 +6,7 @@
 #include "NiagaraParameterCollectionImporter.h"
 #include "NiagaraParameterCollection.h"
 
-class CNiagaraParameterCollectionDerived : public UNiagaraParameterCollection
-{
+class CNiagaraParameterCollectionDerived : public UNiagaraParameterCollection {
 public:
     void SetSourceMaterialCollection(TObjectPtr<UMaterialParameterCollection> MaterialParameterCollection);
     void SetCompileId(FGuid Guid);

@@ -1,4 +1,4 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
@@ -100,7 +100,7 @@ public:
 	FString GameName;
 };
 
-// A user-friendly Unreal Engine plugin designed to import assets from packaged games through JSON files
+/* A user-friendly Unreal Engine plugin designed to import assets from packaged games through JSON files */
 UCLASS(Config = EditorPerProjectUserSettings, DefaultConfig)
 class JSONASASSET_API UJsonAsAssetSettings : public UDeveloperSettings
 {

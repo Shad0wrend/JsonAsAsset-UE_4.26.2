@@ -1,4 +1,4 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
@@ -17,8 +17,10 @@ public:
 	virtual bool Import() override;
 
 #if ENGINE_MAJOR_VERSION == 5
-	// Subgraph Functions
-	// still not done :[
+	/*
+	 * Subgraph Functions
+	 * still not done :[
+	*/
 	void ComposeExpressionPinBase(UMaterialExpressionPinBase* Pin, TMap<FName, UMaterialExpression*>& CreatedExpressionMap, const TSharedPtr<FJsonObject>& _JsonObject, TMap<FName, FExportData>& Exports);
 #endif
 	TArray<TSharedPtr<FJsonValue>> FilterGraphNodesBySubgraphExpression(const FString& Outer);

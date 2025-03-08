@@ -1,8 +1,9 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
 #include "Importers/Constructor/Importer.h"
+
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 4
 #include "PhysicsEngine/PhysicsConstraintTemplate.h"
 #include "PhysicsEngine/SkeletalBodySetup.h"

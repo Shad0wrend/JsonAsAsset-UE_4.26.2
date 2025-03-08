@@ -1,4 +1,4 @@
-﻿// Copyright JAA Contributors 2024-2025
+﻿/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
@@ -14,7 +14,7 @@ public:
 		: TCommands(TEXT("JsonAsAsset"), NSLOCTEXT("Contexts", "JsonAsAsset", "JsonAsAsset Plugin"), NAME_None, FJsonAsAssetStyle::GetStyleSetName()) {
 	}
 
-	// TCommands<> interface
+	/* TCommands<> interface */
 	virtual void RegisterCommands() override
 	{
 		UI_COMMAND(PluginAction, "JsonAsAsset", "Choose a JSON file to Convert", EUserInterfaceActionType::Button, FInputGesture());

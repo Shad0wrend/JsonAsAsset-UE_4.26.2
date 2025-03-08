@@ -1,4 +1,4 @@
-﻿// Copyright JAA Contributors 2024-2025
+﻿/* Copyright JAA Contributors 2024-2025 */
 
 #include "Modules/LocalFetchModule.h"
 
@@ -6,8 +6,6 @@
 #include "Settings/JsonAsAssetSettings.h"
 #include "Windows/WindowsHWrapper.h"
 #include <TlHelp32.h>
-
-#include "Utilities/EngineUtilities.h"
 
 #ifdef _MSC_VER
 #undef GetObject
@@ -58,8 +56,7 @@ TArray<FString> LocalFetchAcceptedTypes = {
 	"DataTable",
 };
 
-bool LocalFetchModule::LaunchLocalFetch()
-{
+bool LocalFetchModule::LaunchLocalFetch() {
 	const UJsonAsAssetSettings* Settings = GetMutableDefault<UJsonAsAssetSettings>();
 
 	FString PluginFolder;
@@ -82,8 +79,7 @@ bool LocalFetchModule::LaunchLocalFetch()
 #endif
 }
 
-void LocalFetchModule::CloseLocalFetch()
-{
+void LocalFetchModule::CloseLocalFetch() {
 	FString ProcessName = TEXT("LocalFetch.exe");
 	TCHAR* ProcessNameChar = ProcessName.GetCharArray().GetData();
 

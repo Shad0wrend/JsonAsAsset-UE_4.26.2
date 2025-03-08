@@ -1,37 +1,31 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #include "Importers/Types/Audio/SoundCueImporter.h"
 #include "Sound/SoundCue.h"
 
 bool ISoundCueImporter::Import() {
-	try {
-		// Create Sound Cue
-		USoundCue* SoundCue = NewObject<USoundCue>(Package, *FileName, RF_Public | RF_Standalone);
-		SoundCue->PreEditChange(nullptr);
+	/* Create Sound Cue */
+	USoundCue* SoundCue = NewObject<USoundCue>(Package, *FileName, RF_Public | RF_Standalone);
+	SoundCue->PreEditChange(nullptr);
 
-		TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
+	TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
+	
+	/* Start importing nodes ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+	if (SoundCue) {
+		TMap<FString, USoundNode*> SoundCueNodes;
 		
-		// Start -------------------------------------------
-		if (SoundCue) {
-			TMap<FString, USoundNode*> SoundCueNodes;
-			
-			ConstructNodes(SoundCue, AllJsonObjects, SoundCueNodes);
-			SetupNodes(SoundCue, SoundCueNodes, AllJsonObjects);
-		}
-		// END ---------------------------------------------
-
-		GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(Properties, TArray<FString>
-		{
-			"FirstNode"
-		}), SoundCue);
-		
-		SoundCue->PostEditChange();
-		SoundCue->CompileSoundNodesFromGraphNodes();
-
-		return OnAssetCreation(SoundCue);
-	} catch (const char* Exception) {
-		UE_LOG(LogJson, Error, TEXT("%s"), *FString(Exception));
+		ConstructNodes(SoundCue, AllJsonObjects, SoundCueNodes);
+		SetupNodes(SoundCue, SoundCueNodes, AllJsonObjects);
 	}
+	/* End of importing nodes ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-	return false;
+	GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(Properties, TArray<FString>
+	{
+		"FirstNode"
+	}), SoundCue);
+	
+	SoundCue->PostEditChange();
+	SoundCue->CompileSoundNodesFromGraphNodes();
+
+	return OnAssetCreation(SoundCue);
 }

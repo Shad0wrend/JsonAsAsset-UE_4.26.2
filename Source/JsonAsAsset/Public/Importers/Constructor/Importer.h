@@ -1,4 +1,4 @@
-﻿// Copyright JAA Contributors 2024-2025
+﻿/* Copyright JAA Contributors 2024~2025 */
 
 #pragma once
 
@@ -10,6 +10,7 @@
 #include "Dom/JsonObject.h"
 #include "CoreMinimal.h"
 
+/* Defined in CPP */
 extern TArray<FString> ImporterAcceptedTypes;
 
 #define REGISTER_IMPORTER(ImporterClass, ...) \
@@ -22,25 +23,25 @@ namespace { \
     static FAutoRegister_##ImporterClass AutoRegister_##ImporterClass; \
 }
 
-FORCEINLINE uint32 GetTypeHash(const TArray<FString>& Array)
-{
+FORCEINLINE uint32 GetTypeHash(const TArray<FString>& Array) {
     uint32 Hash = 0;
-    for (const FString& Str : Array)
-    {
+    
+    for (const FString& Str : Array) {
         Hash = HashCombine(Hash, GetTypeHash(Str));
     }
+    
     return Hash;
 }
 
 /* Global handler for converting JSON to assets */
 class IImporter {
 public:
-    /* Constructors ---------------------------------------------------------------------- */
+    /* Constructors ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     IImporter()
         : Package(nullptr), OutermostPkg(nullptr), ParentObject(nullptr),
           PropertySerializer(nullptr), GObjectSerializer(nullptr) {}
 
-    // Importer Constructor
+    /* Importer Constructor */
     IImporter(const FString& FileName, const FString& FilePath, 
               const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, 
               UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects = {});
@@ -73,7 +74,7 @@ public:
     }
     
 protected:
-    /* Class variables ------------------------------------------------------------------ */
+    /* Class variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     TArray<TSharedPtr<FJsonValue>> AllJsonObjects;
     TSharedPtr<FJsonObject> JsonObject;
     FString FileName;
@@ -81,7 +82,7 @@ protected:
     UPackage* Package;
     UPackage* OutermostPkg;
 
-    /* ----------------------------------------------------------------------------------- */
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     
 public:
     /*
@@ -93,7 +94,7 @@ public:
     }
 
 public:
-    /* Accepted Types ---------------------------------------------------------------------- */
+    /* Accepted Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     static TArray<FString> GetAcceptedTypes() {
         return ImporterAcceptedTypes;
     }
@@ -117,17 +118,22 @@ public:
     }
 
 public:
-    /* LoadObject functions ---------------------------------------------------------------------- */
+    /* Loads a single <T> object ptr */
     template<class T = UObject>
     void LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectPtr<T>& Object);
 
+    /* Loads an array of <T> object ptrs */
     template<class T = UObject>
     TArray<TObjectPtr<T>> LoadObject(const TArray<TSharedPtr<FJsonValue>>& PackageArray, TArray<TObjectPtr<T>> Array);
 
-    /* LoadObject functions ---------------------------------------------------------------------- */
 public:
-    void ImportReference(const FString& File) const;
-    bool ImportExports(TArray<TSharedPtr<FJsonValue>> Exports, FString File, bool bHideNotifications = false) const;
+    /* Sends off to the ImportExports function once read */
+    static void ImportReference(const FString& File);
+
+    /*
+     * Searches for importable asset types and imports them.
+     */
+    static bool ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FString File, bool bHideNotifications = false);
 
 public:
     TArray<TSharedPtr<FJsonValue>> GetObjectsWithTypeStartingWith(const FString& StartsWithStr);
@@ -135,23 +141,26 @@ public:
     UObject* ParentObject;
     
 protected:
+    /* This is called at the end of asset creation, bringing the user to the asset and fully loading it */
     bool HandleAssetCreation(UObject* Asset) const;
     void SavePackage() const;
 
     TMap<FName, FExportData> CreateExports();
 
-    // Handle edit changes, and add it to the content browser
-    // Shortcut to calling SavePackage and HandleAssetCreation
+    /*
+     * Handle edit changes, and add it to the content browser
+     */
     bool OnAssetCreation(UObject* Asset) const;
 
     static FName GetExportNameOfSubobject(const FString& PackageIndex);
     TArray<TSharedPtr<FJsonValue>> FilterExportsByOuter(const FString& Outer);
     TSharedPtr<FJsonValue> GetExportByObjectPath(const TSharedPtr<FJsonObject>& Object);
 
-    /* ------------------------------------ Object Serializer and Property Serializer ------------------------------------ */
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Object Serializer and Property Serializer ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 public:
     FORCEINLINE UObjectSerializer* GetObjectSerializer() const { return GObjectSerializer; }
 
+    /* Function to check if an asset needs to be imported. Once imported, the asset will be set and returned. */
     template <class T = UObject>
     TObjectPtr<T> DownloadWrapper(TObjectPtr<T> InObject, FString Type, FString Name, FString Path);
 
@@ -166,5 +175,5 @@ protected:
         ObjectSerializer->SetExportForDeserialization(JsonObject);
         ObjectSerializer->ParentAsset = ParentAsset;  
     };
-    /* ------------------------------------ Object Serializer and Property Serializer ------------------------------------ */
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Object Serializer and Property Serializer ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 };

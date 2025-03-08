@@ -1,4 +1,4 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #include "Importers/Types/Physics/PhysicsAssetImporter.h"
 #include "PhysicsEngine/PhysicsAsset.h"
@@ -41,8 +41,7 @@ bool IPhysicsAssetImporter::Import()
 	/* CollisionDisableTable ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	TArray<TSharedPtr<FJsonValue>> CollisionDisableTable = Properties->GetArrayField(TEXT("CollisionDisableTable"));
 
-	for (const TSharedPtr<FJsonValue> TableJSONElement : CollisionDisableTable)
-	{
+	for (const TSharedPtr<FJsonValue> TableJSONElement : CollisionDisableTable) {
 		const TSharedPtr<FJsonObject> TableObjectElement = TableJSONElement->AsObject();
 
 		bool MapValue = TableObjectElement->GetBoolField(TEXT("Value"));
@@ -82,8 +81,7 @@ bool IPhysicsAssetImporter::Import()
 	/* If the user selected a skeletal mesh in the browser, set it in the physics asset */
 	const USkeletalMesh* SkeletalMesh = GetSelectedAsset<USkeletalMesh>(true);
 	
-	if (SkeletalMesh)
-	{
+	if (SkeletalMesh) {
 		PhysicsAsset->PreviewSkeletalMesh = SkeletalMesh;
 		PhysicsAsset->PostEditChange();
 	}
@@ -96,8 +94,7 @@ bool IPhysicsAssetImporter::Import()
 	return OnAssetCreation(PhysicsAsset);
 }
 
-USkeletalBodySetup* IPhysicsAssetImporter::CreateNewBody(UPhysicsAsset* PhysAsset, FName ExportName, FName BoneName)
-{
+USkeletalBodySetup* IPhysicsAssetImporter::CreateNewBody(UPhysicsAsset* PhysAsset, FName ExportName, FName BoneName) {
 	USkeletalBodySetup* NewBodySetup = NewObject<USkeletalBodySetup>(PhysAsset, ExportName, RF_Transactional);
 	NewBodySetup->BoneName = BoneName;
 
@@ -106,8 +103,7 @@ USkeletalBodySetup* IPhysicsAssetImporter::CreateNewBody(UPhysicsAsset* PhysAsse
 	return NewBodySetup;
 }
 
-UPhysicsConstraintTemplate* IPhysicsAssetImporter::CreateNewConstraint(UPhysicsAsset* PhysAsset, FName ExportName)
-{
+UPhysicsConstraintTemplate* IPhysicsAssetImporter::CreateNewConstraint(UPhysicsAsset* PhysAsset, FName ExportName) {
 	UPhysicsConstraintTemplate* NewConstraintSetup = NewObject<UPhysicsConstraintTemplate>(PhysAsset, ExportName, RF_Transactional);
 	PhysAsset->ConstraintSetup.Add(NewConstraintSetup);
 

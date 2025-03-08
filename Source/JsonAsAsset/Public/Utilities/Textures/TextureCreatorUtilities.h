@@ -1,12 +1,11 @@
-﻿// Copyright JAA Contributors 2024-2025
+﻿/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
 #include "Utilities/Serializers/PropertyUtilities.h"
 #include "Dom/JsonObject.h"
 
-struct FTextureCreatorUtilities
-{
+struct FTextureCreatorUtilities {
 public:
 	FTextureCreatorUtilities(const FString& FileName, const FString& FilePath, UPackage* Package, 
 			  UPackage* OutermostPkg)

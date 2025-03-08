@@ -1,10 +1,10 @@
-﻿// Copyright JAA Contributors 2024-2025
+﻿/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
 /*
  * This file is used to allow the same code used on UE5 to be used on UE4,
- * it contains structures and classes to replicate missing objects on UE4.
+ * it contains structures and classes to replicate missing classes/structs.
  */
 
 #if ENGINE_MAJOR_VERSION >= 5

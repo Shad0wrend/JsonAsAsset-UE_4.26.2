@@ -1,4 +1,4 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
@@ -21,9 +21,8 @@ public:
 	
 	static bool Construct_TypeTexture(const FString& Path, const FString& RealPath, UTexture*& OutTexture);
 
-	// Creates a plugin in the name (may result in bugs if inputted wrong)
+	/* Creates a plugin in the name (may result in bugs if inputted wrong) */
 	static void CreatePlugin(FString PluginName);
 
-	static TSharedPtr<FJsonObject> API_RequestExports(const FString& Path,
-	                                                  const FString& FetchPath = "/api/v1/export?raw=true&path=");
+	static TSharedPtr<FJsonObject> API_RequestExports(const FString& Path, const FString& FetchPath = "/api/v1/export?raw=true&path=");
 };

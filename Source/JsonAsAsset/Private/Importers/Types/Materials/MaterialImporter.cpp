@@ -1,8 +1,8 @@
-// Copyright JAA Contributors 2024-2025
+/* Copyright JAA Contributors 2024-2025 */
 
 #include "Importers/Types/Materials/MaterialImporter.h"
 
-// Include Material.h (depends on UE Version)
+/* Include Material.h (depends on UE Version) */
 #if (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 3) || ENGINE_MAJOR_VERSION == 4
 #include "Materials/Material.h"
 #else
@@ -41,12 +41,12 @@ void IMaterialImporter::ComposeExpressionPinBase(UMaterialExpressionPinBase* Pin
 			TSharedPtr<FJsonObject> RerouteObj = GetExportByObjectPath(ReroutePinObject->GetObjectField(TEXT("Expression")))->AsObject();
 			UMaterialExpressionReroute* RerouteExpression = Cast<UMaterialExpressionReroute>(*CreatedExpressionMap.Find(FName(RerouteObj->GetStringField(TEXT("Name")))));
 
-			// Add reroute to pin
+			/* Add reroute to pin */
 			Pin->ReroutePins.Add(FCompositeReroute(FName(ReroutePinObject->GetStringField(TEXT("Name"))), RerouteExpression));
 		}
 	}
 
-	// Set Pin Direction
+	/* Set Pin Direction */
 	FString PinDirection;
 	if (Expression->TryGetStringField(TEXT("PinDirection"), PinDirection)) {
 		EEdGraphPinDirection Enum_PinDirection = EGPD_Input;
@@ -73,7 +73,7 @@ void IMaterialImporter::ComposeExpressionPinBase(UMaterialExpressionPinBase* Pin
 #endif
 
 bool IMaterialImporter::Import() {
-	// Create Material Factory (factory automatically creates the Material)
+	/* Create Material Factory (factory automatically creates the Material) */
 	UMaterialFactoryNew* MaterialFactory = NewObject<UMaterialFactoryNew>();
 	UMaterial* Material = Cast<UMaterial>(MaterialFactory->FactoryCreateNew(UMaterial::StaticClass(), OutermostPkg, *FileName, RF_Standalone | RF_Public, nullptr, GWarn));
 
@@ -81,41 +81,31 @@ bool IMaterialImporter::Import() {
 
 	Material->GetReferencedTextures();
 
-	// Clear any default expressions the engine adds
+	/* Clear any default expressions the engine adds */
 #if ENGINE_MAJOR_VERSION >= 5
 	Material->GetExpressionCollection().Empty();
 #else
 	Material->Expressions.Empty();
 #endif
 
-	// Define editor only data from the JSON
+	/* Define editor only data from the JSON */
 	TMap<FName, FExportData> Exports;
 	TArray<FName> ExpressionNames;
 	TSharedPtr<FJsonObject> EdProps = FindEditorOnlyData(JsonObject->GetStringField(TEXT("Type")), Material->GetName(), Exports, ExpressionNames, false)->GetObjectField(TEXT("Properties"));
 	const TSharedPtr<FJsonObject> StringExpressionCollection = EdProps->GetObjectField(TEXT("ExpressionCollection"));
 
-	// Map out each expression for easier access
+	/* Map out each expression for easier access */
 	TMap<FName, UMaterialExpression*> CreatedExpressionMap = ConstructExpressions(Material, Material->GetName(), ExpressionNames, Exports);
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 
-	// Missing Material Data
+	/* Missing Material Data */
 	if (Exports.Num() == 0) {
-		FNotificationInfo Info = FNotificationInfo(FText::FromString("Material Data Missing (" + FileName + ")"));
-		Info.ExpireDuration = 7.0f;
-		Info.bUseLargeFont = true;
-		Info.bUseSuccessFailIcons = true;
-		Info.WidthOverride = FOptionalSize(350);
-#if ENGINE_MAJOR_VERSION >= 5
-		Info.SubText = FText::FromString(FString("Please use the correct FModel provided in the JsonAsAsset server."));
-#endif
-		
-		TSharedPtr<SNotificationItem> NotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
-		NotificationPtr->SetCompletionState(SNotificationItem::CS_Fail);
+		SpawnMaterialDataMissingNotification();
 
 		return false;
 	}
 
-	// Iterate through all the expression names
+	/* Iterate through all the expression names */
 	PropagateExpressions(Material, ExpressionNames, Exports, CreatedExpressionMap, true);
 	MaterialGraphNode_ConstructComments(Material, StringExpressionCollection, Exports);
 
@@ -132,14 +122,14 @@ bool IMaterialImporter::Import() {
 				RawConnectionData->RemoveField(Property);
 		}
 
-		// Connect all pins using deserializer
+		/* Connect all pins using deserializer */
 #if ENGINE_MAJOR_VERSION >= 5
 		GetObjectSerializer()->DeserializeObjectProperties(RawConnectionData, Material->GetEditorOnlyData());
 #else
 		GetObjectSerializer()->DeserializeObjectProperties(RawConnectionData, Material);
 #endif
 
-		// CustomizedUVs defined here
+		/* CustomizedUVs defined here */
 		const TArray<TSharedPtr<FJsonValue>>* InputsPtr;
 		
 		if (EdProps->TryGetArrayField(TEXT("CustomizedUVs"), InputsPtr)) {
@@ -184,14 +174,14 @@ bool IMaterialImporter::Import() {
 #endif
 	}
 
-	// Handle edit changes, and add it to the content browser
+	/* Handle edit changes, and add it to the content browser */
 	if (!HandleAssetCreation(Material)) return false;
 
 #if ENGINE_MAJOR_VERSION >= 5
 	bool bEditorGraphOpen = false;
 	FMaterialEditor* AssetEditorInstance = nullptr;
 
-	// Handle Material Graphs
+	/* Handle Material Graphs */
 	for (const TSharedPtr<FJsonValue> Value : AllJsonObjects) {
 		TSharedPtr<FJsonObject> Object = TSharedPtr<FJsonObject>(Value->AsObject());
 
@@ -205,14 +195,14 @@ bool IMaterialImporter::Import() {
 			FString SubgraphExpressionName;
 
 			if (!bEditorGraphOpen) {
-				// Create Editor
+				/* Create Editor */
 				UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
 				AssetEditorInstance = reinterpret_cast<FMaterialEditor*>(AssetEditorSubsystem->OpenEditorForAsset(Material) ? AssetEditorSubsystem->FindEditorForAsset(Material, true) : nullptr);
 
 				bEditorGraphOpen = true;
 			}
 
-			// Set SubgraphExpression
+			/* Set SubgraphExpression */
 			const TSharedPtr<FJsonObject>* SubgraphExpressionPtr = nullptr;
 			if (GraphProperties->TryGetObjectField(TEXT("SubgraphExpression"), SubgraphExpressionPtr) && SubgraphExpressionPtr != nullptr) {
 				FJsonObject* SubgraphExpressionObject = SubgraphExpressionPtr->Get();
@@ -223,7 +213,7 @@ bool IMaterialImporter::Import() {
 				SubgraphExpression = Export.Json->GetObjectField(TEXT("Properties"));
 			}
 
-			// Find Material Graph
+			/* Find Material Graph */
 			UMaterialGraph* MaterialGraph = AssetEditorInstance->Material->MaterialGraph;
 			if (MaterialGraph == nullptr) {
 				UE_LOG(LogJson, Log, TEXT("The material graph is not valid!"));
@@ -231,7 +221,7 @@ bool IMaterialImporter::Import() {
 
 			MaterialGraph->Modify();
 
-			// Create the composite node that will serve as the gateway into the subgraph
+			/* Create the composite node that will serve as the gateway into the subgraph */
 			UMaterialGraphNode_Composite* GatewayNode = nullptr;
 			{
 				GatewayNode = Cast<UMaterialGraphNode_Composite>(FMaterialGraphSchemaAction_NewComposite::SpawnNode(MaterialGraph, FVector2D(SubgraphExpression->GetNumberField(TEXT("MaterialExpressionEditorX")), SubgraphExpression->GetNumberField(TEXT("MaterialExpressionEditorY")))));
@@ -248,7 +238,7 @@ bool IMaterialImporter::Import() {
 				MaterialGraphNode_ExpressionWrapper(Material, CompositeExpression, SubgraphExpression);
 			}
 
-			// Create notification
+			/* Create notification */
 			FNotificationInfo Info = FNotificationInfo(FText::FromString("Material Graph imported incomplete"));
 			Info.ExpireDuration = 2.0f;
 			Info.bUseLargeFont = true;
@@ -256,21 +246,21 @@ bool IMaterialImporter::Import() {
 			Info.WidthOverride = FOptionalSize(350);
 			Info.SubText = FText::FromString(FString("Material"));
 
-			// Set icon as successful
+			/* Set icon as successful */
 			TSharedPtr<SNotificationItem> NotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
 			NotificationPtr->SetCompletionState(SNotificationItem::CS_Fail);
 
 			DestinationGraph->Rename(*CompositeExpression->SubgraphName);
 			DestinationGraph->Material = MaterialGraph->Material;
 
-			// Add Sub-Graph Nodes
+			/* Add Sub-Graph Nodes */
 			{
 				TArray<TSharedPtr<FJsonValue>> MaterialGraphNodes = FilterGraphNodesBySubgraphExpression(SubgraphExpressionName);
 				TMap<FName, FExportData> SubGraphExports;
 				TMap<FName, UMaterialExpression*> SubgraphExpressionMapping;
 				TArray<FName> SubGraphExpressionNames;
 
-				// Go through each expression
+				/* Go through each expression */
 				for (const TSharedPtr<FJsonValue> _GraphNode : MaterialGraphNodes) {
 					const TSharedPtr<FJsonObject> MaterialGraphObject = TSharedPtr(_GraphNode->AsObject());
 
@@ -293,7 +283,7 @@ bool IMaterialImporter::Import() {
 					SubgraphExpressionMapping.Add(GraphNodeNameName, Ex);
 				}
 
-				// Setup Input/Output Expressions
+				/* Setup Input/Output Expressions */
 				{
 					const TSharedPtr<FJsonObject>* InputExpressions;
 					if (SubgraphExpression->TryGetObjectField(TEXT("InputExpressions"), InputExpressions)) {
@@ -310,11 +300,13 @@ bool IMaterialImporter::Import() {
 					}
 				}
 
-				// Add all the expression properties
+				/* Add all the expression properties */
 				PropagateExpressions(MaterialGraph->Material, SubGraphExpressionNames, Exports, SubgraphExpressionMapping, true);
 
-				// All expressions (hopefully) have their properties
-				// so now we just make a material graph node for each
+				/*
+				 * All expressions (hopefully) have their properties
+				 * so now we just make a material graph node for each
+				 */
 				for (const TPair<FName, UMaterialExpression*>& pair : SubgraphExpressionMapping) {
 					UMaterialExpression* Expression = pair.Value;
 					UMaterialGraphNode* NewNode = DestinationGraph->AddExpression(Expression, false);
@@ -341,7 +333,7 @@ bool IMaterialImporter::Import() {
 			DestinationGraph->RebuildGraph();
 			DestinationGraph->LinkMaterialExpressionsFromGraph();
 
-			// Update Original Material
+			/* Update Original Material */
 			AssetEditorInstance->UpdateMaterialAfterGraphChange();
 		}
 	}
@@ -356,13 +348,12 @@ bool IMaterialImporter::Import() {
 #if ENGINE_MAJOR_VERSION >= 5
 			Material->GetShadingModels().SetShadingModelField(ShadingModelField);
 #else
-			// Not to sure what to do in UE4, no function exists to override it.
+			/* Not to sure what to do in UE4, no function exists to override it. */
 #endif
 		}
 	}
 
 	TSharedPtr<FJsonObject> SerializerProperties = TSharedPtr<FJsonObject>(Properties);
-
 	GetObjectSerializer()->DeserializeObjectProperties(SerializerProperties, Material);
 
 	Material->UpdateCachedExpressionData();
@@ -381,13 +372,16 @@ bool IMaterialImporter::Import() {
 	return true;
 }
 
-// Filter out Material Graph Nodes
-// by checking their subgraph expression (composite)
+/*
+ * Filter out Material Graph Nodes
+ * by checking their subgraph expression (composite)
+ */
 TArray<TSharedPtr<FJsonValue>> IMaterialImporter::FilterGraphNodesBySubgraphExpression(const FString& Outer) {
 	TArray<TSharedPtr<FJsonValue>> ReturnValue = TArray<TSharedPtr<FJsonValue>>();
 
 	/*
 	* How this works:
+	* 
 	* 1. Find a Material Graph Node
 	* 2. Get the Material Expression
 	* 3. Compare SubgraphExpression to the one provided
