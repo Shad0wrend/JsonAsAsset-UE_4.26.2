@@ -24,31 +24,7 @@
 #define JSONASASSET_PARTICLESYSTEM_ALLOW 0
 #endif
 
-#if JSONASASSET_PARTICLESYSTEM_ALLOW
-#include "Importers/Types/ParticleSystemImporter.h"
-#endif
-
-#include "Importers/Types/Curves/CurveFloatImporter.h"
-#include "Importers/Types/Curves/CurveVectorImporter.h"
-#include "Importers/Types/Curves/CurveLinearColorImporter.h"
-#include "Importers/Types/Curves/CurveLinearColorAtlasImporter.h"
-
-#include "Importers/Types/Materials/MaterialInstanceConstantImporter.h"
-#include "Importers/Types/Materials/MaterialFunctionImporter.h"
-#include "Importers/Types/Materials/MaterialImporter.h"
-
-#include "Importers/Types/Animation/BlendspaceImporter.h"
-#include "Importers/Types/Animation/AnimationBaseImporter.h"
-
-#include "Importers/Types/Tables/DataTableImporter.h"
-#include "Importers/Types/Tables/CurveTableImporter.h"
-
-#include "Importers/Types/Audio/SoundCueImporter.h"
-#include "Importers/Types/Animation/SkeletonImporter.h"
-#include "Importers/Types/Niagara/NiagaraParameterCollectionImporter.h"
 #include "Importers/Types/DataAssetImporter.h"
-#include "Importers/Types/Physics/PhysicsAssetImporter.h"
-#include "Importers/Types/UserDefinedEnumImporter.h"
 // <---- Importers
 
 // Templated Class
