@@ -50,7 +50,7 @@ public:
 	 * Use Case:
 	 * This option is useful when you need to re-import textures that have been updated in a newer version of your Local Fetch build.
 	 */
-	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Encryption", meta=(EditCondition="bEnableLocalFetch"), AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Encryption", AdvancedDisplay)
 	bool bDownloadExistingTextures;
 };
 
