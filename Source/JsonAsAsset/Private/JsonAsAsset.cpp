@@ -372,28 +372,49 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 			LOCTEXT("JsonAsAssetAssetTypesMenu", "Asset Types"),
 			LOCTEXT("JsonAsAssetAssetTypesMenuToolTip", "List of supported assets for JsonAsAsset"),
 			FNewMenuDelegate::CreateLambda([this](FMenuBuilder& InnerMenuBuilder) {
-				InnerMenuBuilder.BeginSection("JsonAsAssetSection", LOCTEXT("JsonAsAssetSection", "Asset Classes"));
+				bool bSectionOpen = false;
+		
+				for (FString& Asset : ImporterAcceptedTypes)
 				{
-					for (FString& Asset : ImporterAcceptedTypes)
+					if (Asset.IsEmpty())
 					{
-						if (Asset == "") { // Separator
-							InnerMenuBuilder.AddSeparator();
-						}
-						
-						else {
-							UClass* Class = FindObject<UClass>(nullptr, *("/Script/Engine." + Asset));
-							FText Description = Class ? Class->GetToolTipText() : FText::FromString(Asset);
-
-							InnerMenuBuilder.AddMenuEntry(
-								FText::FromString(Asset),
-								Description,
-								FSlateIconFinder::FindCustomIconForClass(Class, TEXT("ClassThumbnail")),
-								FUIAction()
-							);
-						}
+						InnerMenuBuilder.AddSeparator();
+						continue;
 					}
+
+					if (Asset.StartsWith(TEXT("# ")))
+					{
+						if (bSectionOpen)
+						{
+							InnerMenuBuilder.EndSection();
+							bSectionOpen = false;
+						}
+
+						// Extract the category name (everything after "# ").
+						FString Category = Asset.RightChop(2);
+						FName ExtensionHook(*Category);
+						TAttribute<FText> HeadingText(FText::FromString(Category));
+
+						InnerMenuBuilder.BeginSection(ExtensionHook, HeadingText);
+						bSectionOpen = true;
+						continue;
+					}
+			
+					UClass* Class = FindObject<UClass>(nullptr, *("/Script/Engine." + Asset));
+					FText Description = Class ? Class->GetToolTipText() : FText::FromString(Asset);
+
+					InnerMenuBuilder.AddMenuEntry(
+						FText::FromString(Asset),
+						Description,
+						FSlateIconFinder::FindCustomIconForClass(Class, TEXT("ClassThumbnail")),
+						FUIAction()
+					);
 				}
-				InnerMenuBuilder.EndSection();
+
+				if (bSectionOpen)
+				{
+					InnerMenuBuilder.EndSection();
+				}
 			}),
 			false,
 			FSlateIcon(FAppStyle::Get().GetStyleSetName(), "LevelEditor.Tabs.Viewports")

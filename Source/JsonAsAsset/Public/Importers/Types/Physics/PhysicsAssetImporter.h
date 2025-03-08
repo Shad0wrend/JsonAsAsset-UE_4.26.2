@@ -19,3 +19,7 @@ public:
 	static USkeletalBodySetup* CreateNewBody(UPhysicsAsset* PhysAsset, FName ExportName, FName BoneName);
 	static UPhysicsConstraintTemplate* CreateNewConstraint(UPhysicsAsset* PhysAsset, FName ExportName);
 };
+
+REGISTER_IMPORTER(IPhysicsAssetImporter, {
+	"PhysicsAsset"
+});

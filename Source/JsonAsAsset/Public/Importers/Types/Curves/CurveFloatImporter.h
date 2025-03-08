@@ -6,9 +6,13 @@
 
 class ICurveFloatImporter : public IImporter {
 public:
-	ICurveFloatImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg):
-		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg) {
+	ICurveFloatImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects):
+		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects) {
 	}
 
 	virtual bool Import() override;
 };
+
+REGISTER_IMPORTER(ICurveFloatImporter, {
+	"CurveFloat"
+});

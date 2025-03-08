@@ -101,56 +101,63 @@ IImporter::IImporter(const FString& FileName, const FString& FilePath,
 // -----------------------------------------------------------------------------------------------
 
 TArray<FString> ImporterAcceptedTypes = {
+	"# Animation Assets", /* Animation Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+	"AnimSequence",
+	"AnimMontage",
+	"BlendSpace",
+	
+	"# Curve Assets", /* Curve Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+	
 	"CurveTable",
 	"CurveFloat",
 	"CurveVector",
 	"CurveLinearColor",
 	"CurveLinearColorAtlas",
 
-	"", // separator
+	"# Data Assets", /* Data Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-	"SkeletalMeshLODSettings",
-	"Skeleton",
+	"DataAsset",
+	"DataTable",
 
-	"", // separator
+	"", /* separator */
+	
+	"LandscapeGrassType",
 
-	"AnimSequence",
-	"AnimMontage",
-
-	"", // separator
+	"# Material Assets", /* Material Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	"Material",
 	"MaterialFunction",
 	"MaterialInstanceConstant",
 	"MaterialParameterCollection",
-	"NiagaraParameterCollection",
 
-	"", // separator
-
-	"BlendSpace",
-
-	"", // separator
-
-	"DataAsset",
-	"DataTable",
+	"", /* separator */
 	
-	"", // separator
+	"SubsurfaceProfile",
+	"NiagaraParameterCollection",
+	
+	"# Skeletal Assets", /* Skeletal Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+	"SkeletalMeshLODSettings",
+	"Skeleton",
+
+	"", /* separator */
 	
 	"SlateBrushAsset",
 	"SlateWidgetStyleAsset",
 
 #if JSONASASSET_PARTICLESYSTEM_ALLOW
-	"", // separator
+	"# Particle Assets", /* Particle Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	"ParticleSystem",
 #endif
 
-	"", // separator
+	"# Physics Assets", /* Physics Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	
 	"PhysicsAsset",
 	"PhysicalMaterial",
 
-	"", // separator
+	"# Sound Assets", /* Sound Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	"SoundCue",
 	"ReverbEffect",
@@ -160,16 +167,11 @@ TArray<FString> ImporterAcceptedTypes = {
 	"SoundMix",
 	"SoundModulationPatch",
 
-	"", // separator
+	"# Texture Assets", /* Texture Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-	"LandscapeGrassType",
-	"SubsurfaceProfile",
-
-	"", // separator
-
-	"TextureRenderTarget2D"
+	"TextureRenderTarget2D",
 	
-	"", // separator
+	"# User Defined Assets", /* User Defined Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	"UserDefinedEnum"
 };
@@ -187,7 +189,7 @@ bool IImporter::ImportExports(TArray<TSharedPtr<FJsonValue>> Exports, FString Fi
 		FString Type = DataObject->GetStringField(TEXT("Type"));
 		FString Name = DataObject->GetStringField(TEXT("Name"));
 
-		const UClass* Class = FindObject<UClass>(ANY_PACKAGE, *Type);
+		UClass* Class = FindObject<UClass>(ANY_PACKAGE, *Type);
 
 		if (Class == nullptr) continue;
 
@@ -200,91 +202,35 @@ bool IImporter::ImportExports(TArray<TSharedPtr<FJsonValue>> Exports, FString Fi
 		// NOTE: Used for references
 		if (FPaths::IsRelative(File)) File = FPaths::ConvertRelativePathToFull(File);
 
-		IImporter* Importer;
+		UPackage* LocalOutermostPkg;
+		UPackage* LocalPackage = FAssetUtilities::CreateAssetPackage(Name, File, LocalOutermostPkg);
+
+		/* Importer ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+		IImporter* Importer = nullptr;
 		
-		if (Type == "AnimSequence" || Type == "AnimMontage") 
-			Importer = new IAnimationBaseImporter(Name, File, DataObject, nullptr, nullptr);
-		else {
-			UPackage* LocalOutermostPkg;
-			UPackage* LocalPackage = FAssetUtilities::CreateAssetPackage(Name, File, LocalOutermostPkg);
-
-			// Curve Importers
-			/*if (Type == "CurveFloat") 
-				Importer = new ICurveFloatImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg);*/
-			if (Type == "CurveTable") 
-				Importer = new ICurveTableImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg);
-			else if (Type == "CurveVector") 
-				Importer = new ICurveVectorImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg);
-			else if (Type == "CurveLinearColor") 
-				Importer = new ICurveLinearColorImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg);
-			else if (Type == "CurveLinearColorAtlas") 
-				Importer = new ICurveLinearColorAtlasImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg);
-
-			else if (Type == "Skeleton") 
-				Importer = new ISkeletonImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
-
-			else if (Type == "BlendSpace") 
-				Importer = new IBlendSpaceImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg);
-
-			else if (Type == "SoundCue") 
-				Importer = new ISoundCueImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
-
-#if JSONASASSET_PARTICLESYSTEM_ALLOW
-			else if (Type == "ParticleSystem") 
-				Importer = new IParticleSystemImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
-#endif
-			
-			else if (Type == "Material") 
-				Importer = new IMaterialImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
-			else if (Type == "MaterialFunction") 
-				Importer = new IMaterialFunctionImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
-			else if (Type == "MaterialInstanceConstant") 
-				Importer = new IMaterialInstanceConstantImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
-
-			else if (Type == "PhysicsAsset") 
-				Importer = new IPhysicsAssetImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
-			
-			// Other Importers
-			else if (Type == "NiagaraParameterCollection") 
-			    Importer = new INiagaraParameterCollectionImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg);
- 			else if (Type == "DataTable") 
-			    Importer = new IDataTableImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg);
-
- 			else if (Type == "UserDefinedEnum") 
- 				Importer = new IUserDefinedEnumImporter(Name, File, DataObject, LocalPackage, LocalOutermostPkg);
-
-			else // Data Asset
-				if (InheritsDataAsset)
-					Importer = new IDataAssetImporter(Class, Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
-
-			else { // Templates handled here
-				UClass* LoadedClass = FindObject<UClass>(ANY_PACKAGE, *Type);
-
-				if (LoadedClass != nullptr) {
-					Importer = new ITemplatedImporter<UObject>(LoadedClass, Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
-				} else { // No template found
-					UE_LOG(LogTemp, Error, TEXT("Failed to load class for type: %s"), *Type);
-					
-					Importer = nullptr;
-				}
-			}
+		/* Try to find the importer using a factory delegate */
+		if (const ImporterFactoryDelegate* Factory = FindFactoryForAssetType(Type)) {
+			Importer = (*Factory)(Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
 		}
 
-		FMessageLog MessageLogger = FMessageLog(FName("JsonAsAsset"));
-
-		if (bHideNotifications) {
-			try {
-				Importer->Import();
-				
-				return true;
-			} catch (const char* Exception) {
-				UE_LOG(LogJson, Error, TEXT("Importer exception: %s"), *FString(Exception));
-			}
-
-			return true;
+		/* If it inherits DataAsset, use the data asset importer */
+		if (!Importer && InheritsDataAsset) {
+			Importer = new IDataAssetImporter(Class, Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
+		}
+		
+		if (Importer == nullptr) {
+			Importer = new ITemplatedImporter<UObject>(Class, Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports);
 		}
 
-		if (Importer != nullptr && Importer->Import()) {
+		bool Successful = false;
+
+		try {
+			Successful = Importer->Import();
+		} catch (const char* Exception) {
+			UE_LOG(LogJson, Error, TEXT("Importer exception: %s"), *FString(Exception));
+		}
+
+		if (Successful) {
 			UE_LOG(LogJson, Log, TEXT("Successfully imported \"%s\" as \"%s\""), *Name, *Type);
 			
 			if (!(Type == "AnimSequence" || Type == "AnimMontage"))
@@ -300,6 +246,8 @@ bool IImporter::ImportExports(TArray<TSharedPtr<FJsonValue>> Exports, FString Fi
 				false,
 				350.0f
 			);
+
+			FMessageLog MessageLogger = FMessageLog(FName("JsonAsAsset"));
 
 			MessageLogger.Message(EMessageSeverity::Info, FText::FromString("Imported Asset: " + Name + " (" + Type + ")"));
 		} else AppendNotification(

@@ -23,3 +23,7 @@ public:
 #endif
 	TArray<TSharedPtr<FJsonValue>> FilterGraphNodesBySubgraphExpression(const FString& Outer);
 };
+
+REGISTER_IMPORTER(IMaterialImporter, {
+	"Material"
+});

@@ -12,6 +12,26 @@
 
 extern TArray<FString> ImporterAcceptedTypes;
 
+#define REGISTER_IMPORTER(ImporterClass, ...) \
+namespace { \
+    struct FAutoRegister_##ImporterClass { \
+        FAutoRegister_##ImporterClass() { \
+            IImporter::GetFactoryRegistry().Add( TArray<FString>{ __VA_ARGS__ }, &IImporter::CreateImporter<ImporterClass> ); \
+        } \
+    }; \
+    static FAutoRegister_##ImporterClass AutoRegister_##ImporterClass; \
+}
+
+FORCEINLINE uint32 GetTypeHash(const TArray<FString>& Array)
+{
+    uint32 Hash = 0;
+    for (const FString& Str : Array)
+    {
+        Hash = HashCombine(Hash, GetTypeHash(Str));
+    }
+    return Hash;
+}
+
 /* Global handler for converting JSON to assets */
 class IImporter {
 public:
@@ -26,6 +46,31 @@ public:
               UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects = {});
 
     virtual ~IImporter() {}
+
+    /* Easy way to find importers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    using ImporterFactoryDelegate = TFunction<IImporter*(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& Exports)>;
+
+    static TMap<TArray<FString>, ImporterFactoryDelegate>& GetFactoryRegistry() {
+        static TMap<TArray<FString>, ImporterFactoryDelegate> Registry;
+        return Registry;
+    }
+
+    template <typename T>
+    static IImporter* CreateImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& Exports) {
+        return new T(FileName, FilePath, JsonObject, Package, OutermostPkg, Exports);
+    }
+
+    static ImporterFactoryDelegate* FindFactoryForAssetType(const FString& AssetType)
+    {
+        for (auto& Pair : GetFactoryRegistry())
+        {
+            if (Pair.Key.Contains(AssetType))
+            {
+                return &Pair.Value;
+            }
+        }
+        return nullptr;
+    }
     
 protected:
     /* Class variables ------------------------------------------------------------------ */

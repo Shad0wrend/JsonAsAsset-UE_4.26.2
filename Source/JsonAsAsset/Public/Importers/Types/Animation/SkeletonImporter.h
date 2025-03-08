@@ -6,9 +6,13 @@
 
 class ISkeletonImporter : public IImporter {
 public:
-	ISkeletonImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, TArray<TSharedPtr<FJsonValue>>& JsonObjects):
-		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, JsonObjects) {
+	ISkeletonImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects):
+		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects) {
 	}
 
 	virtual bool Import() override;
 };
+
+REGISTER_IMPORTER(ISkeletonImporter, {
+	"Skeleton"
+});

@@ -13,9 +13,13 @@ public:
 
 class ICurveTableImporter : public IImporter {
 public:
-	ICurveTableImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg):
-		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg) {
+	ICurveTableImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects):
+		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects) {
 	}
 
 	virtual bool Import() override;
 };
+
+REGISTER_IMPORTER(ICurveTableImporter, {
+	"CurveTable"
+});
