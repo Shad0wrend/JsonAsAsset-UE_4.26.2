@@ -229,8 +229,6 @@ Make sure to keep this window open until you are done with JsonAsAsset.
 
 JsonAsAsset will now use Local Fetch to import if a missing asset is referenced.
 
------------------------
-
 <a name="common-errors"></a>
 ## Common Errors 🐛
 
@@ -271,8 +269,6 @@ There may be a few reasons why the application automatically closes, but mostly 
 
 </details>
 
---------------------
-
 <a name="contribute"></a>
 ## ✨ Contributors
 
@@ -307,6 +303,6 @@ Thanks go to these wonderful people:
 #### [Would you like to contribute?](https://github.com/JsonAsAsset/JsonAsAsset/blob/main/Source/README.md#key-information-for-contributors-)
 
 <a name="licensing"></a>
-#### Licensing 📗
+## Licensing 📗
 
 JsonAsAsset is licensed under the MIT License, read more in the [LICENSE](https://github.com/JsonAsAsset/JsonAsAsset/blob/main/LICENSE) file. The plugin also uses [Detex](https://github.com/hglm/detex) and [NVIDIA Texture Tools](https://docs.nvidia.com/texture-tools/index.html).
