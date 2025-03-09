@@ -43,5 +43,5 @@ protected:
 	static FExpressionInput CreateExpressionInput(const TSharedPtr<FJsonObject>& JsonProperties, TMap<FName, UMaterialExpression*>& CreatedExpressionMap, const FString& PropertyName);
 	static FMaterialAttributesInput CreateMaterialAttributesInput(const TSharedPtr<FJsonObject>& JsonProperties, TMap<FName, UMaterialExpression*>& CreatedExpressionMap, const FString& PropertyName);
 
-	void SpawnMaterialDataMissingNotification();
+	void SpawnMaterialDataMissingNotification() const;
 };

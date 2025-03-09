@@ -23,8 +23,6 @@ IMaterialGraph::IMaterialGraph(const FString& FileName, const FString& FilePath,
 {
 	/* Handled manually by IMaterialGraph */
 	IgnoredExpressions = {
-		"MaterialExpressionComposite",
-		"MaterialExpressionPinBase",
 		"MaterialExpressionComment",
 		"MaterialFunction",
 		"Material"
@@ -117,7 +115,7 @@ FMaterialAttributesInput IMaterialGraph::CreateMaterialAttributesInput(const TSh
 	return *reinterpret_cast<FMaterialAttributesInput*>(&Input);
 }
 
-void IMaterialGraph::SpawnMaterialDataMissingNotification() {
+void IMaterialGraph::SpawnMaterialDataMissingNotification() const {
 	FNotificationInfo Info = FNotificationInfo(FText::FromString("Material Data Missing (" + FileName + ")"));
 	Info.ExpireDuration = 7.0f;
 	Info.bUseLargeFont = true;
@@ -146,10 +144,29 @@ void IMaterialGraph::PropagateExpressions(UObject* Parent, TArray<FName>& Expres
 		 * | to determine if it's in a subgraph or not.
 		 */
 		if (bCheckOuter) {
-			FString Outer;
-			if (Type->Json->TryGetStringField(TEXT("Outer"), Outer) && Outer != Parent->GetName()) {
+			FString Outer; {
+				Type->Json->TryGetStringField(TEXT("Outer"), Outer);
+			}
+			
+			if (Outer != Parent->GetName()) {
 				/* Not the same as parent */
 				continue;
+			}
+
+			/* Sub-graph (natively only on Unreal Engine 5) */
+			if (Properties->HasField(TEXT("SubgraphExpression"))) {
+				TSharedPtr<FJsonObject> SubGraphExpressionObject = Properties->GetObjectField(TEXT("SubgraphExpression"));
+
+				FName SubGraphExpressionName = GetExportNameOfSubobject(SubGraphExpressionObject->GetStringField(TEXT("ObjectName")));
+
+				UMaterialExpression* SubGraphExpression = *CreatedExpressionMap.Find(SubGraphExpressionName);
+
+				/* SubgraphExpression is only on Unreal Engine 5 */
+#if ENGINE_MAJOR_VERSION > 4
+				Expression->SubgraphExpression = SubGraphExpression;
+#else
+				continue;
+#endif
 			}
 		}
 
