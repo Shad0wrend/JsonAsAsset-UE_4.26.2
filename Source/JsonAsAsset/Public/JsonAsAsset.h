@@ -11,6 +11,43 @@
 
 class UJsonAsAssetSettings;
 
+struct FJsonAsAssetVersioning {
+public:
+    bool bNewVersionAvailable = false;
+    bool bFutureVersion = false;
+    bool bLatestVersion = false;
+    
+    FJsonAsAssetVersioning() = default;
+    
+    FJsonAsAssetVersioning(const int Version, const int LatestVersion, const FString& InHTMLUrl, const FString& VersionName, const FString& CurrentVersionName)
+        : Version(Version)
+        , LatestVersion(LatestVersion)
+        , VersionName(VersionName)
+        , CurrentVersionName(CurrentVersionName)
+        , HTMLUrl(InHTMLUrl)
+    {
+        bNewVersionAvailable = LatestVersion > Version;
+        bFutureVersion = Version > LatestVersion;
+        
+        bLatestVersion = !(bNewVersionAvailable || bFutureVersion);
+    }
+
+    int Version = 0;
+    int LatestVersion = 0;
+
+    FString VersionName = "";
+    FString CurrentVersionName = "";
+
+    FString HTMLUrl = "";
+
+    bool bIsValid = false;
+
+public:
+    void SetValid(const bool bValid) {
+        bIsValid = bValid;
+    }
+};
+
 class FJsonAsAssetModule : public IModuleInterface
 {
 public:
@@ -32,12 +69,20 @@ private:
     TSharedPtr<FUICommandList> PluginCommands;
     TSharedRef<SWidget> CreateToolbarDropdown();
     void CreateLocalFetchDropdown(FMenuBuilder MenuBuilder) const;
+    void CreateVersioningDropdown(FMenuBuilder MenuBuilder) const;
+    void CreateLastDropdown(FMenuBuilder MenuBuilder) const;
     void ImportConvexCollision() const;
 
     bool bActionRequired = false;
     UJsonAsAssetSettings* Settings = nullptr;
 
+    TSharedPtr<IPlugin> Plugin;
+
 #if ENGINE_MAJOR_VERSION == 4
     void AddToolbarExtension(FToolBarBuilder& Builder);
 #endif
+
+    FJsonAsAssetVersioning Versioning;
+
+    void CheckForUpdates();
 };

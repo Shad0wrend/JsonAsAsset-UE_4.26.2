@@ -34,11 +34,13 @@
 #include "./Settings/Details/JsonAsAssetSettingsDetails.h"
 
 /* ReSharper disable once CppUnusedIncludeDirective */
+#include "HttpModule.h"
 #include "Logging/MessageLog.h"
 #include "Modules/UI/AboutJsonAsAsset.h"
 #include "Modules/UI/CommandsModule.h"
 #include "Modules/UI/StyleModule.h"
 #include "Utilities/AppStyleCompatibility.h"
+#include "Utilities/RemoteUtilities.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 #ifdef _MSC_VER
@@ -247,6 +249,10 @@ void FJsonAsAssetModule::StartupModule() {
     /* Register custom class layout for settings */
     FPropertyEditorModule& PropertyModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
     PropertyModule.RegisterCustomClassLayout(UJsonAsAssetSettings::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FJsonAsAssetSettingsDetails::MakeInstance));
+
+	Plugin = IPluginManager::Get().FindPlugin("JsonAsAsset");
+	
+	CheckForUpdates();
 }
 
 void FJsonAsAssetModule::ShutdownModule() {
@@ -273,7 +279,7 @@ void FJsonAsAssetModule::RegisterMenus() {
 	FToolMenuSection& Section = Menu->FindOrAddSection("JsonAsAsset");
 
 	TSharedPtr<FUICommandList> Actions = MakeShared<FUICommandList>();
-	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin("JsonAsAsset");
+	Plugin = IPluginManager::Get().FindPlugin("JsonAsAsset");
 
 	FUIAction UIAction(
 		FExecuteAction::CreateRaw(this, &FJsonAsAssetModule::PluginButtonClicked),
@@ -327,8 +333,6 @@ void FJsonAsAssetModule::RegisterMenus() {
 
 #if ENGINE_MAJOR_VERSION == 4
 void FJsonAsAssetModule::AddToolbarExtension(FToolBarBuilder& Builder) {
-	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin("JsonAsAsset");
-
 	Builder.AddComboButton(
 		FUIAction(
 			FExecuteAction(),
@@ -353,7 +357,6 @@ void FJsonAsAssetModule::AddToolbarExtension(FToolBarBuilder& Builder) {
 #endif
 
 TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
-	const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin("JsonAsAsset");
 	Settings = GetMutableDefault<UJsonAsAssetSettings>();
 
 	FMenuBuilder MenuBuilder(false, nullptr);
@@ -524,36 +527,7 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 		NAME_None
 	);
 
-	MenuBuilder.AddSeparator();
-	
-	MenuBuilder.AddMenuEntry(
-		LOCTEXT("JsonAsAssetAboutButton", "About JsonAsAsset"),
-		LOCTEXT("JsonAsAssetAboutButtonTooltip", "More information about JsonAsAsset"),
-		FSlateIcon(FAppStyle::GetAppStyleSetName(), "MessageLog.Action"),
-		FUIAction(
-			FExecuteAction::CreateLambda([this]() {
-#if ENGINE_MAJOR_VERSION > 4
-				TSharedPtr<SWindow> AboutWindow =
-					SNew(SWindow)
-					.Title(LOCTEXT("AboutJsonAsAsset", "About JsonAsAsset"))
-					.ClientSize(FVector2D(720.f, 170.f))
-					.SupportsMaximize(false).SupportsMinimize(false)
-					.SizingRule(ESizingRule::FixedSize)
-					[
-						SNew(SAboutJsonAsAsset)
-					];
-
-				IMainFrameModule& MainFrame = FModuleManager::LoadModuleChecked<IMainFrameModule>("MainFrame");
-				TSharedPtr<SWindow> ParentWindow = MainFrame.GetParentWindow();
-
-				if (ParentWindow.IsValid())
-					FSlateApplication::Get().AddModalWindow(AboutWindow.ToSharedRef(), ParentWindow.ToSharedRef());
-				else FSlateApplication::Get().AddWindow(AboutWindow.ToSharedRef());
-#endif
-			})
-		),
-		NAME_None
-	);
+	CreateVersioningDropdown(MenuBuilder);
 
 	return MenuBuilder.MakeWidget();
 }
@@ -666,6 +640,84 @@ void FJsonAsAssetModule::CreateLocalFetchDropdown(FMenuBuilder MenuBuilder) cons
 	MenuBuilder.EndSection();
 }
 
+void FJsonAsAssetModule::CreateVersioningDropdown(FMenuBuilder MenuBuilder) const {
+	if (Versioning.bLatestVersion || !Versioning.bIsValid) {
+		MenuBuilder.AddSeparator();
+		
+		CreateLastDropdown(MenuBuilder);
+
+		return;
+	}
+	
+	MenuBuilder.BeginSection("JsonAsAssetVersioningSection", FText::FromString("Versioning"));
+	
+	FText Text, Tooltip;
+	FSlateIcon Icon = FSlateIcon(FAppStyle::GetAppStyleSetName(), "Blueprint.CompileStatus.Background", NAME_None, "Blueprint.CompileStatus.Overlay.Unknown");
+
+	/* A new release is available */
+	if (Versioning.bNewVersionAvailable) {
+		Text = FText::FromString("A new version is available");
+		
+		Tooltip = FText::FromString("Upgrade to v" + Versioning.VersionName + " of JsonAsAsset");
+
+		Icon = FSlateIcon(FAppStyle::GetAppStyleSetName(), "Cascade.AddLODBeforeCurrent.Small");
+	} else if (Versioning.bFutureVersion) {
+		Text = FText::FromString("Developmental Build");
+		
+		Tooltip = FText::FromString("You are on a developmental build of JsonAsAsset");
+		
+	} else {
+		Text = FText::FromString("Latest Version");
+		
+		Tooltip = FText::FromString("You are on the latest version of JsonAsAsset");
+	}
+
+	MenuBuilder.AddMenuEntry(
+		Text,
+		Tooltip,
+		Icon,
+		FUIAction(
+			FExecuteAction::CreateLambda([this]() {
+				FPlatformProcess::LaunchURL(*Versioning.HTMLUrl, nullptr, nullptr);
+			})
+		),
+		NAME_None
+	);
+	
+	MenuBuilder.EndSection();
+}
+
+void FJsonAsAssetModule::CreateLastDropdown(FMenuBuilder MenuBuilder) const {
+	MenuBuilder.AddMenuEntry(
+		LOCTEXT("JsonAsAssetAboutButton", "About JsonAsAsset"),
+		LOCTEXT("JsonAsAssetAboutButtonTooltip", "More information about JsonAsAsset"),
+		FSlateIcon(FAppStyle::GetAppStyleSetName(), "MessageLog.Action"),
+		FUIAction(
+			FExecuteAction::CreateLambda([this]() {
+#if ENGINE_MAJOR_VERSION > 4
+				TSharedPtr<SWindow> AboutWindow =
+					SNew(SWindow)
+					.Title(LOCTEXT("AboutJsonAsAsset", "About JsonAsAsset"))
+					.ClientSize(FVector2D(720.f, 170.f))
+					.SupportsMaximize(false).SupportsMinimize(false)
+					.SizingRule(ESizingRule::FixedSize)
+					[
+						SNew(SAboutJsonAsAsset)
+					];
+
+				IMainFrameModule& MainFrame = FModuleManager::LoadModuleChecked<IMainFrameModule>("MainFrame");
+				TSharedPtr<SWindow> ParentWindow = MainFrame.GetParentWindow();
+
+				if (ParentWindow.IsValid())
+					FSlateApplication::Get().AddModalWindow(AboutWindow.ToSharedRef(), ParentWindow.ToSharedRef());
+				else FSlateApplication::Get().AddWindow(AboutWindow.ToSharedRef());
+#endif
+			})
+		),
+		NAME_None
+	);
+}
+
 void FJsonAsAssetModule::ImportConvexCollision() const {
 	TArray<FAssetData> AssetDataList = GetAssetsInSelectedFolder();
 	TArray<FString> OutFolderNames = OpenFolderDialog("Select a folder for JSON files");
@@ -763,6 +815,62 @@ void FJsonAsAssetModule::ImportConvexCollision() const {
 			StaticMesh->PostLoad();
 		}
 	}
+}
+
+void FJsonAsAssetModule::CheckForUpdates() {
+	Versioning.SetValid(false);
+
+	FHttpModule* HttpModule = &FHttpModule::Get();
+
+#if ENGINE_MAJOR_VERSION >= 5
+	const TSharedRef<IHttpRequest> Request = HttpModule->CreateRequest();
+#else
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = HttpModule->CreateRequest();
+#endif
+	
+#if ENGINE_MAJOR_VERSION >= 5
+	const TSharedPtr<IHttpResponse> Response = FRemoteUtilities::ExecuteRequestSync(Request);
+#else
+	const TSharedPtr<IHttpResponse, ESPMode::ThreadSafe> Response = FRemoteUtilities::ExecuteRequestSync(Request);
+#endif
+	
+    Request->SetURL(TEXT("https://api.github.com/repos/JsonAsAsset/JsonAsAsset/releases/latest"));
+    Request->SetVerb(TEXT("GET"));
+    Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+
+    Request->OnProcessRequestComplete().BindLambda([this](FHttpRequestPtr Req, FHttpResponsePtr Resp, bool bSuccess) {
+        /* Check if the request was successful and the response is valid */
+        if (!bSuccess || !Resp.IsValid()) {
+            UE_LOG(LogTemp, Warning, TEXT("HTTP request failed or no internet connection."));
+        	
+            return;
+        }
+
+        const FString ResponseString = Resp->GetContentAsString();
+
+        /* Deserialize the JSON response */
+        TSharedPtr<FJsonObject> JsonObject;
+        TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(ResponseString);
+        if (!FJsonSerializer::Deserialize(Reader, JsonObject) || !JsonObject.IsValid()) {
+            return;
+        }
+
+        /* It must have the name property */
+        if (!JsonObject->HasField(TEXT("name"))) {
+            return;
+        }
+
+    	const FString VersionName = JsonObject->GetStringField(TEXT("name"));
+    	const FString CurrentVersionName = Plugin->GetDescriptor().VersionName;
+
+    	const int LatestVersion = ConvertVersionStringToInt(VersionName);
+    	const int CurrentVersion = ConvertVersionStringToInt(Plugin->GetDescriptor().VersionName);
+
+    	Versioning = FJsonAsAssetVersioning(CurrentVersion, LatestVersion, JsonObject->GetStringField(TEXT("html_url")), VersionName, CurrentVersionName);
+    	Versioning.SetValid(true);
+    });
+
+    Request->ProcessRequest();
 }
 
 #undef LOCTEXT_NAMESPACE

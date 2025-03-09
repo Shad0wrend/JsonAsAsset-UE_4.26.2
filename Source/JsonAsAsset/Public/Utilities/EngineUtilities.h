@@ -436,3 +436,7 @@ inline auto AppendNotification(const FText& Text, const FText& SubText, float Ex
 	const TSharedPtr<SNotificationItem> NotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
 	NotificationPtr->SetCompletionState(CompletionState);
 }
+
+inline int32 ConvertVersionStringToInt(const FString& VersionStr) {
+	return FCString::Atoi(*VersionStr.Replace(TEXT("."), TEXT("")));
+}
