@@ -168,12 +168,13 @@ protected:
     UPropertySerializer* PropertySerializer;
     UObjectSerializer* GObjectSerializer;
 
-    void SetupSerializer(UObject* ParentAsset) const
-    {
+    void DeserializeExports(UObject* ParentAsset) const {
         UObjectSerializer* ObjectSerializer = GetObjectSerializer();
         ObjectSerializer->SetPackageForDeserialization(Package);
         ObjectSerializer->SetExportForDeserialization(JsonObject);
-        ObjectSerializer->ParentAsset = ParentAsset;  
+        ObjectSerializer->ParentAsset = ParentAsset;
+        
+        ObjectSerializer->DeserializeExports(AllJsonObjects);
     };
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Object Serializer and Property Serializer ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 };

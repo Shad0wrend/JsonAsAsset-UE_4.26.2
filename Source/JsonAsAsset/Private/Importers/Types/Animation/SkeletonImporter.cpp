@@ -5,9 +5,7 @@
 bool ISkeletonImporter::Import() {
 	USkeleton* Skeleton = GetSelectedAsset<USkeleton>(true);
 
-	/*
-	 * If there is no skeleton, create one.
-	 */
+	/* If there is no skeleton, create one. */
 	if (!Skeleton) {
 		Skeleton = NewObject<USkeleton>(Package, USkeleton::StaticClass(), *FileName, RF_Public | RF_Standalone);
 
@@ -27,23 +25,17 @@ bool ISkeletonImporter::Import() {
 		Skeleton->AnimRetargetSources.Empty();
 	}
 
-	UObjectSerializer* ObjectSerializer = GetObjectSerializer();
-	ObjectSerializer->SetPackageForDeserialization(Package);
-	ObjectSerializer->SetExportForDeserialization(JsonObject);
-	ObjectSerializer->ParentAsset = Skeleton;
-
-	ObjectSerializer->DeserializeExports(AllJsonObjects);
-
+	/* Deserialize Skeleton */
+	DeserializeExports(Skeleton);
 	GetObjectSerializer()->DeserializeObjectProperties(AssetData, Skeleton);
 
 	ApplySkeletalAssetData(Skeleton);
-	RebuildSkeleton(Skeleton);
 	
 	return HandleAssetCreation(Skeleton);
 }
 
 void ISkeletonImporter::ApplySkeletalChanges(USkeleton* Skeleton) const {
-	TSharedPtr<FJsonObject> ReferenceSkeletonObject = AssetData->GetObjectField(TEXT("ReferenceSkeleton"));
+	const TSharedPtr<FJsonObject> ReferenceSkeletonObject = AssetData->GetObjectField(TEXT("ReferenceSkeleton"));
 
 	/* Get access to ReferenceSkeleton */
 	FReferenceSkeleton& ReferenceSkeleton = const_cast<FReferenceSkeleton&>(Skeleton->GetReferenceSkeleton());
@@ -55,8 +47,8 @@ void ISkeletonImporter::ApplySkeletalChanges(USkeleton* Skeleton) const {
 	int BoneIndex = 0;
 
 	/* Go through each bone reference */
-	for (TSharedPtr<FJsonValue> FinalReferenceBoneInfoValue : FinalRefBoneInfo) {
-		TSharedPtr<FJsonObject> FinalReferenceBoneInfo = FinalReferenceBoneInfoValue->AsObject();
+	for (const TSharedPtr<FJsonValue> FinalReferenceBoneInfoValue : FinalRefBoneInfo) {
+		const TSharedPtr<FJsonObject> FinalReferenceBoneInfo = FinalReferenceBoneInfoValue->AsObject();
 
 		FName Name(*FinalReferenceBoneInfo->GetStringField(TEXT("Name")));
 		int ParentIndex = FinalReferenceBoneInfo->GetIntegerField(TEXT("ParentIndex"));
@@ -88,13 +80,13 @@ void ISkeletonImporter::ApplySkeletalChanges(USkeleton* Skeleton) const {
 
 void ISkeletonImporter::ApplySkeletalAssetData(USkeleton* Skeleton) const {
 	/* AnimRetargetSources ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	TSharedPtr<FJsonObject> AnimRetargetSources = AssetData->GetObjectField(TEXT("AnimRetargetSources"));
+	const TSharedPtr<FJsonObject> AnimRetargetSources = AssetData->GetObjectField(TEXT("AnimRetargetSources"));
 
 	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : AnimRetargetSources->Values) {
 		const FName KeyName = FName(*Pair.Key);
 		const TSharedPtr<FJsonObject> RetargetObject = Pair.Value->AsObject();
 
-		FName PoseName(*RetargetObject->GetStringField(TEXT("PoseName")));
+		const FName PoseName(*RetargetObject->GetStringField(TEXT("PoseName")));
 
 		/* Array of transforms for each bone */
 		TArray<FTransform> ReferencePose;
@@ -119,6 +111,8 @@ void ISkeletonImporter::ApplySkeletalAssetData(USkeleton* Skeleton) const {
 
 		Skeleton->AnimRetargetSources.Add(KeyName, RetargetSource);
 	}
+
+	RebuildSkeleton(Skeleton);
 }
 
 void ISkeletonImporter::RebuildSkeleton(const USkeleton* Skeleton) {
