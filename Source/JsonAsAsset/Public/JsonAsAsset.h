@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Interfaces/IPluginManager.h"
 #include "Utilities/Serializers/PropertyUtilities.h"
 
 #if ENGINE_MAJOR_VERSION == 4

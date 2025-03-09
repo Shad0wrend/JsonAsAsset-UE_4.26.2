@@ -21,7 +21,6 @@
 
 #include "PhysicsEngine/BodySetup.h"
 
-#include "Interfaces/IPluginManager.h"
 #include "Settings/JsonAsAssetSettings.h"
 #include "Widgets/Notifications/SNotificationList.h"
 #include "Framework/Notifications/NotificationManager.h"
@@ -652,7 +651,7 @@ void FJsonAsAssetModule::CreateVersioningDropdown(FMenuBuilder MenuBuilder) cons
 	MenuBuilder.BeginSection("JsonAsAssetVersioningSection", FText::FromString("Versioning"));
 	
 	FText Text, Tooltip;
-	FSlateIcon Icon = FSlateIcon(FAppStyle::GetAppStyleSetName(), "Blueprint.CompileStatus.Background", NAME_None, "Blueprint.CompileStatus.Overlay.Unknown");
+	FSlateIcon Icon = FSlateIcon(FAppStyle::GetAppStyleSetName(), "Blueprint.CompileStatus.Background", NAME_None);
 
 	/* A new release is available */
 	if (Versioning.bNewVersionAvailable) {
