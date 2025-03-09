@@ -240,7 +240,7 @@ bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FSt
 
 			/* Import Successful Notification */
 			AppendNotification(
-				FText::FromString("Imported type: " + Type),
+				FText::FromString("Imported Type: " + Type),
 				FText::FromString(Name),
 				2.0f,
 				FSlateIconFinder::FindCustomIconBrushForClass(FindObject<UClass>(nullptr, *("/Script/Engine." + Type)), TEXT("ClassThumbnail")),
@@ -301,10 +301,11 @@ bool IImporter::HandleAssetCreation(UObject* Asset) const {
 	Package->FullyLoad();
 
 	/* Browse to newly added Asset in the Content Browser */
-	const TArray<FAssetData>& Assets = {Asset};
+	const TArray<FAssetData>& Assets = {Asset };
 	const FContentBrowserModule& ContentBrowserModule = FModuleManager::Get().LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
 	ContentBrowserModule.Get().SyncBrowserToAssets(Assets);
 
+	Asset->PostLoad();
 	return true;
 }
 

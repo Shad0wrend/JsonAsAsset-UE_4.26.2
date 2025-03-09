@@ -11,6 +11,7 @@ public:
 	}
 
 	virtual bool Import() override;
+	void ApplySkeletalChanges(USkeleton* Skeleton) const;
 };
 
 REGISTER_IMPORTER(ISkeletonImporter, {

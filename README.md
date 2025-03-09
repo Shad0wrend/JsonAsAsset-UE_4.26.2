@@ -64,7 +64,7 @@ JsonAsAsset is a user-friendly Unreal Engine plugin for importing assets from pa
 | Table Types | CurveTable, DataTable, StringTable |
 | Materials | Material, MaterialFunction, MaterialInstanceConstant, MaterialParameterCollection, SubsurfaceProfile |
 | Sound Classes | Most/all sound classes are supported. SoundWave is downloaded by [Local Fetch](#local-fetch). |
-| Skeleton/Animation Asset Types | SkeletalMeshLODSettings, BlendSpace, BlendSpace1D, AimOffsetBlendSpace, AimOffsetBlendSpace1D |
+| Animation Asset Types | Skeleton, SkeletalMeshLODSettings, BlendSpace, BlendSpace1D, AimOffsetBlendSpace, AimOffsetBlendSpace1D |
 | Physics Asset Types | PhysicsAsset, PhysicalMaterial |
 | Landscape | LandscapeGrassType, FoliageType_InstancedStaticMesh, FoliageType_Actor |
 
@@ -72,7 +72,6 @@ JsonAsAsset is a user-friendly Unreal Engine plugin for importing assets from pa
 | Asset Category | Asset Types / Description |
 |-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
 | Animations | AnimSequence, AnimMontage [Animation Curves] |
-| Skeletons | Skeleton [Animation Retargeting, Sockets, Virtual Bones]  |
 
 **Material Data**:
 <br> Unreal Engine games made below 4.12 (a guess) will have material data, any games made above that version will most definitely not have any material data, and therefore the actual data will be stripped and cannot be imported. **Unless** you are using a User Generated Content editor, then it's possible the material data will be there.
@@ -190,7 +189,7 @@ To bulk import assets and **what they reference**, you must set up [`Local Fetch
 
 3. **Setup Local Fetch's Settings:**  
     Make sure to set these in your settings:
-   - **Archive Directory**: specific Paks folder of your game
+   - **Directory**: specific Paks folder of your game
    - **Unreal Engine**: version that your game is running
    - **Mappings File**: file path to your mappings file
    - **Encryption Keys**: if your game needs AES Keys, set them

@@ -134,11 +134,11 @@ public:
 	/**
 	 * Specific Paks folder of your game
 	 */
-	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Configuration", meta=(EditCondition="bEnableLocalFetch"))
+	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Configuration", meta=(EditCondition="bEnableLocalFetch", DisplayName="Directory"))
 	FDirectoryPath ArchiveDirectory;
 
 	/**
-	 * Unreal Engine version that your game is running
+	 * Unreal Engine version of your game
 	 */
 	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Configuration", meta=(EditCondition="bEnableLocalFetch", DisplayName="Unreal Engine"))
 	TEnumAsByte<ECUE4ParseVersion> UnrealVersion;
