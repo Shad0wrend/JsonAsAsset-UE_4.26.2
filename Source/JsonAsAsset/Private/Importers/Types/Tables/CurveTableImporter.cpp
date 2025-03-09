@@ -3,14 +3,6 @@
 #include "Importers/Types/Tables/CurveTableImporter.h"
 #include "Dom/JsonObject.h"
 
-/*
- * Unfortunately these variables are private, so we had to make a "bypass" by making
- * an asset then casting to subclass that has these functions to modify them.
-*/
-void CCurveTableDerived::AddRow(FName Name, FRealCurve* Curve) {
-	RowMap.Add(Name, Curve);
-}
-
 void CCurveTableDerived::ChangeTableMode(ECurveTableMode Mode) {
 	CurveTableMode = Mode;
 }
@@ -81,12 +73,13 @@ bool ICurveTableImporter::Import() {
 
 			const TArray<TSharedPtr<FJsonValue>>* KeysPtr;
 			
-			if (CurveData->TryGetArrayField(TEXT("Keys"), KeysPtr))
+			if (CurveData->TryGetArrayField(TEXT("Keys"), KeysPtr)) {
 				for (const TSharedPtr<FJsonValue> KeyPtr : *KeysPtr) {
 					TSharedPtr<FJsonObject> Key = KeyPtr->AsObject(); {
 						NewSimpleCurve.AddKey(Key->GetNumberField(TEXT("Time")), Key->GetNumberField(TEXT("Value")));
 					}
 				}
+			}
 		}
 
 		/* Inherited data from FRealCurve */

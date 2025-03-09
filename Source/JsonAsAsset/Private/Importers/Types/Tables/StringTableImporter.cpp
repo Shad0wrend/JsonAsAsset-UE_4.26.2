@@ -10,8 +10,8 @@ bool IStringTableImporter::Import() {
 	UStringTable* StringTable = NewObject<UStringTable>(Package, UStringTable::StaticClass(), *FileName, RF_Public | RF_Standalone);
 
 	if (AssetData->HasField(TEXT("StringTable"))) {
-		TSharedPtr<FJsonObject> StringTableData = AssetData->GetObjectField(TEXT("StringTable"));
-		FStringTableRef MutableStringTable = StringTable->GetMutableStringTable();
+		const TSharedPtr<FJsonObject> StringTableData = AssetData->GetObjectField(TEXT("StringTable"));
+		const FStringTableRef MutableStringTable = StringTable->GetMutableStringTable();
 
 		/* Set Table Namespace */
 		MutableStringTable->SetNamespace(StringTableData->GetStringField(TEXT("TableNamespace")));
@@ -34,7 +34,7 @@ bool IStringTableImporter::Import() {
 			const TSharedPtr<FJsonObject> MetadataObject = Pair.Value->AsObject();
 
 			for (const TPair<FString, TSharedPtr<FJsonValue>>& MetadataPair : MetadataObject->Values) {
-				FName TextKey = *MetadataPair.Key;
+				const FName TextKey = *MetadataPair.Key;
 				FString MetadataValue = MetadataPair.Value->AsString();
 			
 				MutableStringTable->SetMetaData(TableKey, TextKey, MetadataValue);

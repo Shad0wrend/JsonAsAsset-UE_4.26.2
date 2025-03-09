@@ -5,7 +5,6 @@
 #include "Curves/CurveLinearColor.h"
 
 bool ICurveLinearColorAtlasImporter::Import() {
-	
 	float Width = 256;
 	float Height = 256;
 

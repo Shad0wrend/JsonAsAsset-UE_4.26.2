@@ -27,15 +27,14 @@ bool IUserDefinedEnumImporter::Import() {
 
 	/* EnumNames ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	if (AssetData->HasTypedField<EJson::Object>(TEXT("Names"))) {
-		TSharedPtr<FJsonObject> Names = AssetData->GetObjectField(TEXT("Names"));
+		const TSharedPtr<FJsonObject> Names = AssetData->GetObjectField(TEXT("Names"));
 
 		/* Final EnumNames variable */
 		TArray<TPair<FName, int64>> EnumNames;
 
 		int32 EntryCount = Names->Values.Num();
 		
-		for (const auto& Pair : Names->Values)
-		{
+		for (const auto& Pair : Names->Values) {
 			/* Last entry is the _MAX name, automatically created by the engine */
 			if (--EntryCount == 0) break;
 

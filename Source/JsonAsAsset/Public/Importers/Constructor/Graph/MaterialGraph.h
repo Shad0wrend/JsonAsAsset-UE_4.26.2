@@ -31,7 +31,7 @@ protected:
 
 	/* Modifies Graph Nodes (copies over properties from FJsonObject) */
 	void PropagateExpressions(UObject* Parent, TArray<FName>& ExpressionNames, TMap<FName, FExportData>& Exports, TMap<FName, UMaterialExpression*>& CreatedExpressionMap, bool bCheckOuter = false, bool bSubgraph = false);
-	void MaterialGraphNode_AddComment(UObject* Parent, UMaterialExpressionComment* Comment);
+	static void MaterialGraphNode_AddComment(UObject* Parent, UMaterialExpressionComment* Comment);
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	/* Functions to Handle Node Connections ~~~~~~~~~~~~ */

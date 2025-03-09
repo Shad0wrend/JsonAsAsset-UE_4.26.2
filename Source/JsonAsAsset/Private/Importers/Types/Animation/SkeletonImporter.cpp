@@ -51,7 +51,7 @@ void ISkeletonImporter::ApplySkeletalChanges(USkeleton* Skeleton) const {
 		const TSharedPtr<FJsonObject> FinalReferenceBoneInfo = FinalReferenceBoneInfoValue->AsObject();
 
 		FName Name(*FinalReferenceBoneInfo->GetStringField(TEXT("Name")));
-		int ParentIndex = FinalReferenceBoneInfo->GetIntegerField(TEXT("ParentIndex"));
+		const int ParentIndex = FinalReferenceBoneInfo->GetIntegerField(TEXT("ParentIndex"));
 
 		/* Fail-safe */
 		if (!FinalRefBonePose.IsValidIndex(BoneIndex) || !FinalRefBonePose[BoneIndex].IsValid()) {

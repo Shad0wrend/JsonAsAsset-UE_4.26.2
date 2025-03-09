@@ -163,7 +163,7 @@ void ISoundGraph::ConnectSoundNode(const USoundNode* NodeToConnect, const USound
 }
 
 void ISoundGraph::ImportSoundWave(const FString& URL, FString SavePath, FString AssetPtr, USoundNodeWavePlayer* Node) const {
-	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = FHttpModule::Get().CreateRequest();
+	const TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = FHttpModule::Get().CreateRequest();
 	
 	HttpRequest->OnProcessRequestComplete().BindLambda([this, SavePath, AssetPtr, Node](const FHttpRequestPtr& Request, const FHttpResponsePtr& Response, const bool bWasSuccessful)
 	{

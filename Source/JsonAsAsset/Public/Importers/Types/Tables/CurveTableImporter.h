@@ -7,7 +7,6 @@
 
 class CCurveTableDerived : public UCurveTable {
 public:
-	void AddRow(FName Name, FRealCurve* Curve);
 	void ChangeTableMode(ECurveTableMode Mode);
 };
 
