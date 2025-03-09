@@ -87,12 +87,11 @@ void FJsonAsAssetModule::PluginButtonClicked() {
 
 			if (!bLocalFetchLaunched) {
 				FNotificationInfo Info(LOCTEXT("JsonAsAssetNotificationTitle", "Local Fetch API Required"));
-#if ENGINE_MAJOR_VERSION >= 5
-				Info.SubText = LOCTEXT("JsonAsAssetNotificationText",
+				
+				SetNotificationSubText(Info, LOCTEXT("JsonAsAssetNotificationText",
 					"Start the Local Fetch API to use JsonAsAsset seamlessly. "
 					"For guidance on Local Fetch settings, check the documentation."
-				);
-#endif
+				));
 
 				Info.HyperlinkText = LOCTEXT("JsonAsAssetDocumentationLink", "Documentation");
 				Info.Hyperlink = FSimpleDelegate::CreateStatic([]() {
@@ -181,7 +180,7 @@ void FJsonAsAssetModule::StartupModule() {
 	    );
 
 	    FNotificationInfo Info(TitleText);
-	    
+
 	#if ENGINE_MAJOR_VERSION >= 5
 	    Info.SubText = MessageText;
 	#else
@@ -655,20 +654,20 @@ void FJsonAsAssetModule::CreateVersioningDropdown(FMenuBuilder MenuBuilder) cons
 
 	/* A new release is available */
 	if (Versioning.bNewVersionAvailable) {
-		Text = FText::FromString("A new version is available");
+		Text = FText::FromString("New Version Available");
 		
-		Tooltip = FText::FromString("Upgrade to v" + Versioning.VersionName + " of JsonAsAsset");
+		Tooltip = FText::FromString("Update your installation to version " + Versioning.VersionName + " of JsonAsAsset");
 
 		Icon = FSlateIcon(FAppStyle::GetAppStyleSetName(), "Cascade.AddLODBeforeCurrent.Small");
 	} else if (Versioning.bFutureVersion) {
 		Text = FText::FromString("Developmental Build");
 		
-		Tooltip = FText::FromString("You are on a developmental build of JsonAsAsset");
+		Tooltip = FText::FromString("You are currently running a developmental build of JsonAsAsset");
 		
 	} else {
 		Text = FText::FromString("Latest Version");
 		
-		Tooltip = FText::FromString("You are on the latest version of JsonAsAsset");
+		Tooltip = FText::FromString("You are currently using the latest version of JsonAsAsset");
 	}
 
 	MenuBuilder.AddMenuEntry(
@@ -677,7 +676,9 @@ void FJsonAsAssetModule::CreateVersioningDropdown(FMenuBuilder MenuBuilder) cons
 		Icon,
 		FUIAction(
 			FExecuteAction::CreateLambda([this]() {
-				FPlatformProcess::LaunchURL(*Versioning.HTMLUrl, nullptr, nullptr);
+				if (Versioning.bNewVersionAvailable) {
+					FPlatformProcess::LaunchURL(*Versioning.HTMLUrl, nullptr, nullptr);
+				}
 			})
 		),
 		NAME_None

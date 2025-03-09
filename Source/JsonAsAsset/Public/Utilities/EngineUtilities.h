@@ -399,6 +399,13 @@ inline auto ProcessExports(const TArray<TSharedPtr<FJsonValue>>& Exports,
 	}
 }
 
+/* ReSharper disable once CppParameterNeverUsed */
+inline void SetNotificationSubText(FNotificationInfo Notification, const FText& SubText) {
+#if ENGINE_MAJOR_VERSION >= 5
+	Notification.SubText = SubText;
+#endif
+}
+
 /* Show the user a Notification */
 inline auto AppendNotification(const FText& Text, const FText& SubText, const float ExpireDuration,
                                const SNotificationItem::ECompletionState CompletionState, const bool bUseSuccessFailIcons,
@@ -409,10 +416,8 @@ inline auto AppendNotification(const FText& Text, const FText& SubText, const fl
 	Info.bUseLargeFont = true;
 	Info.bUseSuccessFailIcons = bUseSuccessFailIcons;
 	Info.WidthOverride = FOptionalSize(WidthOverride);
-
-#if ENGINE_MAJOR_VERSION >= 5
-	Info.SubText = SubText;
-#endif
+	
+	SetNotificationSubText(Info, SubText);
 
 	const TSharedPtr<SNotificationItem> NotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
 	NotificationPtr->SetCompletionState(CompletionState);
@@ -428,10 +433,9 @@ inline auto AppendNotification(const FText& Text, const FText& SubText, float Ex
 	Info.bUseLargeFont = true;
 	Info.bUseSuccessFailIcons = bUseSuccessFailIcons;
 	Info.WidthOverride = FOptionalSize(WidthOverride);
-#if ENGINE_MAJOR_VERSION >= 5
-	Info.SubText = SubText;
-#endif
 	Info.Image = SlateBrush;
+
+	SetNotificationSubText(Info, SubText);
 
 	const TSharedPtr<SNotificationItem> NotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
 	NotificationPtr->SetCompletionState(CompletionState);

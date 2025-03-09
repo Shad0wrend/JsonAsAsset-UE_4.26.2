@@ -129,8 +129,8 @@ bool IMaterialImporter::Import() {
 		}
 	}
 
-	TSharedPtr<FJsonObject> SerializerProperties = TSharedPtr<FJsonObject>(AssetData);
-	GetObjectSerializer()->DeserializeObjectProperties(SerializerProperties, Material);
+	/* Deserialize any properties */
+	GetObjectSerializer()->DeserializeObjectProperties(AssetData, Material);
 
 	Material->UpdateCachedExpressionData();
 	

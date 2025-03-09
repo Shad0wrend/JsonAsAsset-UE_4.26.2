@@ -460,14 +460,6 @@ void UPropertySerializer::AddStructSerializer(UScriptStruct* Struct, const TShar
 }
 
 bool UPropertySerializer::ShouldSerializeProperty(FProperty* Property) const {
-	/* Skip transient properties */
-	if (Property->HasAnyPropertyFlags(CPF_Transient)) {
-		return true;
-	}
-	/* Skip editor only properties altogether */
-	if (Property->HasAnyPropertyFlags(CPF_EditorOnly)) {
-		return true;
-	}
 	/* Skip deprecated properties */
 	if (Property->HasAnyPropertyFlags(CPF_Deprecated)) {
 		return false;

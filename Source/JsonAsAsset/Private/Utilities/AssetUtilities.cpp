@@ -358,9 +358,7 @@ void FAssetUtilities::CreatePlugin(FString PluginName) {
 	Info.bUseLargeFont = true;
 	Info.bUseSuccessFailIcons = false;
 	Info.WidthOverride = FOptionalSize(350);
-#if ENGINE_MAJOR_VERSION >= 5
-	Info.SubText = FText::FromString(FString("Created successfully"));
-#endif
+	SetNotificationSubText(Info, FText::FromString(FString("Created successfully")));
 	
 	TSharedPtr<SNotificationItem> NotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
 	NotificationPtr->SetCompletionState(SNotificationItem::CS_Success);

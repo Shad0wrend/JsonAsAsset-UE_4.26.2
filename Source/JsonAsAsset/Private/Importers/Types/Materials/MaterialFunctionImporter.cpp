@@ -4,10 +4,11 @@
 #include "Factories/MaterialFunctionFactoryNew.h"
 
 bool IMaterialFunctionImporter::Import() {
-	/* Create Material Function Factory (factory automatically creates the MF) */
+	/* Create Material Function Factory (factory automatically creates the Material Function) */
 	UMaterialFunctionFactoryNew* MaterialFunctionFactory = NewObject<UMaterialFunctionFactoryNew>();
 	UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(MaterialFunctionFactory->FactoryCreateNew(UMaterialFunction::StaticClass(), OutermostPkg, *FileName, RF_Standalone | RF_Public, nullptr, GWarn));
 
+	/* Empty all expressions, we create them */
 #if ENGINE_MAJOR_VERSION >= 5
 	MaterialFunction->GetExpressionCollection().Empty();
 #else
@@ -16,17 +17,6 @@ bool IMaterialFunctionImporter::Import() {
 
 	/* Handle edit changes, and add it to the content browser */
 	if (!HandleAssetCreation(MaterialFunction)) return false;
-
-	MaterialFunction->StateId = FGuid(AssetData->GetStringField(TEXT("StateId")));
-	
-	/* Misc properties */
-	bool bPrefixParameterNames;
-	FString Description;
-	bool bExposeToLibrary;
-	
-	if (AssetData->TryGetStringField(TEXT("Description"), Description)) MaterialFunction->Description = Description;
-	if (AssetData->TryGetBoolField(TEXT("bExposeToLibrary"), bExposeToLibrary)) MaterialFunction->bExposeToLibrary = bExposeToLibrary;
-	if (AssetData->TryGetBoolField(TEXT("bPrefixParameterNames"), bPrefixParameterNames)) MaterialFunction->bPrefixParameterNames = bPrefixParameterNames;
 
 	/* Define editor only data from the JSON */
 	TMap<FName, FExportData> Exports;
@@ -50,10 +40,13 @@ bool IMaterialFunctionImporter::Import() {
 	/* Create comments */
 	MaterialGraphNode_ConstructComments(MaterialFunction, StringExpressionCollection, Exports);
 
+	/* Deserialize any properties */
+	GetObjectSerializer()->DeserializeObjectProperties(AssetData, MaterialFunction);
+	
 	MaterialFunction->PreEditChange(nullptr);
 	MaterialFunction->PostEditChange();
 
 	SavePackage();
-
+	
 	return true;
 }

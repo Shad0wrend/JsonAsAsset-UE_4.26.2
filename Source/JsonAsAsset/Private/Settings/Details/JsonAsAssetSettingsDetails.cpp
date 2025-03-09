@@ -149,7 +149,7 @@ void FJsonAsAssetSettingsDetails::EditEncryption(TWeakObjectPtr<UJsonAsAssetSett
 			TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = HttpModule->CreateRequest();
 #endif
 			
-			Request->SetURL("https:/*fortnitecentral.genxgames.gg/api/v1/aes");
+			Request->SetURL("https://fortnitecentral.genxgames.gg/api/v1/aes");
 			Request->SetVerb(TEXT("GET"));
 
 #if ENGINE_MAJOR_VERSION >= 5
@@ -197,7 +197,7 @@ void FJsonAsAssetSettingsDetails::EditEncryption(TWeakObjectPtr<UJsonAsAssetSett
 				TSharedRef<IHttpRequest, ESPMode::ThreadSafe> MappingsURLRequest = HttpModule->CreateRequest();
 #endif
 
-				MappingsURLRequest->SetURL("https:/*fortnitecentral.genxgames.gg/api/v1/mappings");
+				MappingsURLRequest->SetURL("https://fortnitecentral.genxgames.gg/api/v1/mappings");
 				MappingsURLRequest->SetVerb(TEXT("GET"));
 				
 #if ENGINE_MAJOR_VERSION >= 5

@@ -31,17 +31,23 @@ protected:
 
 	/* Modifies Graph Nodes (copies over properties from FJsonObject) */
 	void PropagateExpressions(UObject* Parent, TArray<FName>& ExpressionNames, TMap<FName, FExportData>& Exports, TMap<FName, UMaterialExpression*>& CreatedExpressionMap, bool bCheckOuter = false, bool bSubgraph = false);
-	static void MaterialGraphNode_AddComment(UObject* Parent, UMaterialExpressionComment* Comment);
+	void MaterialGraphNode_AddComment(UObject* Parent, UMaterialExpressionComment* Comment);
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	/* Functions to Handle Node Connections ~~~~~~~~~~~~ */
 	static FExpressionInput PopulateExpressionInput(const FJsonObject* JsonProperties, UMaterialExpression* Expression, const FString& Type = "Default");
-	static FExpressionOutput PopulateExpressionOutput(const FJsonObject* JsonProperties);
 
 	static FName GetExpressionName(const FJsonObject* JsonProperties, const FString& OverrideParameterName = "Expression");
 
-	static FExpressionInput CreateExpressionInput(const TSharedPtr<FJsonObject>& JsonProperties, TMap<FName, UMaterialExpression*>& CreatedExpressionMap, const FString& PropertyName);
-	static FMaterialAttributesInput CreateMaterialAttributesInput(const TSharedPtr<FJsonObject>& JsonProperties, TMap<FName, UMaterialExpression*>& CreatedExpressionMap, const FString& PropertyName);
-
 	void SpawnMaterialDataMissingNotification() const;
+
+#if ENGINE_MAJOR_VERSION == 4
+	/*
+	 * In Unreal Engine 4, to combat the absence of Sub-graphs, create a Material Function in place of it
+	 * This holds a mapping to the name of the composite node it was created from, and the material
+	 * function created in-place of it
+	 */
+
+	TMap<FName, UMaterialFunction*> SubgraphFunctions;
+#endif
 };
