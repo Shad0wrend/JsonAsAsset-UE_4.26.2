@@ -24,6 +24,7 @@ bool ISkeletonImporter::Import() {
 		}
 		
 		Skeleton->RemoveVirtualBones(VirtualBoneNames);
+		Skeleton->AnimRetargetSources.Empty();
 	}
 
 	UObjectSerializer* ObjectSerializer = GetObjectSerializer();
@@ -35,6 +36,9 @@ bool ISkeletonImporter::Import() {
 
 	GetObjectSerializer()->DeserializeObjectProperties(AssetData, Skeleton);
 
+	ApplySkeletalAssetData(Skeleton);
+	RebuildSkeleton(Skeleton);
+	
 	return HandleAssetCreation(Skeleton);
 }
 
@@ -80,4 +84,48 @@ void ISkeletonImporter::ApplySkeletalChanges(USkeleton* Skeleton) const {
 	
 	Skeleton->ClearCacheData();
 	Skeleton->MarkPackageDirty();
+}
+
+void ISkeletonImporter::ApplySkeletalAssetData(USkeleton* Skeleton) const {
+	/* AnimRetargetSources ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+	TSharedPtr<FJsonObject> AnimRetargetSources = AssetData->GetObjectField(TEXT("AnimRetargetSources"));
+
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : AnimRetargetSources->Values) {
+		const FName KeyName = FName(*Pair.Key);
+		const TSharedPtr<FJsonObject> RetargetObject = Pair.Value->AsObject();
+
+		FName PoseName(*RetargetObject->GetStringField(TEXT("PoseName")));
+
+		/* Array of transforms for each bone */
+		TArray<FTransform> ReferencePose;
+
+		/* Add transforms for each bone */
+		TArray<TSharedPtr<FJsonValue>> ReferencePoseArray = RetargetObject->GetArrayField(TEXT("ReferencePose"));
+
+		for (TSharedPtr<FJsonValue> ReferencePoseTransformValue : ReferencePoseArray) {
+			TSharedPtr<FJsonObject> ReferencePoseObject = ReferencePoseTransformValue->AsObject();
+			
+			FTransform Transform; {
+				PropertySerializer->DeserializeStruct(TBaseStructure<FTransform>::Get(), ReferencePoseObject.ToSharedRef(), &Transform);
+			}
+
+			ReferencePose.Add(Transform);
+		}
+			
+		/* Create reference pose */
+		FReferencePose RetargetSource;
+		RetargetSource.ReferencePose = ReferencePose;
+		RetargetSource.PoseName = PoseName;
+
+		Skeleton->AnimRetargetSources.Add(KeyName, RetargetSource);
+	}
+}
+
+void ISkeletonImporter::RebuildSkeleton(const USkeleton* Skeleton) {
+	/* Get access to ReferenceSkeleton */
+	FReferenceSkeleton& ReferenceSkeleton = const_cast<FReferenceSkeleton&>(Skeleton->GetReferenceSkeleton());
+	FReferenceSkeletonModifier ReferenceSkeletonModifier(ReferenceSkeleton, Skeleton);
+
+	/* Re-build skeleton */
+	ReferenceSkeleton.RebuildRefSkeleton(Skeleton, true);
 }
