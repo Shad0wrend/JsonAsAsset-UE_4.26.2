@@ -17,8 +17,6 @@ bool IMaterialImporter::Import() {
 	UMaterialFactoryNew* MaterialFactory = NewObject<UMaterialFactoryNew>();
 	UMaterial* Material = Cast<UMaterial>(MaterialFactory->FactoryCreateNew(UMaterial::StaticClass(), OutermostPkg, *FileName, RF_Standalone | RF_Public, nullptr, GWarn));
 
-	Material->GetReferencedTextures();
-
 	/* Clear any default expressions the engine adds */
 #if ENGINE_MAJOR_VERSION >= 5
 	Material->GetExpressionCollection().Empty();
@@ -27,26 +25,26 @@ bool IMaterialImporter::Import() {
 #endif
 
 	/* Define editor only data from the JSON */
-	TMap<FName, FExportData> Exports;
-	TArray<FName> ExpressionNames;
-	TSharedPtr<FJsonObject> EdProps = FindEditorOnlyData(JsonObject->GetStringField(TEXT("Type")), Material->GetName(), Exports, ExpressionNames, false)->GetObjectField(TEXT("Properties"));
-	const TSharedPtr<FJsonObject> StringExpressionCollection = EdProps->GetObjectField(TEXT("ExpressionCollection"));
+	FMaterialExpressionNodeExportContainer ExpressionContainer;
+	TSharedPtr<FJsonObject> EdProps = FindEditorOnlyData(JsonObject->GetStringField(TEXT("Type")), Material->GetName(), ExpressionContainer);
 
 	/* Map out each expression for easier access */
-	TMap<FName, UMaterialExpression*> CreatedExpressionMap = ConstructExpressions(Material, Material->GetName(), ExpressionNames, Exports);
-	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
-
-	/* Missing Material Data */
-	if (Exports.Num() == 0) {
+	ConstructExpressions(Material, ExpressionContainer);
+	
+	/* If Missing Material Data */
+	if (ExpressionContainer.Num() == 0) {
 		SpawnMaterialDataMissingNotification();
 
 		return false;
 	}
 
-	/* Iterate through all the expression names */
-	PropagateExpressions(Material, ExpressionNames, Exports, CreatedExpressionMap, true);
-	MaterialGraphNode_ConstructComments(Material, StringExpressionCollection, Exports);
+	/* Iterate through all the expressions, and set properties */
+	PropagateExpressions(Material, ExpressionContainer);
 
+	CreateExtraNodeInformation(Material);
+
+	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
+	
 	if (!Settings->AssetSettings.MaterialImportSettings.bSkipResultNodeConnection) {
 		TArray<FString> IgnoredProperties = TArray<FString> {
 			"ParameterGroupData",
@@ -76,8 +74,8 @@ bool IMaterialImporter::Import() {
 				FJsonObject* InputObject = InputValue->AsObject().Get();
 				FName InputExpressionName = GetExpressionName(InputObject);
 
-				if (CreatedExpressionMap.Contains(InputExpressionName)) {
-					FExpressionInput Input = PopulateExpressionInput(InputObject, *CreatedExpressionMap.Find(InputExpressionName));
+				if (ExpressionContainer.Contains(InputExpressionName)) {
+					FExpressionInput Input = PopulateExpressionInput(InputObject, ExpressionContainer.GetExpressionByName(InputExpressionName));
 #if ENGINE_MAJOR_VERSION >= 5
 					Material->GetEditorOnlyData()->CustomizedUVs[i] = *reinterpret_cast<FVector2MaterialInput*>(&Input);
 #else

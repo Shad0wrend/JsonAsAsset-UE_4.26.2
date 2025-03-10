@@ -4,34 +4,103 @@
 
 #include "Importers/Constructor/Importer.h"
 
+/* A structure to hold data for a material expression node. */
+struct FMaterialExpressionNodeExport {
+	FMaterialExpressionNodeExport(): Expression(nullptr) {};
+
+	FName Name;
+	FName Type;
+	FName Outer;
+
+	/* The json object of the expression, this is not Properties */
+	TSharedPtr<FJsonObject> JsonObject;
+
+	/* Expression created */
+	UMaterialExpression* Expression;
+
+	FMaterialExpressionNodeExport(const FName& Name, const FName& Type, const FName Outer, const TSharedPtr<FJsonObject>& JsonObject)
+		: Name(Name), Type(Type), Outer(Outer), JsonObject(JsonObject), Expression(nullptr) {
+	}
+
+	TSharedPtr<FJsonObject> GetProperties() const {
+		TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
+
+		return Properties;
+	}
+};
+
+struct FMaterialExpressionNodeExportContainer {
+	/* Array of Expression Exports */
+	TArray<FMaterialExpressionNodeExport> Expressions;
+	
+	FMaterialExpressionNodeExportContainer() {};
+
+	FMaterialExpressionNodeExport Find(const FName Name) {
+		for (FMaterialExpressionNodeExport Export : Expressions) {
+			if (Export.Name == Name) {
+				return Export;
+			}
+		}
+
+		return FMaterialExpressionNodeExport();
+	}
+
+	UMaterialExpression* GetExpressionByName(const FName Name) {
+		for (FMaterialExpressionNodeExport Export : Expressions) {
+			if (Export.Name == Name) {
+				return Export.Expression;
+			}
+		}
+
+		return nullptr;
+	}
+	
+	bool Contains(const FName Name) {
+		for (FMaterialExpressionNodeExport Export : Expressions) {
+			if (Export.Name == Name) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+	
+	int Num() const {
+		return Expressions.Num();
+	}
+};
+
+
 /*
  * Material Graph Handler
  * Handles everything needed to create a material graph from JSON.
 */
 class IMaterialGraph : public IImporter {
 public:
-	IMaterialGraph(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass);
-
+	IMaterialGraph(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass):
+		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass) {
+	}
+	
 	/* UMaterialExpression, Properties */
 	TMap<FString, FJsonObject*> MissingNodeClasses;
 
 protected:
-	static TArray<FString> IgnoredExpressions;
-
 	/* Find Material's Editor Only Data */
-	TSharedPtr<FJsonObject> FindEditorOnlyData(const FString& Type, const FString& Outer, TMap<FName, FExportData>& OutExports, TArray<FName>& ExpressionNames, bool bFilterByOuter = true);
+	TSharedPtr<FJsonObject> FindEditorOnlyData(const FString& Type, const FString& Outer, FMaterialExpressionNodeExportContainer& Container);
 
 	/* Functions to Handle Expressions */
-	void MaterialGraphNode_ExpressionWrapper(UObject* Parent, UMaterialExpression* Expression, const TSharedPtr<FJsonObject>& Json);
-	void MaterialGraphNode_ConstructComments(UObject* Parent, const TSharedPtr<FJsonObject>& Json, TMap<FName, FExportData>& Exports);
+	static void SetExpressionParent(UObject* Parent, UMaterialExpression* Expression, const TSharedPtr<FJsonObject>& Json);
+	static void AddExpressionToParent(UObject* Parent, UMaterialExpression* Expression);
+	
+	void CreateExtraNodeInformation(UObject* Parent);
 
 	/* Makes each expression with their class */
-	TMap<FName, UMaterialExpression*> ConstructExpressions(UObject* Parent, const FString& Outer, TArray<FName>& ExpressionNames, TMap<FName, FExportData>& Exports);
-	UMaterialExpression* CreateEmptyExpression(UObject* Parent, FName Name, FName Type, FJsonObject* LocalizedObject);
+	void ConstructExpressions(UObject* Parent, FMaterialExpressionNodeExportContainer& Container);
+	
+	UMaterialExpression* CreateEmptyExpression(UObject* Parent, FName Name, FName Type, const TSharedPtr<FJsonObject>& LocalizedObject);
 
 	/* Modifies Graph Nodes (copies over properties from FJsonObject) */
-	void PropagateExpressions(UObject* Parent, TArray<FName>& ExpressionNames, TMap<FName, FExportData>& Exports, TMap<FName, UMaterialExpression*>& CreatedExpressionMap, bool bCheckOuter = false, bool bSubgraph = false);
-	static void MaterialGraphNode_AddComment(UObject* Parent, UMaterialExpressionComment* Comment);
+	void PropagateExpressions(UObject* Parent, FMaterialExpressionNodeExportContainer& Container);
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	/* Functions to Handle Node Connections ~~~~~~~~~~~~ */

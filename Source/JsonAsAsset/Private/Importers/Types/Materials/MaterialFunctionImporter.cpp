@@ -19,26 +19,25 @@ bool IMaterialFunctionImporter::Import() {
 	if (!HandleAssetCreation(MaterialFunction)) return false;
 
 	/* Define editor only data from the JSON */
-	TMap<FName, FExportData> Exports;
-	TArray<FName> ExpressionNames;
-	const TSharedPtr<FJsonObject> EdProps = FindEditorOnlyData(JsonObject->GetStringField(TEXT("Type")), MaterialFunction->GetName(), Exports, ExpressionNames, false)->GetObjectField(TEXT("Properties"));
-	const TSharedPtr<FJsonObject> StringExpressionCollection = EdProps->GetObjectField(TEXT("ExpressionCollection"));
+	FMaterialExpressionNodeExportContainer ExpressionContainer;
+
+	const TSharedPtr<FJsonObject> EdProps = FindEditorOnlyData(JsonObject->GetStringField(TEXT("Type")), MaterialFunction->GetName(), ExpressionContainer);
 
 	/* Map out each expression for easier access */
-	TMap<FName, UMaterialExpression*> CreatedExpressionMap = ConstructExpressions(MaterialFunction, MaterialFunction->GetName(), ExpressionNames, Exports);
+	ConstructExpressions(MaterialFunction, ExpressionContainer);
 
 	/* If Missing Material Data */
-	if (Exports.Num() == 0) {
+	if (ExpressionContainer.Num() == 0) {
 		SpawnMaterialDataMissingNotification();
 
 		return false;
 	}
 
-	/* Iterate through all the expression names */
-	PropagateExpressions(MaterialFunction, ExpressionNames, Exports, CreatedExpressionMap);
+	/* Iterate through all the expressions, and set properties */
+	PropagateExpressions(MaterialFunction, ExpressionContainer);
 
 	/* Create comments */
-	MaterialGraphNode_ConstructComments(MaterialFunction, StringExpressionCollection, Exports);
+	CreateExtraNodeInformation(MaterialFunction);
 
 	/* Deserialize any properties */
 	GetObjectSerializer()->DeserializeObjectProperties(AssetData, MaterialFunction);

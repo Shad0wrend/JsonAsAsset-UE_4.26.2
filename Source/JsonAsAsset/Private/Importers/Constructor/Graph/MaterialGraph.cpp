@@ -16,28 +16,15 @@
 
 static TWeakPtr<SNotificationItem> MaterialGraphNotification;
 
-TArray<FString> IMaterialGraph::IgnoredExpressions;
-
-IMaterialGraph::IMaterialGraph(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass):
-	IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass)
-{
-	/* Handled manually by IMaterialGraph */
-	IgnoredExpressions = {
-		"MaterialExpressionComment",
-		"MaterialFunction",
-		"Material"
-	};
-}
-
-TSharedPtr<FJsonObject> IMaterialGraph::FindEditorOnlyData(const FString& Type, const FString& Outer, TMap<FName, FExportData>& OutExports, TArray<FName>& ExpressionNames, bool bFilterByOuter) {
+TSharedPtr<FJsonObject> IMaterialGraph::FindEditorOnlyData(const FString& Type, const FString& Outer, FMaterialExpressionNodeExportContainer& Container) {
 	TSharedPtr<FJsonObject> EditorOnlyData;
 
 	/* Filter array if needed */
-	for (const TSharedPtr<FJsonValue> Value : bFilterByOuter ? FilterExportsByOuter(Outer) : AllJsonObjects) {
+	for (const TSharedPtr<FJsonValue> Value : AllJsonObjects) {
 		TSharedPtr<FJsonObject> Object = TSharedPtr<FJsonObject>(Value->AsObject());
 
 		FString ExportType = Object->GetStringField(TEXT("Type"));
-		FString ExportName = Object->GetStringField(TEXT("Name"));
+		FName ExportName(Object->GetStringField(TEXT("Name")));
 
 		/* If an editor only data object is found, just set it */
 		if (ExportType == Type + "EditorOnlyData") {
@@ -52,83 +39,59 @@ TSharedPtr<FJsonObject> IMaterialGraph::FindEditorOnlyData(const FString& Type, 
 		}
 
 		/* Add to the list of expressions */
-		ExpressionNames.Add(FName(ExportName));
-		OutExports.Add(FName(ExportName), FExportData(ExportType, Outer, Object));
+		Container.Expressions.Add(FMaterialExpressionNodeExport(
+			ExportName,
+			FName(ExportType),
+			FName(Outer),
+			Object
+		));
 	}
 
-	return EditorOnlyData;
+	return EditorOnlyData->GetObjectField(TEXT("Properties"));
 }
 
-TMap<FName, UMaterialExpression*> IMaterialGraph::ConstructExpressions(UObject* Parent, const FString& Outer, TArray<FName>& ExpressionNames, TMap<FName, FExportData>& Exports) {
-	TMap<FName, UMaterialExpression*> CreatedExpressionMap;
+void IMaterialGraph::ConstructExpressions(UObject* Parent, FMaterialExpressionNodeExportContainer& Container) {
+	/* Go through each expression, and create the expression */
+	for (FMaterialExpressionNodeExport& Export : Container.Expressions) {
+		TSharedPtr<FJsonObject> ExportJsonObject = Export.JsonObject;
 
-	/* Go through each expression name, find the matching expression export, and create the expression */
-	for (FName Name : ExpressionNames) {
-		FName Type;
-		FJsonObject* SharedObjectRef = nullptr;
-
-		for (TTuple<FName, FExportData>& Key : Exports) {
-			/* Needs to be shared or else it might get deleted after use */
-			const TSharedPtr<FJsonObject>* NewSharedObjectRef = new TSharedPtr<FJsonObject>(Key.Value.Json);
-
-			if (Key.Key == Name && Key.Value.Outer == FName(*Outer)) {
-				Type = Key.Value.Type;
-				
-				SharedObjectRef = NewSharedObjectRef->Get();
-
-				break;
-			}
-		}
-
-		/* Not found */
-		if (SharedObjectRef == nullptr) {
+		/* Invalid Json Object */
+		if (!JsonObject.IsValid()) {
 			continue;
 		}
 
-		/* Create the expression */
-		UMaterialExpression* Expression = CreateEmptyExpression(Parent, Name, Type, SharedObjectRef);
+		/* Expression information */
+		const FName Name = Export.Name;
+		const FName Type = Export.Type;
+
+		UMaterialExpression* Expression = CreateEmptyExpression(Parent, Name, Type, ExportJsonObject);
 
 		/* If nullptr, expression isn't valid */
 		if (Expression == nullptr) {
 			continue;
 		}
 
-		CreatedExpressionMap.Add(Name, Expression);
+		Export.Expression = Expression;
 	}
-
-	return CreatedExpressionMap;
 }
 
-void IMaterialGraph::SpawnMaterialDataMissingNotification() const {
-	FNotificationInfo Info = FNotificationInfo(FText::FromString("Material Data Missing (" + FileName + ")"));
-	Info.ExpireDuration = 7.0f;
-	Info.bUseLargeFont = true;
-	Info.bUseSuccessFailIcons = true;
-	Info.WidthOverride = FOptionalSize(350);
-	SetNotificationSubText(Info, FText::FromString(FString("Please use the correct FModel provided in the JsonAsAsset server.")));
-
-	const TSharedPtr<SNotificationItem> NotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
-	NotificationPtr->SetCompletionState(SNotificationItem::CS_Fail);
-}
-
-void IMaterialGraph::PropagateExpressions(UObject* Parent, TArray<FName>& ExpressionNames, TMap<FName, FExportData>& Exports, TMap<FName, UMaterialExpression*>& CreatedExpressionMap, bool bCheckOuter, bool bSubgraph) {
-	for (FName ExportName : ExpressionNames) {
-		FExportData* Type = Exports.Find(ExportName);
-
+void IMaterialGraph::PropagateExpressions(UObject* Parent, FMaterialExpressionNodeExportContainer& Container) {
+	for (FMaterialExpressionNodeExport Export : Container.Expressions) {
 		/* Get variables from the export data */
-		FName ExpressionType = Type->Type;
-		FJsonObject* ExportJson = Type->Json;
-		
-		TSharedPtr<FJsonObject> Properties = ExportJson->GetObjectField(TEXT("Properties"));
+		FName Type = Export.Type;
 
-		/* Find the expression from FName */
-		if (!CreatedExpressionMap.Contains(ExportName)) continue;
-		UMaterialExpression* Expression = *CreatedExpressionMap.Find(ExportName);
+		/* Get Json Objects from Export */
+		TSharedPtr<FJsonObject> ExportJsonObject = Export.JsonObject;
+		TSharedPtr<FJsonObject> Properties = Export.GetProperties();
 
-		FString Outer; {
-			ExportJson->TryGetStringField(TEXT("Outer"), Outer);
+		/* Created Expression */
+		UMaterialExpression* Expression = Export.Expression;
+
+		/* Skip nulled expressions */
+		if (Expression == nullptr) {
+			continue;
 		}
-
+		
 		bool bAddToParentExpression = true;
 		
 		/* Sub-graph (natively only on Unreal Engine 5) */
@@ -137,7 +100,8 @@ void IMaterialGraph::PropagateExpressions(UObject* Parent, TArray<FName>& Expres
 
 			FName SubGraphExpressionName = GetExportNameOfSubobject(SubGraphExpressionObject->GetStringField(TEXT("ObjectName")));
 
-			UMaterialExpression* SubGraphExpression = *CreatedExpressionMap.Find(SubGraphExpressionName);
+			FMaterialExpressionNodeExport SubGraphExport = Container.Find(SubGraphExpressionName);
+			UMaterialExpression* SubGraphExpression = SubGraphExport.Expression;
 
 			/* SubgraphExpression is only on Unreal Engine 5 */
 #if ENGINE_MAJOR_VERSION > 4
@@ -162,7 +126,7 @@ void IMaterialGraph::PropagateExpressions(UObject* Parent, TArray<FName>& Expres
 		}
 
 		/* ------------ Manually check for Material Function Calls ------------  */
-		if (ExpressionType == "MaterialExpressionMaterialFunctionCall") {
+		if (Type == "MaterialExpressionMaterialFunctionCall") {
 			UMaterialExpressionMaterialFunctionCall* MaterialFunctionCall = Cast<UMaterialExpressionMaterialFunctionCall>(Expression);
 
 			const TSharedPtr<FJsonObject>* MaterialFunctionPtr;
@@ -184,52 +148,55 @@ void IMaterialGraph::PropagateExpressions(UObject* Parent, TArray<FName>& Expres
 		GetObjectSerializer()->DeserializeObjectProperties(Properties, Expression);
 
 		/* Material Nodes with edited properties (ex: 9 objects with the same name ---> array of objects) */
-		if (ExpressionType == "MaterialExpressionQualitySwitch") {
+		if (Type == "MaterialExpressionQualitySwitch") {
 			UMaterialExpressionQualitySwitch* QualitySwitch = Cast<UMaterialExpressionQualitySwitch>(Expression);
 
 			const TArray<TSharedPtr<FJsonValue>>* InputsPtr;
 			
-			if (ExportJson->TryGetArrayField(TEXT("Inputs"), InputsPtr)) {
+			if (ExportJsonObject->TryGetArrayField(TEXT("Inputs"), InputsPtr)) {
 				int i = 0;
 				for (const TSharedPtr<FJsonValue> InputValue : *InputsPtr) {
 					FJsonObject* InputObject = InputValue->AsObject().Get();
 					FName InputExpressionName = GetExpressionName(InputObject);
-					if (CreatedExpressionMap.Contains(InputExpressionName)) {
-						FExpressionInput Input = PopulateExpressionInput(InputObject, *CreatedExpressionMap.Find(InputExpressionName));
+					
+					if (Container.Contains(InputExpressionName)) {
+						FExpressionInput Input = PopulateExpressionInput(InputObject, Container.GetExpressionByName(InputExpressionName));
 						QualitySwitch->Inputs[i] = Input;
 					}
 					i++;
 				}
 			}
-		} else if (ExpressionType == "MaterialExpressionShadingPathSwitch") {
+		} else if (Type == "MaterialExpressionShadingPathSwitch") {
 			UMaterialExpressionShadingPathSwitch* ShadingPathSwitch = Cast<UMaterialExpressionShadingPathSwitch>(Expression);
 
 			const TArray<TSharedPtr<FJsonValue>>* InputsPtr;
 			
-			if (ExportJson->TryGetArrayField(TEXT("Inputs"), InputsPtr)) {
+			if (ExportJsonObject->TryGetArrayField(TEXT("Inputs"), InputsPtr)) {
 				int i = 0;
 				for (const TSharedPtr<FJsonValue> InputValue : *InputsPtr) {
 					FJsonObject* InputObject = InputValue->AsObject().Get();
 					FName InputExpressionName = GetExpressionName(InputObject);
-					if (CreatedExpressionMap.Contains(InputExpressionName)) {
-						FExpressionInput Input = PopulateExpressionInput(InputObject, *CreatedExpressionMap.Find(InputExpressionName));
+					
+					if (Container.Contains(InputExpressionName)) {
+						FExpressionInput Input = PopulateExpressionInput(InputObject, Container.GetExpressionByName(InputExpressionName));
 						ShadingPathSwitch->Inputs[i] = Input;
 					}
 					i++;
 				}
 			}
-		} else if (ExpressionType == "MaterialExpressionFeatureLevelSwitch") {
+		} else if (Type == "MaterialExpressionFeatureLevelSwitch") {
 			UMaterialExpressionFeatureLevelSwitch* FeatureLevelSwitch = Cast<UMaterialExpressionFeatureLevelSwitch>(Expression);
 
 			const TArray<TSharedPtr<FJsonValue>>* InputsPtr;
 			
-			if (ExportJson->TryGetArrayField(TEXT("Inputs"), InputsPtr)) {
+			if (ExportJsonObject->TryGetArrayField(TEXT("Inputs"), InputsPtr)) {
 				int i = 0;
 				for (const TSharedPtr<FJsonValue> InputValue : *InputsPtr) {
 					FJsonObject* InputObject = InputValue->AsObject().Get();
 					FName InputExpressionName = GetExpressionName(InputObject);
-					if (CreatedExpressionMap.Contains(InputExpressionName)) {
-						FExpressionInput Input = PopulateExpressionInput(InputObject, *CreatedExpressionMap.Find(InputExpressionName));
+					
+					if (Container.Contains(InputExpressionName)) {
+						FExpressionInput Input = PopulateExpressionInput(InputObject, Container.GetExpressionByName(InputExpressionName));
 						FeatureLevelSwitch->Inputs[i] = Input;
 					}
 					i++;
@@ -237,69 +204,15 @@ void IMaterialGraph::PropagateExpressions(UObject* Parent, TArray<FName>& Expres
 			}
 		}
 
-		MaterialGraphNode_ExpressionWrapper(Parent, Expression, Properties);
+		SetExpressionParent(Parent, Expression, Properties);
 
 		if (bAddToParentExpression) {
-			/* Adding expressions is different between UE4 and UE5 */
-#if ENGINE_MAJOR_VERSION >= 5
-			if (UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(Parent)) {
-				MaterialFunction->GetExpressionCollection().AddExpression(Expression);
-			}
-
-			if (UMaterial* Material = Cast<UMaterial>(Parent)) {
-				Material->GetEditorOnlyData()->ExpressionCollection.Expressions.Add(Expression);
-				Expression->UpdateMaterialExpressionGuid(true, false);
-				Material->AddExpressionParameter(Expression, Material->EditorParameters);
-			}
-#else
-			if (UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(Parent)) {
-				MaterialFunction->FunctionExpressions.Add(Expression);
-			}
-
-			if (UMaterial* Material = Cast<UMaterial>(Parent)) {
-				Material->Expressions.Add(Expression);
-				Expression->UpdateMaterialExpressionGuid(true, false);
-				Material->AddExpressionParameter(Expression, Material->EditorParameters);
-			}
-#endif
+			AddExpressionToParent(Parent, Expression);
 		}
 	}
 }
 
-void IMaterialGraph::MaterialGraphNode_AddComment(UObject* Parent, UMaterialExpressionComment* Comment) {
-#if ENGINE_MAJOR_VERSION >= 5
-	if (UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(Parent)) MaterialFunction->GetExpressionCollection().AddComment(Comment);
-	if (UMaterial* Material = Cast<UMaterial>(Parent)) Material->GetExpressionCollection().AddComment(Comment);
-#else
-	if (UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(Parent)) MaterialFunction->FunctionEditorComments.Add(Comment);
-	if (UMaterial* Material = Cast<UMaterial>(Parent)) Material->EditorComments.Add(Comment);
-#endif
-}
-
-void IMaterialGraph::MaterialGraphNode_ConstructComments(UObject* Parent, const TSharedPtr<FJsonObject>& Json, TMap<FName, FExportData>& Exports) {
-	const TArray<TSharedPtr<FJsonValue>>* StringExpressionComments;
-
-	/* Iterate through comments */
-	if (Json->TryGetArrayField(TEXT("EditorComments"), StringExpressionComments)) {
-		for (const TSharedPtr<FJsonValue> ExpressionComment : *StringExpressionComments) {
-			if (ExpressionComment->IsNull()) {
-				continue;
-			}
-
-			FName ExportName = GetExportNameOfSubobject(ExpressionComment.Get()->AsObject()->GetStringField(TEXT("ObjectName")));
-
-			/* Get properties of comment, and create it relative to parent */
-			const TSharedPtr<FJsonObject> Properties = Exports.Find(ExportName)->Json->GetObjectField(TEXT("Properties"));
-			UMaterialExpressionComment* Comment = NewObject<UMaterialExpressionComment>(Parent, UMaterialExpressionComment::StaticClass(), ExportName, RF_Transactional);
-
-			/* Deserialize and send it off to the material */
-			MaterialGraphNode_ExpressionWrapper(Parent, Comment, Properties);
-			GetObjectSerializer()->DeserializeObjectProperties(Properties, Comment);
-
-			MaterialGraphNode_AddComment(Parent, Comment);
-		}
-	}
-
+void IMaterialGraph::CreateExtraNodeInformation(UObject* Parent) {
 	/* If there is a missing node in the graph */
 	for (TTuple<FString, FJsonObject*>& Key : MissingNodeClasses) {
 		const TSharedPtr<FJsonObject>* SharedObject = new TSharedPtr<FJsonObject>(Key.Value);
@@ -316,41 +229,66 @@ void IMaterialGraph::MaterialGraphNode_ConstructComments(UObject* Parent, const 
 		Comment->Desc = "A node is missing in your Unreal Engine build, this may be for many reasons, primarily due to your version of Unreal being younger than the one your porting from.";
 
 		GetObjectSerializer()->DeserializeObjectProperties(Properties, Comment);
-		MaterialGraphNode_AddComment(Parent, Comment);
+		AddExpressionToParent(Parent, Comment);
 	}
 }
 
-void IMaterialGraph::MaterialGraphNode_ExpressionWrapper(UObject* Parent, UMaterialExpression* Expression, const TSharedPtr<FJsonObject>& Json) {
+void IMaterialGraph::SetExpressionParent(UObject* Parent, UMaterialExpression* Expression, const TSharedPtr<FJsonObject>& Json) {
 	if (UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(Parent)) {
 		Expression->Function = MaterialFunction;
 	} else if (UMaterial* Material = Cast<UMaterial>(Parent)) {
 		Expression->Material = Material;
 	}
 
-	if (UMaterialExpressionTextureBase* TextureBase = Cast<UMaterialExpressionTextureBase>(Expression)) {
+	if (Cast<UMaterialExpressionTextureBase>(Expression)) {
 		const TSharedPtr<FJsonObject>* TexturePtr;
-		
+	
 		if (Json->TryGetObjectField(TEXT("Texture"), TexturePtr)) {
-#if ENGINE_MAJOR_VERSION >= 5
-			LoadObject(TexturePtr, TextureBase->Texture);
-#else
-				/* For UE4: use a different method of TObjectPtr for the texture */
-				TObjectPtr<UTexture> TextureObjectPtr;
-				LoadObject(TexturePtr, TextureObjectPtr);
-				TextureBase->Texture = TextureObjectPtr.Get();
-#endif
-
 			Expression->UpdateParameterGuid(true, false);
 		}
 	}
 }
 
-UMaterialExpression* IMaterialGraph::CreateEmptyExpression(UObject* Parent, const FName Name, FName Type, FJsonObject* LocalizedObject) {
-	/* Unhandled expressions */
-	if (IgnoredExpressions.Contains(Type.ToString())) {
-		return nullptr;
-	}
+void IMaterialGraph::AddExpressionToParent(UObject* Parent, UMaterialExpression* Expression)
+{
+	/* Comments are added differently */
+	if (UMaterialExpressionComment* Comment = Cast<UMaterialExpressionComment>(Expression)) {
+		/* In Unreal Engine 5, we have to get the expression collection to add the comment */
+#if ENGINE_MAJOR_VERSION >= 5
+		if (UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(Parent)) MaterialFunction->GetExpressionCollection().AddComment(Comment);
+		if (UMaterial* Material = Cast<UMaterial>(Parent)) Material->GetExpressionCollection().AddComment(Comment);
+#else
+		/* In Unreal Engine 4, we have to get the EditorComments array to add the comment */
+		if (UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(Parent)) MaterialFunction->FunctionEditorComments.Add(Comment);
+		if (UMaterial* Material = Cast<UMaterial>(Parent)) Material->EditorComments.Add(Comment);
+#endif
+	} else {
+		/* Adding expressions is different between UE4 and UE5 */
+#if ENGINE_MAJOR_VERSION >= 5
+		if (UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(Parent)) {
+			MaterialFunction->GetExpressionCollection().AddExpression(Expression);
+		}
 
+		if (UMaterial* Material = Cast<UMaterial>(Parent)) {
+			Material->GetEditorOnlyData()->ExpressionCollection.Expressions.Add(Expression);
+			Expression->UpdateMaterialExpressionGuid(true, false);
+			Material->AddExpressionParameter(Expression, Material->EditorParameters);
+		}
+#else
+		if (UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(Parent)) {
+			MaterialFunction->FunctionExpressions.Add(Expression);
+		}
+
+		if (UMaterial* Material = Cast<UMaterial>(Parent)) {
+			Material->Expressions.Add(Expression);
+			Expression->UpdateMaterialExpressionGuid(true, false);
+			Material->AddExpressionParameter(Expression, Material->EditorParameters);
+		}
+#endif
+	}
+}
+
+UMaterialExpression* IMaterialGraph::CreateEmptyExpression(UObject* Parent, const FName Name, FName Type, const TSharedPtr<FJsonObject>& LocalizedObject) {
 	const UClass* Class = FindObject<UClass>(ANY_PACKAGE, *Type.ToString());
 
 	if (!Class) {
@@ -508,4 +446,16 @@ FName IMaterialGraph::GetExpressionName(const FJsonObject* JsonProperties, const
 	}
 
 	return NAME_None;
+}
+
+void IMaterialGraph::SpawnMaterialDataMissingNotification() const {
+	FNotificationInfo Info = FNotificationInfo(FText::FromString("Material Data Missing (" + FileName + ")"));
+	Info.ExpireDuration = 7.0f;
+	Info.bUseLargeFont = true;
+	Info.bUseSuccessFailIcons = true;
+	Info.WidthOverride = FOptionalSize(350);
+	SetNotificationSubText(Info, FText::FromString(FString("Please use the correct FModel provided in the JsonAsAsset server.")));
+
+	const TSharedPtr<SNotificationItem> NotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
+	NotificationPtr->SetCompletionState(SNotificationItem::CS_Fail);
 }

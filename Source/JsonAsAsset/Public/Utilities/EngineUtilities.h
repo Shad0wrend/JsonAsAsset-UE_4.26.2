@@ -400,7 +400,7 @@ inline auto ProcessExports(const TArray<TSharedPtr<FJsonValue>>& Exports,
 }
 
 /* ReSharper disable once CppParameterNeverUsed */
-inline void SetNotificationSubText(FNotificationInfo Notification, const FText& SubText) {
+inline void SetNotificationSubText(FNotificationInfo& Notification, const FText& SubText) {
 #if ENGINE_MAJOR_VERSION >= 5
 	Notification.SubText = SubText;
 #endif
