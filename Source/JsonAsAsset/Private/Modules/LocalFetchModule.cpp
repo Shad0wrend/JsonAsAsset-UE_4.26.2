@@ -74,7 +74,7 @@ bool LocalFetchModule::LaunchLocalFetch() {
 	FString FullPath = FPaths::ConvertRelativePathToFull(PluginFolder + "/Dependencies/LocalFetch/Release/Win64/LocalFetch.exe");
 	FString Params = "--urls=" + Settings->LocalFetchUrl;
 
-#if ENGINE_MAJOR_VERSION > 4
+#if ENGINE_MAJOR_VERSION >= 5
 	return FPlatformProcess::LaunchFileInDefaultExternalApplication(*FullPath, *Params, ELaunchVerb::Open);
 #else
 	FPlatformProcess::LaunchFileInDefaultExternalApplication(*FullPath, *Params, ELaunchVerb::Open);

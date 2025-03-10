@@ -694,7 +694,7 @@ void FJsonAsAssetModule::CreateLastDropdown(FMenuBuilder MenuBuilder) const {
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "MessageLog.Action"),
 		FUIAction(
 			FExecuteAction::CreateLambda([this]() {
-#if ENGINE_MAJOR_VERSION > 4
+#if ENGINE_MAJOR_VERSION >= 5
 				TSharedPtr<SWindow> AboutWindow =
 					SNew(SWindow)
 					.Title(LOCTEXT("AboutJsonAsAsset", "About JsonAsAsset"))

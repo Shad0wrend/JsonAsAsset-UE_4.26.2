@@ -21,10 +21,10 @@ bool IMaterialFunctionImporter::Import() {
 	/* Define editor only data from the JSON */
 	FMaterialExpressionNodeExportContainer ExpressionContainer;
 
-	const TSharedPtr<FJsonObject> EdProps = FindEditorOnlyData(JsonObject->GetStringField(TEXT("Type")), MaterialFunction->GetName(), ExpressionContainer);
+	const TSharedPtr<FJsonObject> Props = FindMaterialData(MaterialFunction, JsonObject->GetStringField(TEXT("Type")), MaterialFunction->GetName(), ExpressionContainer);
 
 	/* Map out each expression for easier access */
-	ConstructExpressions(MaterialFunction, ExpressionContainer);
+	ConstructExpressions(ExpressionContainer);
 
 	/* If Missing Material Data */
 	if (ExpressionContainer.Num() == 0) {
@@ -34,10 +34,7 @@ bool IMaterialFunctionImporter::Import() {
 	}
 
 	/* Iterate through all the expressions, and set properties */
-	PropagateExpressions(MaterialFunction, ExpressionContainer);
-
-	/* Create comments */
-	CreateExtraNodeInformation(MaterialFunction);
+	PropagateExpressions(ExpressionContainer);
 
 	/* Deserialize any properties */
 	GetObjectSerializer()->DeserializeObjectProperties(AssetData, MaterialFunction);

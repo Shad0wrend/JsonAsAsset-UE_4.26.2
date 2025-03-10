@@ -24,12 +24,12 @@ bool IMaterialImporter::Import() {
 	Material->Expressions.Empty();
 #endif
 
-	/* Define editor only data from the JSON */
+	/* Define material data from the JSON */
 	FMaterialExpressionNodeExportContainer ExpressionContainer;
-	TSharedPtr<FJsonObject> EdProps = FindEditorOnlyData(JsonObject->GetStringField(TEXT("Type")), Material->GetName(), ExpressionContainer);
+	TSharedPtr<FJsonObject> Props = FindMaterialData(Material, JsonObject->GetStringField(TEXT("Type")), Material->GetName(), ExpressionContainer);
 
 	/* Map out each expression for easier access */
-	ConstructExpressions(Material, ExpressionContainer);
+	ConstructExpressions(ExpressionContainer);
 	
 	/* If Missing Material Data */
 	if (ExpressionContainer.Num() == 0) {
@@ -39,9 +39,7 @@ bool IMaterialImporter::Import() {
 	}
 
 	/* Iterate through all the expressions, and set properties */
-	PropagateExpressions(Material, ExpressionContainer);
-
-	CreateExtraNodeInformation(Material);
+	PropagateExpressions(ExpressionContainer);
 
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 	
@@ -52,7 +50,7 @@ bool IMaterialImporter::Import() {
 			"CustomizedUVs"
 		};
 
-		const TSharedPtr<FJsonObject> RawConnectionData = TSharedPtr<FJsonObject>(EdProps);
+		const TSharedPtr<FJsonObject> RawConnectionData = TSharedPtr<FJsonObject>(Props);
 		for (FString Property : IgnoredProperties) {
 			if (RawConnectionData->HasField(Property))
 				RawConnectionData->RemoveField(Property);
@@ -68,7 +66,7 @@ bool IMaterialImporter::Import() {
 		/* CustomizedUVs defined here */
 		const TArray<TSharedPtr<FJsonValue>>* InputsPtr;
 		
-		if (EdProps->TryGetArrayField(TEXT("CustomizedUVs"), InputsPtr)) {
+		if (Props->TryGetArrayField(TEXT("CustomizedUVs"), InputsPtr)) {
 			int i = 0;
 			for (const TSharedPtr<FJsonValue> InputValue : *InputsPtr) {
 				FJsonObject* InputObject = InputValue->AsObject().Get();
@@ -88,7 +86,7 @@ bool IMaterialImporter::Import() {
 	}
 
 	const TArray<TSharedPtr<FJsonValue>>* StringParameterGroupData;
-	if (EdProps->TryGetArrayField(TEXT("ParameterGroupData"), StringParameterGroupData)) {
+	if (Props->TryGetArrayField(TEXT("ParameterGroupData"), StringParameterGroupData)) {
 		TArray<FParameterGroupData> ParameterGroupData;
 
 		for (const TSharedPtr<FJsonValue> ParameterGroupDataObject : *StringParameterGroupData) {

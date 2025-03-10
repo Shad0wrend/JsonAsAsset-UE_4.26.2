@@ -6,7 +6,7 @@
 
 /* A structure to hold data for a material expression node. */
 struct FMaterialExpressionNodeExport {
-	FMaterialExpressionNodeExport(): Expression(nullptr) {};
+	FMaterialExpressionNodeExport(): Expression(nullptr), Parent(nullptr) {};
 
 	FName Name;
 	FName Type;
@@ -18,8 +18,11 @@ struct FMaterialExpressionNodeExport {
 	/* Expression created */
 	UMaterialExpression* Expression;
 
-	FMaterialExpressionNodeExport(const FName& Name, const FName& Type, const FName Outer, const TSharedPtr<FJsonObject>& JsonObject)
-		: Name(Name), Type(Type), Outer(Outer), JsonObject(JsonObject), Expression(nullptr) {
+	/* Parent of this expression */
+	UObject* Parent;
+	
+	FMaterialExpressionNodeExport(const FName& Name, const FName& Type, const FName Outer, const TSharedPtr<FJsonObject>& JsonObject, UObject* Parent)
+		: Name(Name), Type(Type), Outer(Outer), JsonObject(JsonObject), Expression(nullptr), Parent(Parent) {
 	}
 
 	TSharedPtr<FJsonObject> GetProperties() const {
@@ -81,33 +84,28 @@ public:
 		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass) {
 	}
 	
-	/* UMaterialExpression, Properties */
-	TMap<FString, FJsonObject*> MissingNodeClasses;
-
 protected:
-	/* Find Material's Editor Only Data */
-	TSharedPtr<FJsonObject> FindEditorOnlyData(const FString& Type, const FString& Outer, FMaterialExpressionNodeExportContainer& Container);
+	/* Find Material's Data, and creates a container of material nodes */
+	TSharedPtr<FJsonObject> FindMaterialData(UObject* Parent, const FString& Type, const FString& Outer, FMaterialExpressionNodeExportContainer& Container);
 
 	/* Functions to Handle Expressions */
 	static void SetExpressionParent(UObject* Parent, UMaterialExpression* Expression, const TSharedPtr<FJsonObject>& Json);
 	static void AddExpressionToParent(UObject* Parent, UMaterialExpression* Expression);
 	
-	void CreateExtraNodeInformation(UObject* Parent);
-
 	/* Makes each expression with their class */
-	void ConstructExpressions(UObject* Parent, FMaterialExpressionNodeExportContainer& Container);
-	
-	UMaterialExpression* CreateEmptyExpression(UObject* Parent, FName Name, FName Type, const TSharedPtr<FJsonObject>& LocalizedObject);
+	void ConstructExpressions(FMaterialExpressionNodeExportContainer& Container);
+	UMaterialExpression* CreateEmptyExpression(FMaterialExpressionNodeExport& Export);
 
 	/* Modifies Graph Nodes (copies over properties from FJsonObject) */
-	void PropagateExpressions(UObject* Parent, FMaterialExpressionNodeExportContainer& Container);
+	void PropagateExpressions(FMaterialExpressionNodeExportContainer& Container) const;
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	/* Functions to Handle Node Connections ~~~~~~~~~~~~ */
 	static FExpressionInput PopulateExpressionInput(const FJsonObject* JsonProperties, UMaterialExpression* Expression, const FString& Type = "Default");
-
 	static FName GetExpressionName(const FJsonObject* JsonProperties, const FString& OverrideParameterName = "Expression");
 
+protected:
+	UMaterialExpression* OnMissingNodeClass(FMaterialExpressionNodeExport& Export);
 	void SpawnMaterialDataMissingNotification() const;
 
 #if ENGINE_MAJOR_VERSION == 4
