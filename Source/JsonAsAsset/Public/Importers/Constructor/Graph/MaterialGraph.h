@@ -20,7 +20,7 @@ struct FMaterialExpressionNodeExport {
 
 	/* Parent of this expression */
 	UObject* Parent;
-	
+
 	FMaterialExpressionNodeExport(const FName& Name, const FName& Type, const FName Outer, const TSharedPtr<FJsonObject>& JsonObject, UObject* Parent)
 		: Name(Name), Type(Type), Outer(Outer), JsonObject(JsonObject), Expression(nullptr), Parent(Parent) {
 	}
@@ -94,10 +94,10 @@ protected:
 	
 	/* Makes each expression with their class */
 	void ConstructExpressions(FMaterialExpressionNodeExportContainer& Container);
-	UMaterialExpression* CreateEmptyExpression(FMaterialExpressionNodeExport& Export);
+	UMaterialExpression* CreateEmptyExpression(FMaterialExpressionNodeExport& Export, FMaterialExpressionNodeExportContainer& Container);
 
 	/* Modifies Graph Nodes (copies over properties from FJsonObject) */
-	void PropagateExpressions(FMaterialExpressionNodeExportContainer& Container) const;
+	void PropagateExpressions(FMaterialExpressionNodeExportContainer& Container);
 	/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 	/* Functions to Handle Node Connections ~~~~~~~~~~~~ */
@@ -105,7 +105,7 @@ protected:
 	static FName GetExpressionName(const FJsonObject* JsonProperties, const FString& OverrideParameterName = "Expression");
 
 protected:
-	UMaterialExpression* OnMissingNodeClass(FMaterialExpressionNodeExport& Export);
+	UMaterialExpression* OnMissingNodeClass(FMaterialExpressionNodeExport& Export, FMaterialExpressionNodeExportContainer& Container);
 	void SpawnMaterialDataMissingNotification() const;
 
 #if ENGINE_MAJOR_VERSION == 4
