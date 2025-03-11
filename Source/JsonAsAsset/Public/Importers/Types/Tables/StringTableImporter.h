@@ -15,4 +15,4 @@ public:
 
 REGISTER_IMPORTER(IStringTableImporter, {
 	"StringTable"
-});
+}, "Table Assets");

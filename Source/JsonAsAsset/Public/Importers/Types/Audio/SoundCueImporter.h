@@ -15,4 +15,4 @@ public:
 
 REGISTER_IMPORTER(ISoundCueImporter, {
 	"SoundCue"
-});
+}, "Sound Assets");

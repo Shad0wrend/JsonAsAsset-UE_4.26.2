@@ -10,18 +10,8 @@
 #include "Dom/JsonObject.h"
 #include "CoreMinimal.h"
 
-/* Defined in CPP */
-extern TArray<FString> ImporterAcceptedTypes;
-
-#define REGISTER_IMPORTER(ImporterClass, ...) \
-namespace { \
-    struct FAutoRegister_##ImporterClass { \
-        FAutoRegister_##ImporterClass() { \
-            IImporter::GetFactoryRegistry().Add( TArray<FString>{ __VA_ARGS__ }, &IImporter::CreateImporter<ImporterClass> ); \
-        } \
-    }; \
-    static FAutoRegister_##ImporterClass AutoRegister_##ImporterClass; \
-}
+/* AssetType/Category ~ Defined in CPP */
+extern TMap<FString, TArray<FString>> ImporterTemplatedTypes;
 
 FORCEINLINE uint32 GetTypeHash(const TArray<FString>& Array) {
     uint32 Hash = 0;
@@ -31,6 +21,17 @@ FORCEINLINE uint32 GetTypeHash(const TArray<FString>& Array) {
     }
     
     return Hash;
+}
+
+#define REGISTER_IMPORTER(ImporterClass, AcceptedTypes, Category) \
+namespace { \
+    struct FAutoRegister_##ImporterClass { \
+        FAutoRegister_##ImporterClass() { \
+            IImporter::FImporterRegistrationInfo Info( FString(Category), &IImporter::CreateImporter<ImporterClass> ); \
+            IImporter::GetFactoryRegistry().Add(AcceptedTypes, Info); \
+        } \
+    }; \
+    static FAutoRegister_##ImporterClass AutoRegister_##ImporterClass; \
 }
 
 /* Global handler for converting JSON to assets */
@@ -51,22 +52,37 @@ public:
     /* Easy way to find importers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     using ImporterFactoryDelegate = TFunction<IImporter*(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& Exports, UClass* AssetClass)>;
 
-    static TMap<TArray<FString>, ImporterFactoryDelegate>& GetFactoryRegistry() {
-        static TMap<TArray<FString>, ImporterFactoryDelegate> Registry;
-        return Registry;
-    }
-
     template <typename T>
     static IImporter* CreateImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& Exports, UClass* AssetClass) {
         return new T(FileName, FilePath, JsonObject, Package, OutermostPkg, Exports, AssetClass);
     }
 
+    /* Registration info for an importer */
+    struct FImporterRegistrationInfo {
+        FString Category;
+        ImporterFactoryDelegate Factory;
+
+        FImporterRegistrationInfo(const FString& InCategory, const ImporterFactoryDelegate& InFactory)
+            : Category(InCategory)
+            , Factory(InFactory)
+        {
+        }
+
+        FImporterRegistrationInfo() = default;
+    };
+
+    static TMap<TArray<FString>, FImporterRegistrationInfo>& GetFactoryRegistry() {
+        static TMap<TArray<FString>, FImporterRegistrationInfo> Registry;
+        return Registry;
+    }
+
     static ImporterFactoryDelegate* FindFactoryForAssetType(const FString& AssetType) {
         for (auto& Pair : GetFactoryRegistry()) {
             if (Pair.Key.Contains(AssetType)) {
-                return &Pair.Value;
+                return &Pair.Value.Factory;
             }
         }
+        
         return nullptr;
     }
     
@@ -95,19 +111,18 @@ public:
 
 public:
     /* Accepted Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-    static TArray<FString> GetAcceptedTypes() {
-        return ImporterAcceptedTypes;
-    }
-
     static bool CanImport(const FString& ImporterType) {
-        return ImporterAcceptedTypes.Contains(ImporterType)
+        if (FindFactoryForAssetType(ImporterType)) {
+            return true;
+        };
+        
+        for (const TPair<FString, TArray<FString>>& Pair : ImporterTemplatedTypes) {
+            if (Pair.Value.Contains(ImporterType)) {
+                return true;
+            }
+        }
 
-        /* Added because we want to support as much sound classes as possible. SoundNode and SoundWave shouldn't be handled here */
-        || ImporterType.StartsWith("Sound") && ImporterType != "SoundWave" && !ImporterType.StartsWith("SoundNode")
-        || ImporterType.StartsWith("SubmixEffect")
-
-        /* Support as much foliage types possible */
-        || ImporterType.StartsWith("FoliageType"); 
+        return false;
     }
 
     static bool CanImportAny(TArray<FString>& Types) {
@@ -178,3 +193,5 @@ protected:
     };
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Object Serializer and Property Serializer ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 };
+
+

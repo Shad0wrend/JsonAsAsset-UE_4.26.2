@@ -20,4 +20,4 @@ public:
 
 REGISTER_IMPORTER(ISkeletonImporter, {
 	"Skeleton"
-});
+}, "Skeletal Assets");

@@ -13,10 +13,10 @@ public:
 	virtual bool Import() override;
 };
 
-REGISTER_IMPORTER(IBlendSpaceImporter, {
+REGISTER_IMPORTER(IBlendSpaceImporter, (TArray<FString>{
 	"BlendSpace",
 	"BlendSpace1D",
 
 	"AimOffsetBlendSpace",
 	"AimOffsetBlendSpace1D"
-});
+}), "Animation Assets");

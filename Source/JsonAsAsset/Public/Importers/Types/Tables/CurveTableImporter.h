@@ -21,4 +21,4 @@ public:
 
 REGISTER_IMPORTER(ICurveTableImporter, {
 	"CurveTable"
-});
+}, "Table Assets");

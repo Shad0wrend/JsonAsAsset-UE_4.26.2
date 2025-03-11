@@ -15,4 +15,4 @@ public:
 
 REGISTER_IMPORTER(ICurveVectorImporter, {
 	"CurveVector"
-});
+}, "Curve Assets");

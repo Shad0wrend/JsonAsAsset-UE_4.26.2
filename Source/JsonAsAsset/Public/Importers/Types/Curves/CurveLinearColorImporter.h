@@ -15,4 +15,4 @@ public:
 
 REGISTER_IMPORTER(ICurveLinearColorImporter, {
 	"CurveLinearColor"
-});
+}, "Curve Assets");

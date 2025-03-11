@@ -12,3 +12,7 @@ public:
 
 	virtual bool Import() override;
 };
+
+REGISTER_IMPORTER(IDataAssetImporter, {
+	TEXT("DataAsset")
+}, "Data Assets");

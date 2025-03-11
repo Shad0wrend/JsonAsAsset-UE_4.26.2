@@ -15,4 +15,4 @@ public:
 
 REGISTER_IMPORTER(IMaterialInstanceConstantImporter, {
 	"MaterialInstanceConstant"
-});
+}, "Material Assets");

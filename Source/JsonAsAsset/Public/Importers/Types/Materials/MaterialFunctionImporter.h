@@ -15,4 +15,4 @@ public:
 
 REGISTER_IMPORTER(IMaterialFunctionImporter, {
 	"MaterialFunction"
-});
+}, "Material Assets");

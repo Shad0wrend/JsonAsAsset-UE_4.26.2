@@ -360,49 +360,64 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 	FMenuBuilder MenuBuilder(false, nullptr);
 	
 	MenuBuilder.BeginSection(
-		"JsonAsAssetSection", 
-		FText::Format(LOCTEXT("JsonToolsVersion", "JSON Tools v{0}"), FText::FromString(Plugin->GetDescriptor().VersionName))
+		"JsonAsAssetTopSection", 
+		FText::Format(LOCTEXT("JsonToolsVersion", "JsonAsAsset v{0}"), FText::FromString(Plugin->GetDescriptor().VersionName))
 	); {
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("JsonAsAssetAssetTypesMenu", "Asset Types"),
 			LOCTEXT("JsonAsAssetAssetTypesMenuToolTip", "List of supported assets for JsonAsAsset"),
 			FNewMenuDelegate::CreateLambda([this](FMenuBuilder& InnerMenuBuilder) {
-				bool bSectionOpen = false;
-		
-				for (FString& Asset : ImporterAcceptedTypes) {
-					if (Asset.IsEmpty()) {
-						InnerMenuBuilder.AddSeparator();
-						continue;
+				TMap<FString, TArray<FString>> CategoriesAndTypes = ImporterTemplatedTypes;
+
+				/* Add asset types from the factory registry */
+				for (TPair Pair : IImporter::GetFactoryRegistry()) {
+					if (CategoriesAndTypes.Find(Pair.Value.Category)) {
+						CategoriesAndTypes[Pair.Value.Category].Append(Pair.Key);
 					}
-
-					if (Asset.StartsWith(TEXT("# "))) {
-						if (bSectionOpen) {
-							InnerMenuBuilder.EndSection();
-							bSectionOpen = false;
-						}
-
-						/* Extract the category name (everything after "# "). */
-						FString Category = Asset.RightChop(2);
-						FName ExtensionHook(*Category);
-						TAttribute<FText> HeadingText(FText::FromString(Category));
-
-						InnerMenuBuilder.BeginSection(ExtensionHook, HeadingText);
-						bSectionOpen = true;
-						continue;
+					else {
+						CategoriesAndTypes.Add(Pair.Value.Category, Pair.Key);
 					}
-			
-					UClass* Class = FindObject<UClass>(nullptr, *("/Script/Engine." + Asset));
-					FText Description = Class ? Class->GetToolTipText() : FText::FromString(Asset);
-
-					InnerMenuBuilder.AddMenuEntry(
-						FText::FromString(Asset),
-						Description,
-						FSlateIconFinder::FindCustomIconForClass(Class, TEXT("ClassThumbnail")),
-						FUIAction()
-					);
 				}
 
-				if (bSectionOpen) {
+				/* Sort categories by alphabetical order */
+				TArray<TPair<FString, TArray<FString>>> SortedCategoryPairs;
+				for (const TPair<FString, TArray<FString>>& Pair : CategoriesAndTypes) {
+					SortedCategoryPairs.Add(Pair);
+				}
+
+				SortedCategoryPairs.Sort([](const TPair<FString, TArray<FString>>& A, const TPair<FString, TArray<FString>>& B) {
+					return A.Key < B.Key;
+				});
+
+				/* Sort asset types by alphabetical order */
+				for (TPair<FString, TArray<FString>>& CategoryPair : CategoriesAndTypes) {
+					CategoryPair.Value.Sort([](const FString& A, const FString& B) {
+						return A < B;
+					});
+				}
+
+				/* Go through each pair and add the entries */
+				for (const TPair<FString, TArray<FString>>& Pair : SortedCategoryPairs) {
+					FString Category = Pair.Key;
+					TArray<FString> AssetTypes = Pair.Value;
+					
+					InnerMenuBuilder.BeginSection(FName(*Category), FText::FromString(Category));
+
+					for (const FString& AssetType : AssetTypes) {
+						const UClass* Class = FindObject<UClass>(nullptr, *("/Script/Engine." + AssetType));
+						FText Description = Class ? Class->GetToolTipText() : FText::FromString(AssetType);
+
+						InnerMenuBuilder.AddMenuEntry(
+							FText::FromString(AssetType),
+							Description,
+							FSlateIconFinder::FindCustomIconForClass(Class, TEXT("ClassThumbnail")),
+							FUIAction(
+								FExecuteAction::CreateLambda([this]() {
+								})
+							)
+						);
+					}
+
 					InnerMenuBuilder.EndSection();
 				}
 			}),
@@ -416,8 +431,8 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Documentation"),
 			FUIAction(
 				FExecuteAction::CreateLambda([this]() {
-					FString TheURL = "https://github.com/JsonAsAsset/JsonAsAsset";
-					FPlatformProcess::LaunchURL(*TheURL, nullptr, nullptr);
+					FString URL = "https://github.com/JsonAsAsset/JsonAsAsset";
+					FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
 				})
 			),
 			NAME_None

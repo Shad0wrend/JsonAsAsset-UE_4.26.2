@@ -79,99 +79,67 @@ IImporter::IImporter(const FString& FileName, const FString& FilePath,
  * An empty string "" is a separator line
  * A string starting with "# ..." is a category
  */
-TArray<FString> ImporterAcceptedTypes = {
-	"# Animation Assets", /* Animation Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-	"AnimSequence",
-	"AnimMontage",
-
-	"", /* separator */
-	
-	"BlendSpace",
-	"BlendSpace1D",
-	"AimOffsetBlendSpace",
-	"AimOffsetBlendSpace1D",
-	
-	"# Curve Assets", /* Curve Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	
-	"CurveFloat",
-	"CurveVector",
-	"CurveLinearColor",
-	"CurveLinearColorAtlas",
-
-	"# Data Assets", /* Data Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-	"DataAsset",
-
-	"", /* separator */
-
-	"SlateBrushAsset",
-	"SlateWidgetStyleAsset",
-
-	"", /* separator */
-	
-	"AnimBoneCompressionSettings",
-	"AnimCurveCompressionSettings",
-
-	"# Landscape Assets", /* Landscape Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-		
-	"LandscapeGrassType",
-	
-	"FoliageType_InstancedStaticMesh",
-	"FoliageType_Actor",
-	
-	"# Table Assets", /* Data Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-	"CurveTable",
-	"DataTable",
-	"StringTable",
-	
-	"# Material Assets", /* Material Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-	"Material",
-	"MaterialFunction",
-	"MaterialInstanceConstant",
-	"MaterialParameterCollection",
-
-	"", /* separator */
-	
-	"SubsurfaceProfile",
-	"NiagaraParameterCollection",
-	
-	"# Skeletal Assets", /* Skeletal Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-	"SkeletalMeshLODSettings",
-	"Skeleton",
-
-#if JSONASASSET_PARTICLESYSTEM_ALLOW
-	"# Particle Assets", /* Particle Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-	"ParticleSystem",
-#endif
-
-	"# Physics Assets", /* Physics Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	
-	"PhysicsAsset",
-	"PhysicalMaterial",
-
-	"# Sound Assets", /* Sound Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-	"SoundCue",
-	"ReverbEffect",
-	"SoundAttenuation",
-	"SoundConcurrency",
-	"SoundClass",
-	"SoundMix",
-	"SoundModulationPatch",
-	"SubmixEffectDynamicsProcessorPreset",
-
-	"# Texture Assets", /* Texture Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-	"TextureRenderTarget2D",
-	
-	"# User Defined Assets", /* User Defined Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-	"UserDefinedEnum"
+TMap<FString, TArray<FString>> ImporterTemplatedTypes = {
+	{
+		TEXT("Curve Assets"),
+		{
+			TEXT("CurveFloat"),
+		}
+	},
+	{
+		TEXT("Data Assets"),
+		{
+			TEXT("SlateBrushAsset"),
+			TEXT("SlateWidgetStyleAsset"),
+			TEXT("AnimBoneCompressionSettings"),
+			TEXT("AnimCurveCompressionSettings"),
+		}
+	},
+	{
+		TEXT("Landscape Assets"),
+		{
+			TEXT("LandscapeGrassType"),
+			TEXT("FoliageType_InstancedStaticMesh"),
+			TEXT("FoliageType_Actor"),
+		}
+	},
+	{
+		TEXT("Material Assets"),
+		{
+			TEXT("MaterialParameterCollection"),
+			TEXT("SubsurfaceProfile"),
+		}
+	},
+	{
+		TEXT("Skeletal Assets"),
+		{
+			TEXT("SkeletalMeshLODSettings"),
+		}
+	},
+	{
+		TEXT("Physics Assets"),
+		{
+			TEXT("PhysicalMaterial"),
+		}
+	},
+	{
+		TEXT("Sound Assets"),
+		{
+			TEXT("ReverbEffect"),
+			TEXT("SoundAttenuation"),
+			TEXT("SoundConcurrency"),
+			TEXT("SoundClass"),
+			TEXT("SoundMix"),
+			TEXT("SoundModulationPatch"),
+			TEXT("SubmixEffectDynamicsProcessorPreset"),
+		}
+	},
+	{
+		TEXT("Texture Assets"),
+		{
+			TEXT("TextureRenderTarget2D"),
+		}
+	}
 };
 
 bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FString File, const bool bHideNotifications) {

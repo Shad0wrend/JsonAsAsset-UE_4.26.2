@@ -14,5 +14,5 @@ public:
 };
 
 REGISTER_IMPORTER(IUserDefinedEnumImporter, {
-	"UserDefinedEnum"
-});
+	TEXT("UserDefinedEnum")
+}, "User Defined Assets");

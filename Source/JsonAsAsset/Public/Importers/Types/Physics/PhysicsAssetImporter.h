@@ -23,4 +23,4 @@ public:
 
 REGISTER_IMPORTER(IPhysicsAssetImporter, {
 	"PhysicsAsset"
-});
+}, "Physics Assets");

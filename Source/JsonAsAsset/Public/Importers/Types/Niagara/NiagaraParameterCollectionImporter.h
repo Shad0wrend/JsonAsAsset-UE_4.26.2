@@ -25,4 +25,4 @@ public:
 
 REGISTER_IMPORTER(INiagaraParameterCollectionImporter, {
     "NiagaraParameterCollection"
-});
+}, "Material Assets");

@@ -18,4 +18,4 @@ public:
 
 REGISTER_IMPORTER(IDataTableImporter, {
 	"DataTable"
-});
+}, "Table Assets");
