@@ -331,6 +331,27 @@ void FJsonAsAssetModule::RegisterMenus() {
 
 #if ENGINE_MAJOR_VERSION == 4
 void FJsonAsAssetModule::AddToolbarExtension(FToolBarBuilder& Builder) {
+	Builder.AddToolBarButton(
+		FUIAction(
+			FExecuteAction::CreateRaw(this, &FJsonAsAssetModule::PluginButtonClicked),
+			FCanExecuteAction(),
+			FGetActionCheckState(),
+			FIsActionButtonVisible::CreateLambda([this]() {
+				static const auto CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("Plugin.HideActions"));
+
+				if (CVar) {
+					return CVar && CVar->GetInt() == 0;
+				}
+
+				return true;
+			})
+		),
+		NAME_None,
+		FText::FromString(Plugin->GetDescriptor().VersionName),
+		LOCTEXT("JsonAsAssetExecuteAction", "Execute JsonAsAsset"),
+		FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), FName("JsonAsAsset.Toolbar.Icon"))
+	);
+
 	Builder.AddComboButton(
 		FUIAction(
 			FExecuteAction(),
@@ -348,8 +369,9 @@ void FJsonAsAssetModule::AddToolbarExtension(FToolBarBuilder& Builder) {
 		),
 		FOnGetContent::CreateRaw(this, &FJsonAsAssetModule::CreateToolbarDropdown),
 		FText::FromString(Plugin->GetDescriptor().VersionName),
-		LOCTEXT("JsonAsAsset", "List of actions for JsonAsAsset"),
-		FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), FName("JsonAsAsset.Toolbar.Icon"))
+		LOCTEXT("JsonAsAssetButtonTooltip", "Open JsonAsAsset Tool-bar"),
+		FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), FName("JsonAsAsset.Toolbar.Icon")),
+		true
 	);
 }
 #endif
@@ -370,7 +392,7 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 				TMap<FString, TArray<FString>> CategoriesAndTypes = ImporterTemplatedTypes;
 
 				/* Add asset types from the factory registry */
-				for (TPair Pair : IImporter::GetFactoryRegistry()) {
+				for (auto Pair : IImporter::GetFactoryRegistry()) {
 					if (CategoriesAndTypes.Find(Pair.Value.Category)) {
 						CategoriesAndTypes[Pair.Value.Category].Append(Pair.Key);
 					}
@@ -437,23 +459,6 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 			),
 			NAME_None
 		);
-
-#if ENGINE_MAJOR_VERSION == 4
-		MenuBuilder.AddMenuEntry(
-			LOCTEXT("JsonAsAssetActionButton", "JsonAsAsset"),
-			LOCTEXT("JsonAsAssetActionButtonTooltip", "Execute JsonAsAsset"),
-			FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), "JsonAsAsset.Toolbar.Icon"),
-			FUIAction(
-				FExecuteAction::CreateRaw(this, &FJsonAsAssetModule::PluginButtonClicked),
-				FCanExecuteAction::CreateLambda([this]() {
-					const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
-
-					return !Settings->ExportDirectory.Path.IsEmpty();
-				})
-			),
-			NAME_None
-		);
-#endif
 
 		if (Settings->AssetSettings.bEnableAssetTools) {
 			MenuBuilder.AddSubMenu(
