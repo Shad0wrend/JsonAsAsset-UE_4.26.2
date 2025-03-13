@@ -153,12 +153,12 @@ public:
 	 * Specifies the main encryption key used for decrypting encrypted game files.
 	 *
 	 * Default value:
-	 *   AES Key: 0x00000000000000000000000000000000000000000000000000000000000
+	 *   AES Key: 0x0000000000000000000000000000000000000000000000000000000000000000
 	 *
 	 * Note: This key is optional for most Unreal Engine games. Override it only if your build uses encryption.
 	 */
 	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Encryption", meta=(EditCondition="bEnableLocalFetch", DisplayName="Encryption Key"))
-	FString ArchiveKey = "0x00000000000000000000000000000000000000000000000000000000000";
+	FString ArchiveKey = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 	/**
 	 * Specifies additional encryption keys used for decrypting encrypted game files.
