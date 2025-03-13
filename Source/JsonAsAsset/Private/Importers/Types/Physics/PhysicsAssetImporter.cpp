@@ -1,10 +1,9 @@
 /* Copyright JAA Contributors 2024-2025 */
 
 #include "Importers/Types/Physics/PhysicsAssetImporter.h"
-#include "PhysicsEngine/PhysicsAsset.h"
-#include "PhysicsEngine/PhysicsConstraintTemplate.h"
-
 #include "Utilities/EngineUtilities.h"
+
+#include "PhysicsEngine/PhysicsConstraintTemplate.h"
 
 bool IPhysicsAssetImporter::Import() {
 	/* CollisionDisableTable is required to port physics assets */
