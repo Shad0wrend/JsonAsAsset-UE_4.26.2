@@ -28,12 +28,13 @@ The goal of this project is to simplify the process for the porting and modding 
 **Table of Contents**:
 <br> 
 
-> 1. [Introduction to JsonAsAsset](#introduction)
-> 2. [→ Installation](#install)  
+> 1. [Introduction to JsonAsAsset](#introduction)  
+>    1.1 [Supported Asset Types](#supported-asset-types)
+> 3. [→ Installation](#install)  
 >    2.1 [FModel](#setup-fmodel)  
 >    2.2 [Settings](#setup-settings)
-> 3. [→ Using JsonAsAsset](#plugin-usage)
-> 4. [Local Fetch](#local-fetch)  
+> 4. [→ Using JsonAsAsset](#plugin-usage)
+> 5. [Local Fetch](#local-fetch)  
 >    4.1 [Setup Local Fetch Settings](#setup-local-fetch)  
 >    4.2 [Launching Local Fetch](#launch-local-fetch)  
 
@@ -50,12 +51,12 @@ The goal of this project is to simplify the process for the porting and modding 
 > [!WARNING]
 > Please note that this plugin is intended solely for **personal and educational use**. Do not use it to create or distribute **commercial products** without obtaining the necessary **licenses and permissions**. It is important to respect **intellectual property rights** and only use assets that you are **authorized to use**. We do not assume any responsibility for the way the created content is used.
 
-JsonAsAsset is a user-friendly Unreal Engine plugin for importing assets from packaged games using JSON files. With a sleek interface, it simplifies mapping JSON data to Unreal Engine structures, supporting both manual and automated workflows.
+JsonAsAsset is a user-friendly Unreal Engine plugin for importing assets from packaged games using JSON files. Primarily from CUE4Parse and the use of the application [FModel](https://fmodel.app) to export JSON files.
 
-<details>
-  <summary>Supported Asset Types</summary>
+------------------
 
-<br>
+<a name="supported-asset-types"></a>
+#### 1.1 Supported Asset Types
 
 | Asset Category | Asset Types / Description |
 |--------------------------------|------------------------------------------------------------------------------------------------------------------------|
@@ -76,9 +77,7 @@ JsonAsAsset is a user-friendly Unreal Engine plugin for importing assets from pa
 **Material/Niagara Data**:
 <br> Unreal Engine games made below 4.12 (a guess) will have material data, but not niagara data, any games made above that version will most definitely not have any material data nor niagara data, and therefore the actual data will be stripped and cannot be imported. **Unless** you are using a User Generated Content editor, then it's possible material data and niagara data will be there.
 
-**NOTE:** If your game uses custom C++ classes or structures, you need to define them to import via JsonAsAsset (create them manually from SDKs or automate them). See [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects) for game-specific template projects.
-
-</details>
+**NOTE:** If your game uses custom C++ classes or structures, you need to define them before importing with JsonAsAsset. JsonAsAsset does not create C++ files for you. (create them manually from SDKs or automate them) See [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects) for game-specific template projects.
 
 <a name="install"></a>
 ## 2. Installation
@@ -167,10 +166,10 @@ To bulk import assets and **what they reference**, you must set up [`Local Fetch
 | Data Asset Types | DataAsset, DataTable |
 | Landscape | LandscapeGrassType, PhysicalMaterial |
 
-**NOTE:** If your game uses custom C++ classes or structures, you need to define them to import via JsonAsAsset (create them manually from SDKs or automate them). See [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects) for game-specific template projects.
+**Material/Niagara Data**:
+<br> Unreal Engine games made below 4.12 (a guess) will have material data, but not niagara data, any games made above that version will most definitely not have any material data nor niagara data, and therefore the actual data will be stripped and cannot be imported. **Unless** you are using a User Generated Content editor, then it's possible material data and niagara data will be there.
 
-**Material Data**:
-<br> Unreal Engine games made below 4.12 (a guess) will have material data, any games made above that version will most definitely not have any material data, and therefore the actual data will be stripped and cannot be imported. **Unless** you are using a User Generated Content editor, then it's possible the material data will be there.
+**NOTE:** If your game uses custom C++ classes or structures, you need to define them before importing with JsonAsAsset. JsonAsAsset does not create C++ files for you. (create them manually from SDKs or automate them) See [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects) for game-specific template projects.
 
 </details>
 
