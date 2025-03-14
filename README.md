@@ -1,8 +1,8 @@
 # JsonAsAsset
 
 [![Discord](https://img.shields.io/badge/Join%20Discord-Collector?color=0363ff&logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/h9s6qpBnUT)
+[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/JsonAsAsset/JsonAsAsset/total?style=for-the-badge&label=DOWNLOADS&color=#03ffc8)](https://github.com/JsonAsAsset/JsonAsAsset/releases)
 [![GitHub Repo stars](https://img.shields.io/github/stars/JsonAsAsset/JsonAsAsset?style=for-the-badge&logo=&color=gold)](https://github.com/JsonAsAsset/JsonAsAsset/stargazers)
-[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/JsonAsAsset/JsonAsAsset/total?style=for-the-badge&label=DOWNLOADS&color=blue)](https://github.com/JsonAsAsset/JsonAsAsset/releases)
 
 [![Unreal Engine 5 Supported)](https://img.shields.io/badge/UE5.0+-black?logo=unrealengine&style=for-the-badge&labelColor=grey)](#install)
 [![Unreal Engine 4.27.2 Supported)](https://img.shields.io/badge/4.27.2-black?logo=unrealengine&style=for-the-badge&labelColor=grey)](#install)
@@ -25,8 +25,7 @@ The goal of this project is to simplify the process for the porting and modding 
 
 -----------------
 
-**Table of Contents**:
-<br> 
+### **Table of Contents**:
 
 > 1. [Introduction to JsonAsAsset](#introduction)  
 >    1.1 [Supported Asset Types](#supported-asset-types)
@@ -39,7 +38,7 @@ The goal of this project is to simplify the process for the porting and modding 
 >    4.2 [Launching Local Fetch](#launch-local-fetch)  
 
 **Extras**:
-<br> 
+<br>
 
 > - [Common Errors 🐛](#common-errors)
 > - [Licensing 📗](#licensing)
