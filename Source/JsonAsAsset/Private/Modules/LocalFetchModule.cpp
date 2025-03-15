@@ -58,6 +58,11 @@ TArray<FString> LocalFetchAcceptedTypes = {
 	"SubsurfaceProfile",
 	"LandscapeGrassType",
 	"DataTable",
+
+	"", // separator
+
+	"UserDefinedStruct",
+	"UserDefinedEnum"
 };
 
 bool LocalFetchModule::LaunchLocalFetch() {
