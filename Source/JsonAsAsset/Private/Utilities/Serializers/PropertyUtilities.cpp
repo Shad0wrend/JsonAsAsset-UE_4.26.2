@@ -110,10 +110,6 @@ UPropertySerializer::UPropertySerializer() {
 }
 
 void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TSharedRef<FJsonValue>& JsonValue, void* Value) {
-	DeserializePropertyValueInner(Property, JsonValue, Value);
-}
-
-void UPropertySerializer::DeserializePropertyValueInner(FProperty* Property, const TSharedRef<FJsonValue>& JsonValue, void* Value) {
 	const FMapProperty* MapProperty = CastField<const FMapProperty>(Property);
 	const FSetProperty* SetProperty = CastField<const FSetProperty>(Property);
 	const FArrayProperty* ArrayProperty = CastField<const FArrayProperty>(Property);
@@ -785,7 +781,7 @@ bool UPropertySerializer::ComparePropertyValuesInner(FProperty* Property, const 
 	/* If property hasn't been handled above, we can just deserialize it normally and then do FProperty.Identical */
 	FDefaultConstructedPropertyElement DeserializedElement(Property);
 	/* We use DeserializePropertyValueInner here because we handle statically sized array properties externally, so we need to bypass their handling */
-	DeserializePropertyValueInner(Property, JsonValue, DeserializedElement.GetObjAddress());
+	DeserializePropertyValue(Property, JsonValue, DeserializedElement.GetObjAddress());
 
 	if (const FTextProperty* TextProperty = CastField<const FTextProperty>(Property)) {
 		/* FTextProperty::Identical compares the CultureInvariant flag, and sometimes empty deserialized texts don't have it while the exiting texts do */

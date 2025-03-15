@@ -108,7 +108,6 @@ public:
 
 	bool ComparePropertyValues(FProperty* Property, const TSharedRef<FJsonValue>& JsonValue, const void* CurrentValue, const TSharedPtr<FObjectCompareContext> Context = MakeShareable(new FObjectCompareContext));
 	bool CompareStructs(UScriptStruct* Struct, const TSharedRef<FJsonObject>& JsonValue, const void* CurrentValue, const TSharedPtr<FObjectCompareContext> Context = MakeShareable(new FObjectCompareContext));
-	void DeserializePropertyValueInner(FProperty* Property, const TSharedRef<FJsonValue>& Value, void* OutValue);
 
 private:
 	FStructSerializer* GetStructSerializer(UScriptStruct* Struct) const;
@@ -166,7 +165,7 @@ inline bool PassthroughPropertyHandler(FProperty* Property, const FString& Prope
 			
 			const TSharedRef<FJsonValue> ArrayJsonValue = ArrayJsonElement.ToSharedRef();
 
-			PropertySerializer->DeserializePropertyValueInner(Property, ArrayJsonValue, ArrayPropertyValue);
+			PropertySerializer->DeserializePropertyValue(Property, ArrayJsonValue, ArrayPropertyValue);
 		}
 
 		return true;

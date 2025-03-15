@@ -14,11 +14,13 @@ public:
 	virtual bool Import() override;
 
 protected:
+	TSharedPtr<FJsonObject> CookedStructMetaData;
+	TSharedPtr<FJsonObject> DefaultProperties;
+
 	FEdGraphPinType ResolvePropertyPinType(const TSharedPtr<FJsonObject>& PropertyJsonObject);
-	
+	void ImportPropertyIntoStruct(UUserDefinedStruct* UserDefinedStruct, const TSharedPtr<FJsonObject>& PropertyJsonObject);
+
 	UObject* LoadObjectFromJsonReference(const TSharedPtr<FJsonObject>& ParentJsonObject, const FString& ReferenceKey);
-	
-	void ImportPropertyIntoStruct(UUserDefinedStruct* Struct, const TSharedPtr<FJsonObject>& PropertyJsonObject);
 };
 
 REGISTER_IMPORTER(IUserDefinedStructImporter, {

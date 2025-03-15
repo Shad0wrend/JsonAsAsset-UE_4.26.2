@@ -205,6 +205,22 @@ inline bool IsProcessRunning(const FString& ProcessName) {
 	return bIsRunning;
 }
 
+inline TSharedPtr<FJsonObject> GetExport(const FString& Type, TArray<TSharedPtr<FJsonValue>> AllJsonObjects, bool bGetProperties = false) {
+	for (TSharedPtr<FJsonValue> Value : AllJsonObjects) {
+		const TSharedPtr<FJsonObject> ValueObject = Value->AsObject();
+
+		if (ValueObject->GetStringField(TEXT("Type")) == Type) {
+			if (bGetProperties) {
+				return ValueObject->GetObjectField(TEXT("Properties"));
+			}
+			
+			return ValueObject;
+		}
+	}
+	
+	return nullptr;
+}
+
 inline TSharedPtr<FJsonObject> GetExport(const FJsonObject* PackageIndex, TArray<TSharedPtr<FJsonValue>> AllJsonObjects) {
 	FString ObjectName = PackageIndex->GetStringField(TEXT("ObjectName")); /* Class'Asset:ExportName' */
 	FString ObjectPath = PackageIndex->GetStringField(TEXT("ObjectPath")); /* Path/Asset.Index */
