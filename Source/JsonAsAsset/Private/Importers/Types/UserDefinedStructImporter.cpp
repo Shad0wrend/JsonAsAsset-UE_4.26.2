@@ -155,7 +155,7 @@ FEdGraphPinType IUserDefinedStructImporter::ResolvePropertyPinType(const TShared
     return ResolvedType;
 }
 
-UObject *IUserDefinedStructImporter::LoadObjectFromJsonReference(const TSharedPtr<FJsonObject> &ParentJsonObject, const FString &ReferenceKey) {
+UObject* IUserDefinedStructImporter::LoadObjectFromJsonReference(const TSharedPtr<FJsonObject> &ParentJsonObject, const FString &ReferenceKey) {
     const TSharedPtr<FJsonObject> ReferenceObject = ParentJsonObject->GetObjectField(ReferenceKey);
     
     if (!ReferenceObject) {
