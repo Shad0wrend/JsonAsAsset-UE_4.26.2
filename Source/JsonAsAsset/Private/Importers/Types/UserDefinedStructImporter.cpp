@@ -110,6 +110,10 @@ void IUserDefinedStructImporter::ImportPropertyIntoStruct(UUserDefinedStruct* Us
 
     FProperty* Property = FindFProperty<FProperty>(UserDefinedStruct, *Name);
 
+    if (Property == nullptr) {
+        return;
+    }
+
     /* DefaultProperties ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     FStructOnScope StructScope(UserDefinedStruct);
     uint8* InstanceMemory = StructScope.GetStructMemory();
