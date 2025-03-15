@@ -48,6 +48,7 @@ bool IUserDefinedStructImporter::Import() {
     
     for (const TSharedPtr<FJsonValue> Property : ChildProperties) {
         const TSharedPtr<FJsonObject> PropertyObject = Property->AsObject();
+        
         ImportPropertyIntoStruct(UserDefinedStruct, PropertyObject);
     }
 
@@ -72,6 +73,7 @@ void IUserDefinedStructImporter::ImportPropertyIntoStruct(UUserDefinedStruct *St
         FieldGuid = FGuid(RegexMatcher.GetCaptureGroup(3));
     } else {
         const uint32 UniqueNameId = CastChecked<UUserDefinedStructEditorData>(Struct->EditorData)->GenerateUniqueNameIdForMemberVariable();
+
         FieldId = FString::FromInt(UniqueNameId);
         FieldGuid = FGuid::NewGuid();
     }
@@ -82,6 +84,7 @@ void IUserDefinedStructImporter::ImportPropertyIntoStruct(UUserDefinedStruct *St
         Variable.VarName = FormattedName;
         Variable.FriendlyName = FieldDisplayName;
         Variable.VarGuid = FieldGuid;
+        
         Variable.SetPinType(ResolvePropertyPinType(PropertyJsonObject)); 
     }
 
@@ -98,11 +101,13 @@ FEdGraphPinType IUserDefinedStructImporter::ResolvePropertyPinType(const TShared
     if (ContainerType) {
         if (*ContainerType == EPinContainerType::Map) {
             TSharedPtr<FJsonObject> KeyPropObject = PropertyJsonObject->GetObjectField(TEXT("KeyProp"));
+            
             FEdGraphPinType ResolvedType = ResolvePropertyPinType(KeyPropObject);
             ResolvedType.ContainerType = *ContainerType;
 
             TSharedPtr<FJsonObject> ValuePropObject = PropertyJsonObject->GetObjectField(TEXT("ValueProp"));
             FEdGraphPinType ResolvedTerminalType = ResolvePropertyPinType(ValuePropObject);
+            
             ResolvedType.PinValueType.TerminalCategory = ResolvedTerminalType.PinCategory;
             ResolvedType.PinValueType.TerminalSubCategory = ResolvedTerminalType.PinSubCategory;
             ResolvedType.PinValueType.TerminalSubCategoryObject = ResolvedTerminalType.PinSubCategoryObject;
@@ -113,14 +118,18 @@ FEdGraphPinType IUserDefinedStructImporter::ResolvePropertyPinType(const TShared
         if (*ContainerType == EPinContainerType::Set) {
             TSharedPtr<FJsonObject> ElementPropObject = PropertyJsonObject->GetObjectField(TEXT("ElementProp"));
             FEdGraphPinType ResolvedType = ResolvePropertyPinType(ElementPropObject);
+            
             ResolvedType.ContainerType = *ContainerType;
+            
             return ResolvedType;
         }
 
         if (*ContainerType == EPinContainerType::Array) {
             TSharedPtr<FJsonObject> InnerTypeObject = PropertyJsonObject->GetObjectField(TEXT("Inner"));
             FEdGraphPinType ResolvedType = ResolvePropertyPinType(InnerTypeObject);
+            
             ResolvedType.ContainerType = *ContainerType;
+            
             return ResolvedType;
         }
     }
@@ -128,7 +137,7 @@ FEdGraphPinType IUserDefinedStructImporter::ResolvePropertyPinType(const TShared
     FEdGraphPinType ResolvedType = FEdGraphPinType(NAME_None, NAME_None, nullptr, EPinContainerType::None,false, FEdGraphTerminalType());
 
     /* Find main type from our PropertyCategoryMap */
-    const FName *TypeCategory = PropertyCategoryMap.Find(Type);
+    const FName* TypeCategory = PropertyCategoryMap.Find(Type);
     
     if (TypeCategory) {
         ResolvedType.PinCategory = *TypeCategory;
@@ -142,7 +151,7 @@ FEdGraphPinType IUserDefinedStructImporter::ResolvePropertyPinType(const TShared
         ResolvedType.PinSubCategory = TEXT("double");
     } else if (Type == "FloatProperty") {
         ResolvedType.PinSubCategory = TEXT("float");
-    } else if ((Type == "EnumProperty" || Type == "ByteProperty")) {
+    } else if (Type == "EnumProperty" || Type == "ByteProperty") {
         ResolvedType.PinSubCategoryObject = LoadObjectFromJsonReference(PropertyJsonObject, TEXT("Enum"));
     } else if (Type == "StructProperty") {
         ResolvedType.PinSubCategoryObject = LoadObjectFromJsonReference(PropertyJsonObject, TEXT("Struct"));

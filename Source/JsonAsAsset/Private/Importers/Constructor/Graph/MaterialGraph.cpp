@@ -352,11 +352,11 @@ UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeE
 			if (Container.Contains(InputExpressionName)) {
 				FMaterialExpressionNodeExport PinBaseExport = Container.Find(InputExpressionName);
 
-				for (auto Value : PinBaseExport.GetProperties()->GetArrayField("ReroutePins")) {
+				for (auto Value : PinBaseExport.GetProperties()->GetArrayField(TEXT("ReroutePins"))) {
 					auto ReroutePinObject = Value->AsObject();
 
 					FMaterialExpressionNodeExport FunctionOutput = FMaterialExpressionNodeExport(
-						FName(*("MaterialExpressionFunctionInput_" + InputExpressionName.ToString().Replace(TEXT("MaterialExpression"), TEXT(""))) + ReroutePinObject->GetStringField("Name").Replace(TEXT(" "), TEXT(""))),
+						FName(*("MaterialExpressionFunctionInput_" + InputExpressionName.ToString().Replace(TEXT("MaterialExpression"), TEXT(""))) + ReroutePinObject->GetStringField(TEXT("Name")).Replace(TEXT(" "), TEXT(""))),
 						FName("MaterialExpressionFunctionInput"),
 						FName(""),
 						Export.JsonObject,
@@ -365,7 +365,7 @@ UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeE
 				
 					UMaterialExpressionFunctionInput* FunctionInputExpression = Cast<UMaterialExpressionFunctionInput>(CreateEmptyExpression(FunctionOutput, Container));
 
-					FunctionInputExpression->InputName = FName(*ReroutePinObject->GetStringField("Name"));
+					FunctionInputExpression->InputName = FName(*ReroutePinObject->GetStringField(TEXT("Name")));
 
 					GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(ReroutePinObject,
 					{
@@ -388,11 +388,11 @@ UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeE
 			if (Container.Contains(InputExpressionName)) {
 				FMaterialExpressionNodeExport PinBaseExport = Container.Find(InputExpressionName);
 
-				for (auto Value : PinBaseExport.GetProperties()->GetArrayField("ReroutePins")) {
+				for (auto Value : PinBaseExport.GetProperties()->GetArrayField(TEXT("ReroutePins"))) {
 					auto ReroutePinObject = Value->AsObject();
 
 					FMaterialExpressionNodeExport FunctionOutput = FMaterialExpressionNodeExport(
-						FName(*("MaterialExpressionFunctionOutput_" + InputExpressionName.ToString().Replace(TEXT("MaterialExpression"), TEXT(""))) + ReroutePinObject->GetStringField("Name").Replace(TEXT(" "), TEXT(""))),
+						FName(*("MaterialExpressionFunctionOutput_" + InputExpressionName.ToString().Replace(TEXT("MaterialExpression"), TEXT(""))) + ReroutePinObject->GetStringField(TEXT("Name")).Replace(TEXT(" "), TEXT(""))),
 						FName("MaterialExpressionFunctionOutput"),
 						FName(""),
 						Export.JsonObject,
@@ -401,7 +401,7 @@ UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeE
 				
 					UMaterialExpressionFunctionOutput* FunctionOutputExpression = Cast<UMaterialExpressionFunctionOutput>(CreateEmptyExpression(FunctionOutput, Container));
 
-					FunctionOutputExpression->OutputName = FName(*ReroutePinObject->GetStringField("Name"));
+					FunctionOutputExpression->OutputName = FName(*ReroutePinObject->GetStringField(TEXT("Name")));
 
 					GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(ReroutePinObject,
 					{
@@ -421,7 +421,7 @@ UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeE
 					const FName RerouteExpressionName = GetExpressionName(ReroutePinObject.Get());
 					FMaterialExpressionNodeExport RerouteInputExport = Container.Find(RerouteExpressionName);
 
-					TSharedPtr<FJsonObject> ExpressionReroute = RerouteInputExport.JsonObject->GetObjectField("Properties")->GetObjectField(TEXT("Input"));
+					TSharedPtr<FJsonObject> ExpressionReroute = RerouteInputExport.JsonObject->GetObjectField(TEXT("Properties"))->GetObjectField(TEXT("Input"));
 					const FName NewExpressionName = GetExpressionName(ExpressionReroute.Get());
 					FMaterialExpressionNodeExport NewExpressionExport = Container.Find(NewExpressionName);
 
