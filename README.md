@@ -60,7 +60,7 @@ JsonAsAsset is a user-friendly Unreal Engine plugin for importing assets from pa
 | Asset Category | Asset Types / Description |
 |--------------------------------|------------------------------------------------------------------------------------------------------------------------|
 | Curve Asset Types | CurveFloat, CurveTable, CurveVector, CurveLinearColor, CurveLinearColorAtlas |
-| Data Asset Types | DataAsset, SlateBrushAsset, SlateWidgetStyleAsset, AnimBoneCompressionSettings, AnimCurveCompressionSettings, UserDefinedEnum |
+| Data Asset Types | DataAsset, SlateBrushAsset, SlateWidgetStyleAsset, AnimBoneCompressionSettings, AnimCurveCompressionSettings, UserDefinedEnum, UserDefinedStruct |
 | Table Types | CurveTable, DataTable, StringTable |
 | Materials | Material, MaterialFunction, MaterialInstanceConstant, MaterialParameterCollection, SubsurfaceProfile |
 | Sound Classes | Most/all sound classes are supported. SoundWave is downloaded by [Local Fetch](#local-fetch). |
@@ -162,7 +162,7 @@ To bulk import assets and **what they reference**, you must set up [`Local Fetch
 | Materials | Material, MaterialFunction, MaterialInstanceConstant, MaterialParameterCollection, PhysicalMaterial, SubsurfaceProfile |
 | Curve Asset Types | CurveFloat, CurveTable, CurveVector, CurveLinearColor, CurveLinearColorAtlas |
 | Skeleton/Animation Asset Types | SkeletalMeshLODSettings |
-| Data Asset Types | DataAsset, DataTable |
+| Data Asset Types | DataAsset, DataTable, UserDefinedEnum, UserDefinedStruct |
 | Landscape | LandscapeGrassType, PhysicalMaterial |
 
 **Material/Niagara Data**:
