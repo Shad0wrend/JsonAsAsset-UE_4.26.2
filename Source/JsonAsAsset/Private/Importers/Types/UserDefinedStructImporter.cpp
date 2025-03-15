@@ -108,7 +108,7 @@ void IUserDefinedStructImporter::ImportPropertyIntoStruct(UUserDefinedStruct* Us
 
     const TSharedPtr<FJsonValue>& PropertyJsonValue = DefaultProperties->Values.FindChecked(Name);
 
-    FProperty* Property = FindFProperty<FProperty>(UserDefinedStruct, Variable.VarName);
+    FProperty* Property = FindFProperty<FProperty>(UserDefinedStruct, *Name);
 
     /* DefaultProperties ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     FStructOnScope StructScope(UserDefinedStruct);
@@ -124,8 +124,6 @@ void IUserDefinedStructImporter::ImportPropertyIntoStruct(UUserDefinedStruct* Us
     UE_LOG(LogTemp, Log, TEXT("ExportedText: %s"), *DefaultValue);
 
     /* Update the variable */
-    Variable.DefaultValue = DefaultValue;
-    FStructureEditorUtils::OnStructureChanged(UserDefinedStruct, FStructureEditorUtils::EStructureEditorChangeInfo::DefaultValueChanged);
     FStructureEditorUtils::ChangeVariableDefaultValue(UserDefinedStruct, Variable.VarGuid, DefaultValue);
 
     /* Editor Only Data */
