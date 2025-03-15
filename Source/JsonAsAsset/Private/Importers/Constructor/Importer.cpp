@@ -345,7 +345,9 @@ template <typename T>
 void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectPtr<T>& Object) {
 	FString ObjectType, ObjectName, ObjectPath, Outer;
 	PackageIndex->Get()->GetStringField(TEXT("ObjectName")).Split("'", &ObjectType, &ObjectName);
-	PackageIndex->Get()->GetStringField(TEXT("ObjectPath")).Split(".", &ObjectPath, nullptr);
+
+	ObjectPath = PackageIndex->Get()->GetStringField(TEXT("ObjectPath"));
+	ObjectPath.Split(".", &ObjectPath, nullptr);
 
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 
