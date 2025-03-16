@@ -126,15 +126,16 @@ bool FAssetUtilities::ConstructAsset(const FString& Path, const FString& Type, T
 		return false;
 	}
 
-	/* Supported Assets */
-	if (IImporter::CanImport(Type, nullptr, true)) {
-		/* Manually supported asset types */
-		if (Type ==
+	/* Manually handled asset types */
+	const bool bIsTexture = Type ==
 			"Texture2D" ||
 			Type == "TextureRenderTarget2D" ||
 			Type == "TextureCube" ||
-			Type == "VolumeTexture"
-		) {
+			Type == "VolumeTexture";
+
+	/* Supported Assets */
+	if (IImporter::CanImport(Type, nullptr, true) || bIsTexture) {
+		if (bIsTexture) {
 			UTexture* Texture;
 			FString NewPath = Path;
 
