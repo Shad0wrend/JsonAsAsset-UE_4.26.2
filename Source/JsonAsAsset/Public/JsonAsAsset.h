@@ -48,14 +48,17 @@ public:
     }
 };
 
-class FJsonAsAssetModule : public IModuleInterface
-{
+class FJsonAsAssetModule : public IModuleInterface {
 public:
     virtual void StartupModule() override;
     virtual void ShutdownModule() override;
 
     /* Execute File Dialog */
     void PluginButtonClicked();
+
+    FJsonAsAssetVersioning Versioning;
+
+    void CheckForUpdates();
 
 private:
     UPROPERTY()
@@ -73,7 +76,7 @@ private:
     void CreateLastDropdown(FMenuBuilder MenuBuilder) const;
     void ImportConvexCollision() const;
 
-    static void SupportedAssetsDropdown(FMenuBuilder& InnerMenuBuilder, bool isLocalFetch = false);
+    static void SupportedAssetsDropdown(FMenuBuilder& InnerMenuBuilder, bool bIsLocalFetch = false);
 
     bool bActionRequired = false;
     UJsonAsAssetSettings* Settings = nullptr;
@@ -83,8 +86,4 @@ private:
 #if ENGINE_MAJOR_VERSION == 4
     void AddToolbarExtension(FToolBarBuilder& Builder);
 #endif
-
-    FJsonAsAssetVersioning Versioning;
-
-    void CheckForUpdates();
 };

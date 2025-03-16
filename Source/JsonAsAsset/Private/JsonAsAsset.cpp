@@ -761,7 +761,7 @@ void FJsonAsAssetModule::ImportConvexCollision() const {
 	}
 }
 
-void FJsonAsAssetModule::SupportedAssetsDropdown(FMenuBuilder& InnerMenuBuilder, bool isLocalFetch) {
+void FJsonAsAssetModule::SupportedAssetsDropdown(FMenuBuilder& InnerMenuBuilder, bool bIsLocalFetch) {
 	TMap<FString, TArray<FString>> CategoriesAndTypes = ImporterTemplatedTypes;
 
 	/* Add asset types from the factory registry */
@@ -799,7 +799,7 @@ void FJsonAsAssetModule::SupportedAssetsDropdown(FMenuBuilder& InnerMenuBuilder,
 		InnerMenuBuilder.BeginSection(FName(*Category), FText::FromString(Category));
 
 		for (const FString& AssetType : AssetTypes) {
-			if (isLocalFetch) {
+			if (bIsLocalFetch) {
 				if (!IImporter::CanImportWithLocalFetch(AssetType)) {
 					continue;
 				}

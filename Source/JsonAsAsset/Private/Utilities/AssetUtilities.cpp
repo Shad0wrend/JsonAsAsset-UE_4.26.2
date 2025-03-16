@@ -28,7 +28,12 @@
 
 /* CreateAssetPackage Implementations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 UPackage* FAssetUtilities::CreateAssetPackage(const FString& FullPath) {
-	UPackage* Package = CreatePackage(*FullPath);
+	UPackage* Package = CreatePackage(
+		/* 4.25 and below need an Outer */
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 26
+		nullptr, 
+#endif
+		*FullPath);
 	Package->FullyLoad();
 
 	return Package;
@@ -99,7 +104,7 @@ UPackage* FAssetUtilities::CreateAssetPackage(const FString& Name, const FString
 	}
 
 	const FString PathWithGame = ModifiablePath + Name;
-	UPackage* Package = CreatePackage(*PathWithGame);
+	UPackage* Package = CreateAssetPackage(*PathWithGame);
 	OutOutermostPkg = Package->GetOutermost();
 	Package->FullyLoad();
 
@@ -180,7 +185,7 @@ bool FAssetUtilities::ConstructAsset(const FString& Path, const FString& Type, T
 				CreatePlugin(RootName);
 			}
 
-			UPackage* Package = CreatePackage(*NewPath);
+			UPackage* Package = CreateAssetPackage(*NewPath);
 			Package->FullyLoad();
 
 			/* Import asset by IImporter */
@@ -253,7 +258,7 @@ bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& 
 		Path.Split(".", &PackagePath, &AssetName);
 	}
 
-	UPackage* Package = CreatePackage(*PackagePath);
+	UPackage* Package = CreateAssetPackage(*PackagePath);
 	UPackage* OutermostPkg = Package->GetOutermost();
 	Package->FullyLoad();
 
