@@ -439,9 +439,7 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 
 	MenuBuilder.EndSection();
 
-	bActionRequired =
-		Settings->ExportDirectory.Path.IsEmpty() //||..
-		;
+	bActionRequired = Settings->ExportDirectory.Path.IsEmpty();
 
 	if (bActionRequired) {
 		MenuBuilder.BeginSection("JsonAsAssetActionRequired", FText::FromString("Action Required")); {

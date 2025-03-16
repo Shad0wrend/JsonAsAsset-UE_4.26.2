@@ -29,8 +29,7 @@ public:
 };
 
 template <typename TObjectType>
-class TObjectPtr
-{
+class TObjectPtr {
 private:
 	TWeakObjectPtr<TObjectType> WeakPtr;
 
@@ -46,16 +45,16 @@ public:
 
 	void Set(TObjectType* InObject) { WeakPtr = InObject; }
 
-	// Additional constructor to allow raw pointer conversion
+	/* Additional constructor to allow raw pointer conversion */
 	TObjectPtr(TObjectType* InObject, bool bRawPointer) : WeakPtr(InObject) {}
 
-	// Implicit conversion to raw pointer
+	/* Implicit conversion to raw pointer */
 	operator TObjectType*() const { return Get(); }
 
-	// Overload address-of operator
+	/* Overload address-of operator */
 	TObjectPtr<TObjectType>* operator&() { return this; }
 
-	// Assignment operator for TObjectType*
+	/* Assignment operator for TObjectType* */
 	TObjectPtr& operator=(TObjectType* InObject) {
 		WeakPtr = InObject;
 		return *this;

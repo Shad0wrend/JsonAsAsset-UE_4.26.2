@@ -43,6 +43,6 @@ bool INiagaraParameterCollectionImporter::Import() {
         }
     }
 
-    // Handle edit changes, and add it to the content browser
+    /* Handle edit changes, and add it to the content browser */
     return OnAssetCreation(NiagaraParameterCollection);
 }
