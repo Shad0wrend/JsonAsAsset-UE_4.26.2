@@ -196,8 +196,7 @@ bool FAssetUtilities::ConstructAsset(const FString& Path, const FString& Type, T
 	return false;
 }
 
-bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& RealPath, UTexture*& OutTexture)
-{
+bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& RealPath, UTexture*& OutTexture) {
 	if (Path.IsEmpty()) {
 		return false;
 	}

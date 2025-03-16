@@ -123,6 +123,8 @@ bool FTextureCreatorUtilities::CreateTextureCube(UTexture*& OutTextureCube, cons
 bool FTextureCreatorUtilities::CreateVolumeTexture(UTexture*& OutVolumeTexture, TArray<uint8>& Data, const TSharedPtr<FJsonObject>& Properties) const {
 	UVolumeTexture* VolumeTexture = NewObject<UVolumeTexture>(Package, UVolumeTexture::StaticClass(), *FileName, RF_Public | RF_Standalone);
 
+	DeserializeTexture(VolumeTexture, Properties);
+
 #if ENGINE_MAJOR_VERSION >= 5
 	VolumeTexture->SetPlatformData(new FTexturePlatformData());
 #endif
@@ -147,7 +149,7 @@ bool FTextureCreatorUtilities::CreateVolumeTexture(UTexture*& OutVolumeTexture, 
 	int Size = SizeX * SizeY * SizeZ;
 
 	/* Decompression */
-	uint8* DecompressedData = static_cast<uint8*>(FMemory::Malloc(Size));
+	/*uint8* DecompressedData = static_cast<uint8*>(FMemory::Malloc(Size));
 	GetDecompressedTextureData(Data.GetData(), DecompressedData, SizeX, SizeY, SizeZ, Size, PlatformData->PixelFormat);
 
 	VolumeTexture->Source.Init(SizeX, SizeY, SizeZ, 1, TSF_BGRA8);
@@ -155,7 +157,7 @@ bool FTextureCreatorUtilities::CreateVolumeTexture(UTexture*& OutVolumeTexture, 
 	uint8_t* Dest = VolumeTexture->Source.LockMip(0);
 	FMemory::Memcpy(Dest, DecompressedData, Size);
 	VolumeTexture->Source.UnlockMip(0);
-	VolumeTexture->UpdateResource();
+	VolumeTexture->UpdateResource();*/
 
 	if (VolumeTexture) {
 		OutVolumeTexture = VolumeTexture;
