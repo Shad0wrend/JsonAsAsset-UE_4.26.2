@@ -7,12 +7,6 @@
 /* Structures, Enumerations, used for Local Fetch */
 #include "LocalFetchModule.generated.h"
 
-/**
- * A list of classes allowed to be used by Local Fetch
- * --> Defined in CPP
- */
-extern TArray<FString> LocalFetchAcceptedTypes;
-
 class LocalFetchModule {
 public:
 	static bool LaunchLocalFetch();

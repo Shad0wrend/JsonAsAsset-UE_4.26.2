@@ -120,21 +120,14 @@ template bool FAssetUtilities::ConstructAsset<UCurveLinearColor>(const FString& 
 
 /* Constructing assets ect.. */
 template <typename T>
-bool FAssetUtilities::ConstructAsset(const FString& Path, const FString& Type, TObjectPtr<T>& OutObject, bool& bSuccess)
-{
+bool FAssetUtilities::ConstructAsset(const FString& Path, const FString& Type, TObjectPtr<T>& OutObject, bool& bSuccess) {
 	/* Skip if no type provided */
 	if (Type == "") {
 		return false;
 	}
 
-	UClass* Class = FindObject<UClass>(ANY_PACKAGE, *Type);
-
-	if (Class == nullptr) return false;
-	bool bDataAsset = Class->IsChildOf(UDataAsset::StaticClass());
-
 	/* Supported Assets */
-	if (LocalFetchAcceptedTypes.Contains(Type) || bDataAsset)
-	{
+	if (IImporter::CanImport(Type, nullptr, true)) {
 		/* Manually supported asset types */
 		if (Type ==
 			"Texture2D" ||
@@ -159,44 +152,43 @@ bool FAssetUtilities::ConstructAsset(const FString& Path, const FString& Type, T
 			if (bSuccess) OutObject = Cast<T>(Texture);
 
 			return true;
-		} else {
-			const TSharedPtr<FJsonObject> Response = API_RequestExports(Path);
-			if (Response == nullptr || Path.IsEmpty()) return true;
+		}
+		
+		const TSharedPtr<FJsonObject> Response = API_RequestExports(Path);
+		if (Response == nullptr || Path.IsEmpty()) return true;
 
-			if (Response->HasField(TEXT("errored"))) {
-				UE_LOG(LogJson, Log, TEXT("Error from response \"%s\""), *Path);
-				return true;
+		if (Response->HasField(TEXT("errored"))) {
+			UE_LOG(LogJson, Log, TEXT("Error from response \"%s\""), *Path);
+			return true;
+		}
+
+		TSharedPtr<FJsonObject> JsonObject = Response->GetArrayField(TEXT("jsonOutput"))[0]->AsObject();
+		FString PackagePath;
+		FString AssetName;
+		Path.Split(".", &PackagePath, &AssetName);
+
+		if (JsonObject) {
+			FString NewPath = PackagePath;
+
+			FString RootName; {
+				NewPath.Split("/", nullptr, &RootName, ESearchCase::IgnoreCase, ESearchDir::FromStart);
+				RootName.Split("/", &RootName, nullptr, ESearchCase::IgnoreCase, ESearchDir::FromStart);
 			}
 
-			TSharedPtr<FJsonObject> JsonObject = Response->GetArrayField(TEXT("jsonOutput"))[0]->AsObject();
-			FString PackagePath;
-			FString AssetName;
-			Path.Split(".", &PackagePath, &AssetName);
-
-			if (JsonObject)
-			{
-				FString NewPath = PackagePath;
-
-				FString RootName; {
-					NewPath.Split("/", nullptr, &RootName, ESearchCase::IgnoreCase, ESearchDir::FromStart);
-					RootName.Split("/", &RootName, nullptr, ESearchCase::IgnoreCase, ESearchDir::FromStart);
-				}
-
-				if (RootName != "Game" && RootName != "Engine" && IPluginManager::Get().FindPlugin(RootName) == nullptr)
-					CreatePlugin(RootName);
-
-				UPackage* Package = CreatePackage(*NewPath);
-				Package->FullyLoad();
-
-				/* Import asset by IImporter */
-				IImporter* Importer = new IImporter();
-				bSuccess = Importer->ReadExportsAndImport(Response->GetArrayField(TEXT("jsonOutput")), PackagePath, true);
-
-				/* Define found object */
-				OutObject = Cast<T>(StaticLoadObject(T::StaticClass(), nullptr, *Path));
-
-				return true;
+			if (RootName != "Game" && RootName != "Engine" && IPluginManager::Get().FindPlugin(RootName) == nullptr) {
+				CreatePlugin(RootName);
 			}
+
+			UPackage* Package = CreatePackage(*NewPath);
+			Package->FullyLoad();
+
+			/* Import asset by IImporter */
+			bSuccess = IImporter::ReadExportsAndImport(Response->GetArrayField(TEXT("jsonOutput")), PackagePath, true);
+
+			/* Define found object */
+			OutObject = Cast<T>(StaticLoadObject(T::StaticClass(), nullptr, *Path));
+
+			return OutObject != nullptr;
 		}
 	}
 

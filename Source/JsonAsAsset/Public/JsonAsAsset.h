@@ -43,7 +43,6 @@ public:
 
     bool bIsValid = false;
 
-public:
     void SetValid(const bool bValid) {
         bIsValid = bValid;
     }
@@ -73,6 +72,8 @@ private:
     void CreateVersioningDropdown(FMenuBuilder MenuBuilder) const;
     void CreateLastDropdown(FMenuBuilder MenuBuilder) const;
     void ImportConvexCollision() const;
+
+    static void SupportedAssetsDropdown(FMenuBuilder& InnerMenuBuilder, bool isLocalFetch = false);
 
     bool bActionRequired = false;
     UJsonAsAssetSettings* Settings = nullptr;

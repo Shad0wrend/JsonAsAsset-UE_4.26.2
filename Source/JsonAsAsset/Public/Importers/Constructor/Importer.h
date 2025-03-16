@@ -13,6 +13,11 @@
 /* AssetType/Category ~ Defined in CPP */
 extern TMap<FString, TArray<FString>> ImporterTemplatedTypes;
 
+inline TArray<FString> BlacklistedLocalFetchTypes = {
+    "AnimSequence",
+    "AnimMontage",
+};
+
 FORCEINLINE uint32 GetTypeHash(const TArray<FString>& Array) {
     uint32 Hash = 0;
     
@@ -73,6 +78,7 @@ public:
 
     static TMap<TArray<FString>, FImporterRegistrationInfo>& GetFactoryRegistry() {
         static TMap<TArray<FString>, FImporterRegistrationInfo> Registry;
+        
         return Registry;
     }
 
@@ -111,7 +117,22 @@ public:
 
 public:
     /* Accepted Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-    static bool CanImport(const FString& ImporterType) {
+    static bool CanImportWithLocalFetch(const FString& ImporterType) {
+        if (BlacklistedLocalFetchTypes.Contains(ImporterType)) {
+            return false;
+        }
+
+        return true;
+    }
+    
+    static bool CanImport(const FString& ImporterType, bool* bDataAsset = nullptr, bool IsLocalFetch = false, const UClass* Class = nullptr) {
+        /* Blacklists for Local Fetch importing */
+        if (IsLocalFetch) {
+            if (!CanImportWithLocalFetch(ImporterType)) {
+                return false;
+            }
+        }
+        
         if (FindFactoryForAssetType(ImporterType)) {
             return true;
         };
@@ -122,7 +143,19 @@ public:
             }
         }
 
-        return false;
+        if (!Class) {
+            Class = FindObject<UClass>(ANY_PACKAGE, *ImporterType);
+        }
+
+        if (Class == nullptr) return false;
+        
+        bool bIsDataAsset = Class->IsChildOf(UDataAsset::StaticClass());
+        
+        if (bDataAsset) {
+            *bDataAsset = bIsDataAsset;
+        }
+
+        return bIsDataAsset;
     }
 
     static bool CanImportAny(TArray<FString>& Types) {

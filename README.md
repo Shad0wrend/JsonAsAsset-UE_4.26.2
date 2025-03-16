@@ -149,28 +149,7 @@ To bulk import assets and **what they reference**, you must set up [`Local Fetch
 <a name="local-fetch"></a>
 ## 4. Local Fetch
 
-[Local Fetch](https://github.com/JsonAsAsset/LocalFetch) is a way to automate importing assets that other assets reference, built into JsonAsAsset. Learn how to [set up Local Fetch](#setup-local-fetch).
-
-<details>
-  <summary>Supported Asset Types</summary>
-
-<br>
-
-| **Category** | **Items / Description** |
-|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Sound Classes | Most/all sound classes are supported. |
-| Materials | Material, MaterialFunction, MaterialInstanceConstant, MaterialParameterCollection, PhysicalMaterial, SubsurfaceProfile |
-| Curve Asset Types | CurveFloat, CurveTable, CurveVector, CurveLinearColor, CurveLinearColorAtlas |
-| Skeleton/Animation Asset Types | SkeletalMeshLODSettings |
-| Data Asset Types | DataAsset, DataTable, UserDefinedEnum, UserDefinedStruct |
-| Landscape | LandscapeGrassType, PhysicalMaterial |
-
-**Material/Niagara Data**:
-<br> Unreal Engine games made below 4.12 (a guess) will have material data, but not niagara data, any games made above that version will most definitely not have any material data nor niagara data, and therefore the actual data will be stripped and cannot be imported. **Unless** you are using a User Generated Content editor, then it's possible material data and niagara data will be there.
-
-**NOTE:** If your game uses custom C++ classes or structures, you need to define them before importing with JsonAsAsset. JsonAsAsset does not create C++ files for you. (create them manually from SDKs or automate them) See [Unreal Engine Modding Projects](https://github.com/Buckminsterfullerene02/UE-Modding-Tools?tab=readme-ov-file#game-specific-template-projects) for game-specific template projects.
-
-</details>
+[Local Fetch](https://github.com/JsonAsAsset/LocalFetch) is a way to automate importing assets that other assets reference, built into JsonAsAsset. **It supports all asset types except AnimSequence/AnimMontages.** Learn how to [set up Local Fetch](#setup-local-fetch).
 
 ------------------------
 

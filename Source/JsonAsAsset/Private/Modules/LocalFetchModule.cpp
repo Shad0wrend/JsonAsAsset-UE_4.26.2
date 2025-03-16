@@ -15,56 +15,6 @@
 #undef GetObject
 #endif
 
-/**
- * A list of classes allowed to be used by Local Fetch
- */
-TArray<FString> LocalFetchAcceptedTypes = {
-	"Texture2D",
-	// "TextureCube",
-	// "VolumeTexture",
-	"TextureRenderTarget2D",
-
-	"", // separator
-
-	"Material",
-	"MaterialInterface",
-	"MaterialFunction",
-	"MaterialInstanceConstant",
-	"MaterialParameterCollection",
-	"NiagaraParameterCollection",
-
-	"", // separator
-
-	"CurveFloat",
-	"CurveTable",
-	"CurveVector",
-	"CurveLinearColorAtlas",
-	"CurveLinearColor",
-
-	"", // separator
-
-	"SoundWave",
-	"SoundCue",
-	"ReverbEffect",
-	"SoundAttenuation",
-	"SoundConcurrency",
-	"SoundClass",
-	"SoundMix",
-	"SoundModulationPatch",
-		
-	"", // separator
-
-	"PhysicalMaterial",
-	"SubsurfaceProfile",
-	"LandscapeGrassType",
-	"DataTable",
-
-	"", // separator
-
-	"UserDefinedStruct",
-	"UserDefinedEnum"
-};
-
 bool LocalFetchModule::LaunchLocalFetch() {
 	const UJsonAsAssetSettings* Settings = GetMutableDefault<UJsonAsAssetSettings>();
 

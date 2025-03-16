@@ -389,59 +389,7 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 			LOCTEXT("JsonAsAssetAssetTypesMenu", "Asset Types"),
 			LOCTEXT("JsonAsAssetAssetTypesMenuToolTip", "List of supported assets for JsonAsAsset"),
 			FNewMenuDelegate::CreateLambda([this](FMenuBuilder& InnerMenuBuilder) {
-				TMap<FString, TArray<FString>> CategoriesAndTypes = ImporterTemplatedTypes;
-
-				/* Add asset types from the factory registry */
-				for (auto Pair : IImporter::GetFactoryRegistry()) {
-					if (CategoriesAndTypes.Find(Pair.Value.Category)) {
-						CategoriesAndTypes[Pair.Value.Category].Append(Pair.Key);
-					}
-					else {
-						CategoriesAndTypes.Add(Pair.Value.Category, Pair.Key);
-					}
-				}
-
-				/* Sort categories by alphabetical order */
-				TArray<TPair<FString, TArray<FString>>> SortedCategoryPairs;
-				for (const TPair<FString, TArray<FString>>& Pair : CategoriesAndTypes) {
-					SortedCategoryPairs.Add(Pair);
-				}
-
-				SortedCategoryPairs.Sort([](const TPair<FString, TArray<FString>>& A, const TPair<FString, TArray<FString>>& B) {
-					return A.Key < B.Key;
-				});
-
-				/* Sort asset types by alphabetical order */
-				for (TPair<FString, TArray<FString>>& CategoryPair : CategoriesAndTypes) {
-					CategoryPair.Value.Sort([](const FString& A, const FString& B) {
-						return A < B;
-					});
-				}
-
-				/* Go through each pair and add the entries */
-				for (const TPair<FString, TArray<FString>>& Pair : SortedCategoryPairs) {
-					FString Category = Pair.Key;
-					TArray<FString> AssetTypes = Pair.Value;
-					
-					InnerMenuBuilder.BeginSection(FName(*Category), FText::FromString(Category));
-
-					for (const FString& AssetType : AssetTypes) {
-						const UClass* Class = FindObject<UClass>(nullptr, *("/Script/Engine." + AssetType));
-						FText Description = Class ? Class->GetToolTipText() : FText::FromString(AssetType);
-
-						InnerMenuBuilder.AddMenuEntry(
-							FText::FromString(AssetType),
-							Description,
-							FSlateIconFinder::FindCustomIconForClass(Class, TEXT("ClassThumbnail")),
-							FUIAction(
-								FExecuteAction::CreateLambda([this]() {
-								})
-							)
-						);
-					}
-
-					InnerMenuBuilder.EndSection();
-				}
+				SupportedAssetsDropdown(InnerMenuBuilder);
 			}),
 			false,
 			FSlateIcon(FAppStyle::Get().GetStyleSetName(), "LevelEditor.Tabs.Viewports")
@@ -561,29 +509,7 @@ void FJsonAsAssetModule::CreateLocalFetchDropdown(FMenuBuilder MenuBuilder) cons
 		LOCTEXT("JsonAsAssetLocalFetchTypesMenu", "Asset Types"),
 		LOCTEXT("JsonAsAssetLocalFetchTypesMenuToolTip", "List of supported classes that can be locally fetched using the API"),
 		FNewMenuDelegate::CreateLambda([this](FMenuBuilder& InnerMenuBuilder) {
-			InnerMenuBuilder.BeginSection("JsonAsAssetSection", LOCTEXT("JsonAsAssetSection", "Asset Classes"));
-			{
-				TArray<FString> AcceptedTypes = LocalFetchAcceptedTypes;
-
-				for (FString& Asset : AcceptedTypes) {
-					if (Asset == "") { /* Separator */
-						InnerMenuBuilder.AddSeparator();
-					}
-					
-					else {
-						UClass* Class = FindObject<UClass>(nullptr, *("/Script/Engine." + Asset));
-						FText Description = Class ? Class->GetToolTipText() : FText::FromString(Asset);
-						
-						InnerMenuBuilder.AddMenuEntry(
-							FText::FromString(Asset),
-							Description,
-							FSlateIconFinder::FindCustomIconForClass(Class, TEXT("ClassThumbnail")),
-							FUIAction()
-						);
-					}
-				}
-			}
-			InnerMenuBuilder.EndSection();
+			SupportedAssetsDropdown(InnerMenuBuilder, true);
 		}),
 		false,
 		FSlateIcon()
@@ -834,6 +760,67 @@ void FJsonAsAssetModule::ImportConvexCollision() const {
 			BodySetup->PostEditChange();
 			StaticMesh->PostLoad();
 		}
+	}
+}
+
+void FJsonAsAssetModule::SupportedAssetsDropdown(FMenuBuilder& InnerMenuBuilder, bool isLocalFetch) {
+	TMap<FString, TArray<FString>> CategoriesAndTypes = ImporterTemplatedTypes;
+
+	/* Add asset types from the factory registry */
+	for (auto Pair : IImporter::GetFactoryRegistry()) {
+		if (CategoriesAndTypes.Find(Pair.Value.Category)) {
+			CategoriesAndTypes[Pair.Value.Category].Append(Pair.Key);
+		}
+		else {
+			CategoriesAndTypes.Add(Pair.Value.Category, Pair.Key);
+		}
+	}
+
+	/* Sort categories by alphabetical order */
+	TArray<TPair<FString, TArray<FString>>> SortedCategoryPairs;
+	for (const TPair<FString, TArray<FString>>& Pair : CategoriesAndTypes) {
+		SortedCategoryPairs.Add(Pair);
+	}
+
+	SortedCategoryPairs.Sort([](const TPair<FString, TArray<FString>>& A, const TPair<FString, TArray<FString>>& B) {
+		return A.Key < B.Key;
+	});
+
+	/* Sort asset types by alphabetical order */
+	for (TPair<FString, TArray<FString>>& CategoryPair : CategoriesAndTypes) {
+		CategoryPair.Value.Sort([](const FString& A, const FString& B) {
+			return A < B;
+		});
+	}
+
+	/* Go through each pair and add the entries */
+	for (const TPair<FString, TArray<FString>>& Pair : SortedCategoryPairs) {
+		FString Category = Pair.Key;
+		TArray<FString> AssetTypes = Pair.Value;
+					
+		InnerMenuBuilder.BeginSection(FName(*Category), FText::FromString(Category));
+
+		for (const FString& AssetType : AssetTypes) {
+			if (isLocalFetch) {
+				if (!IImporter::CanImportWithLocalFetch(AssetType)) {
+					continue;
+				}
+			}
+			const UClass* Class = FindObject<UClass>(nullptr, *("/Script/Engine." + AssetType));
+			FText Description = Class ? Class->GetToolTipText() : FText::FromString(AssetType);
+
+			InnerMenuBuilder.AddMenuEntry(
+				FText::FromString(AssetType),
+				Description,
+				FSlateIconFinder::FindCustomIconForClass(Class, TEXT("ClassThumbnail")),
+				FUIAction(
+					FExecuteAction::CreateLambda([]() {
+					})
+				)
+			);
+		}
+
+		InnerMenuBuilder.EndSection();
 	}
 }
 
