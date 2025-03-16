@@ -18,11 +18,6 @@
 /* Slate Icons */
 #include "Styling/SlateIconFinder.h"
 
-/* Particle System Importing is not finalized */
-#ifndef JSONASASSET_PARTICLESYSTEM_ALLOW
-#define JSONASASSET_PARTICLESYSTEM_ALLOW 0
-#endif
-
 #include "Importers/Types/DataAssetImporter.h"
 
 /* Templated Class */

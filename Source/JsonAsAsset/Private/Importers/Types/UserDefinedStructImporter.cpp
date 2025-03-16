@@ -124,8 +124,11 @@ void IUserDefinedStructImporter::ImportPropertyIntoStruct(UUserDefinedStruct* Us
 
     /* Get the default value as a string */
     FString DefaultValue;
+#if ENGINE_MAJOR_VERSION >= 5
     Property->ExportTextItem_Direct(DefaultValue, PropertyValue, nullptr, UserDefinedStruct, 0);
-    UE_LOG(LogTemp, Log, TEXT("ExportedText: %s"), *DefaultValue);
+#else
+    Property->ExportText_Direct(DefaultValue, PropertyValue, nullptr, UserDefinedStruct, 0);
+#endif
 
     /* Update the variable */
     FStructureEditorUtils::ChangeVariableDefaultValue(UserDefinedStruct, Variable.VarGuid, DefaultValue);
