@@ -125,7 +125,7 @@ public:
         return true;
     }
     
-    static bool CanImport(const FString& ImporterType, bool* bDataAsset = nullptr, bool IsLocalFetch = false, const UClass* Class = nullptr) {
+    static bool CanImport(const FString& ImporterType, bool IsLocalFetch = false, const UClass* Class = nullptr) {
         /* Blacklists for Local Fetch importing */
         if (IsLocalFetch) {
             if (!CanImportWithLocalFetch(ImporterType)) {
@@ -151,10 +151,6 @@ public:
         
         bool bIsDataAsset = Class->IsChildOf(UDataAsset::StaticClass());
         
-        if (bDataAsset) {
-            *bDataAsset = bIsDataAsset;
-        }
-
         return bIsDataAsset;
     }
 

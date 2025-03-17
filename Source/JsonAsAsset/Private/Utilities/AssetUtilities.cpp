@@ -139,7 +139,7 @@ bool FAssetUtilities::ConstructAsset(const FString& Path, const FString& Type, T
 			Type == "VolumeTexture";
 
 	/* Supported Assets */
-	if (IImporter::CanImport(Type, nullptr, true) || bIsTexture) {
+	if (IImporter::CanImport(Type, true) || bIsTexture) {
 		if (bIsTexture) {
 			UTexture* Texture;
 			FString NewPath = Path;

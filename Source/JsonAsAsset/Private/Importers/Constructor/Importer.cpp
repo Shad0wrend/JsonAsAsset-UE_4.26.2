@@ -149,8 +149,8 @@ bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FSt
 		if (Class == nullptr) continue;
 
 		/* Check if this export can be imported */
-		bool InheritsDataAsset;
-		if (!CanImport(Type, &InheritsDataAsset, false, Class)) continue;
+		const bool InheritsDataAsset = Class->IsChildOf(UDataAsset::StaticClass());
+		if (!CanImport(Type, false, Class)) continue;
 
 		/* Convert from relative path to full path */
 		if (FPaths::IsRelative(File)) File = FPaths::ConvertRelativePathToFull(File);
