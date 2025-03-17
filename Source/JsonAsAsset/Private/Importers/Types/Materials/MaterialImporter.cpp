@@ -109,7 +109,7 @@ bool IMaterialImporter::Import() {
 	}
 
 	/* Handle edit changes, and add it to the content browser */
-	if (!HandleAssetCreation(Material)) return false;
+	if (!OnAssetCreation(Material)) return false;
 
 	const TSharedPtr<FJsonObject>* ShadingModelsPtr;
 	

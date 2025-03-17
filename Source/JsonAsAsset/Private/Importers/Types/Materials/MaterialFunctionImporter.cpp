@@ -16,7 +16,7 @@ bool IMaterialFunctionImporter::Import() {
 #endif
 
 	/* Handle edit changes, and add it to the content browser */
-	if (!HandleAssetCreation(MaterialFunction)) return false;
+	if (!OnAssetCreation(MaterialFunction)) return false;
 
 	/* Define editor only data from the JSON */
 	FMaterialExpressionNodeExportContainer ExpressionContainer;

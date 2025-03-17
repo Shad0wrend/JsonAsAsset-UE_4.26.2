@@ -326,7 +326,7 @@ UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeE
 		UMaterialFunctionFactoryNew* SubgraphMaterialFunctionFactory = NewObject<UMaterialFunctionFactoryNew>();
 		UMaterialFunction* SubgraphMaterialFunction = Cast<UMaterialFunction>(SubgraphMaterialFunctionFactory->FactoryCreateNew(UMaterialFunction::StaticClass(), SubgraphLocalOutermostPkg, *SubgraphFunctionName, RF_Standalone | RF_Public, nullptr, GWarn));
 
-		HandleAssetCreation(SubgraphMaterialFunction);
+		OnAssetCreation(SubgraphMaterialFunction);
 
 		SubgraphFunctions.Add(Name, SubgraphMaterialFunction);
 

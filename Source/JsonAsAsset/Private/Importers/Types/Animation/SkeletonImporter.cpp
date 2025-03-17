@@ -31,7 +31,7 @@ bool ISkeletonImporter::Import() {
 
 	ApplySkeletalAssetData(Skeleton);
 	
-	return HandleAssetCreation(Skeleton);
+	return OnAssetCreation(Skeleton);
 }
 
 void ISkeletonImporter::ApplySkeletalChanges(USkeleton* Skeleton) const {

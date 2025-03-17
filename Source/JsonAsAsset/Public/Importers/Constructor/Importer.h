@@ -149,9 +149,7 @@ public:
 
         if (Class == nullptr) return false;
         
-        bool bIsDataAsset = Class->IsChildOf(UDataAsset::StaticClass());
-        
-        return bIsDataAsset;
+        return Class->IsChildOf(UDataAsset::StaticClass());
     }
 
     static bool CanImportAny(TArray<FString>& Types) {
