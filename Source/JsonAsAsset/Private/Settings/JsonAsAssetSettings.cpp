@@ -1,4 +1,4 @@
-/* Copyright JAA Contributors 2024-2025 */
+/* Copyright JsonAsAsset Contributors 2024-2025 */
 
 #include "Settings/JsonAsAssetSettings.h"
 #include "Widgets/Input/SButton.h"
