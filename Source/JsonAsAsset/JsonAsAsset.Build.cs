@@ -29,7 +29,8 @@ public class JsonAsAsset : ModuleRules
 			"Niagara",
 			"UnrealEd", 
 			"MainFrame",
-			"GameplayTags"
+			"GameplayTags",
+			"ApplicationCore"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new[]

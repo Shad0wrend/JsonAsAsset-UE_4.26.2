@@ -24,5 +24,5 @@ public:
 	/* Creates a plugin in the name (may result in bugs if inputted wrong) */
 	static void CreatePlugin(FString PluginName);
 
-	static TSharedPtr<FJsonObject> API_RequestExports(const FString& Path, const FString& FetchPath = "/api/v1/export?raw=true&path=");
+	static TSharedPtr<FJsonObject> API_RequestExports(const FString& Path, const FString& FetchPath = "/api/export?raw=true&path=");
 };

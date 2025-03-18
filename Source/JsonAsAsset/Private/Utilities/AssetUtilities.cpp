@@ -231,7 +231,7 @@ bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& 
 		const TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = HttpModule->CreateRequest();
 #endif
 
-		HttpRequest->SetURL(Settings->LocalFetchUrl + "/api/v1/export?path=" + RealPath);
+		HttpRequest->SetURL(Settings->LocalFetchUrl + "/api/export?path=" + RealPath);
 		HttpRequest->SetHeader("content-type", "application/octet-stream");
 		HttpRequest->SetVerb(TEXT("GET"));
 

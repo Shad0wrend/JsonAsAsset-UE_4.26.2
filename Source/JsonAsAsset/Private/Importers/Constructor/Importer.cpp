@@ -262,7 +262,7 @@ bool IImporter::HandleAssetCreation(UObject* Asset) const {
 	Package->FullyLoad();
 
 	/* Browse to newly added Asset in the Content Browser */
-	const TArray<FAssetData>& Assets = {Asset };
+	const TArray<FAssetData>& Assets = { Asset };
 	const FContentBrowserModule& ContentBrowserModule = FModuleManager::Get().LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
 	ContentBrowserModule.Get().SyncBrowserToAssets(Assets);
 

@@ -14,6 +14,7 @@
 #include "AssetUtilities.h"
 #include "TlHelp32.h"
 #include "Json.h"
+#include "Windows/WindowsPlatformApplicationMisc.h"
 
 #if (ENGINE_MAJOR_VERSION != 4 || ENGINE_MINOR_VERSION < 27)
 #include "Engine/DeveloperSettings.h"
@@ -158,7 +159,7 @@ inline TArray<TSharedPtr<FJsonValue>> RequestExports(const FString& Path) {
 	return Exports;
 }
 
-inline TSharedPtr<FJsonObject> RequestExport(const FString& FetchPath = "/api/v1/export?raw=true&path=", const FString& Path = "") {
+inline TSharedPtr<FJsonObject> RequestExport(const FString& FetchPath = "/api/export?raw=true&path=", const FString& Path = "") {
 	static TMap<FString, TSharedPtr<FJsonObject>> ExportCache;
 
 	if (Path.IsEmpty()) return TSharedPtr<FJsonObject>();
@@ -301,24 +302,36 @@ inline bool DeserializeJSON(const FString& FilePath, TArray<TSharedPtr<FJsonValu
 	return false;
 }
 
-inline TArray<FString> OpenFileDialog(const FString& Title, const FString& Type) {
+inline TArray<FString> OpenFileDialog(const FString& Title, const FString& Type)
+{
 	TArray<FString> ReturnValue;
 
 	/* Window Handler for Windows */
 	void* ParentWindowHandle = nullptr;
-
 	IMainFrameModule& MainFrameModule = IMainFrameModule::Get();
 	TSharedPtr<SWindow> MainWindow = MainFrameModule.GetParentWindow();
 
-	/* Define the window handle, if it's valid */
-	if (MainWindow.IsValid() && MainWindow->GetNativeWindow().IsValid()) ParentWindowHandle = MainWindow->GetNativeWindow()->GetOSWindowHandle();
+	if (MainWindow.IsValid() && MainWindow->GetNativeWindow().IsValid()) {
+		ParentWindowHandle = MainWindow->GetNativeWindow()->GetOSWindowHandle();
+	}
+
+	FString ClipboardContent;
+	FPlatformApplicationMisc::ClipboardPaste(ClipboardContent);
+	FString DefaultPath = FString("");
+
+	if (!ClipboardContent.IsEmpty()) {
+		if (FPaths::FileExists(ClipboardContent)) {
+			DefaultPath = FPaths::GetPath(ClipboardContent);
+		}
+		else if (FPaths::DirectoryExists(ClipboardContent)) {
+			DefaultPath = ClipboardContent;
+		}
+	}
 
 	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
 	if (DesktopPlatform) {
 		uint32 SelectionFlag = 1;
-
-		/* Open File Dialog */
-		DesktopPlatform->OpenFileDialog(ParentWindowHandle, Title, FString(""), FString(""), Type, SelectionFlag, ReturnValue);
+		DesktopPlatform->OpenFileDialog(ParentWindowHandle, Title, DefaultPath, FString(""), Type, SelectionFlag, ReturnValue);
 	}
 
 	return ReturnValue;
