@@ -135,9 +135,12 @@ bool FTextureCreatorUtilities::CreateVolumeTexture(UTexture*& OutVolumeTexture, 
 #else
 	FTexturePlatformData* PlatformData = VolumeTexture->PlatformData;
 #endif
-	
-	if (Properties->TryGetStringField(TEXT("PixelFormat"), PixelFormat)) {
-		PlatformData->PixelFormat = static_cast<EPixelFormat>(VolumeTexture->GetPixelFormatEnum()->GetValueByNameString(PixelFormat));
+
+	if (PlatformData != nullptr) {
+		if (Properties->TryGetStringField(TEXT("PixelFormat"), PixelFormat)) {
+			PlatformData->PixelFormat = static_cast<EPixelFormat>(VolumeTexture->GetPixelFormatEnum()->GetValueByNameString(PixelFormat));
+		}
+
 	}
 
 	DeserializeTexture(VolumeTexture, Properties);
