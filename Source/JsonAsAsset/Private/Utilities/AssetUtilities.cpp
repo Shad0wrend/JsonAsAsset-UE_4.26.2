@@ -28,7 +28,7 @@
 /* CreateAssetPackage Implementations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 UPackage* FAssetUtilities::CreateAssetPackage(const FString& FullPath) {
 	UPackage* Package = CreatePackage(
-		/* 4.25 and below need an Outer */
+		/* 4.25, 4.26.0 and below need an Outer */
 #if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 26) || (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION == 26 && ENGINE_PATCH_VERSION == 0)
 		nullptr, 
 #endif
