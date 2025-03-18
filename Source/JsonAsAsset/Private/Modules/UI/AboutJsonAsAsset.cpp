@@ -168,16 +168,16 @@ TSharedRef<ITableRow> SAboutJsonAsAsset::MakeAboutTextItemWidget(TSharedRef<FLin
 
 /* ReSharper disable once CppMemberFunctionMayBeStatic */
 FReply SAboutJsonAsAsset::OnFModelButtonClicked() {
-	FString TheURL = "https:/*fmodel.app";
-	FPlatformProcess::LaunchURL(*TheURL, nullptr, nullptr);
+	const FString URL = "https://fmodel.app";
+	FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
 
 	return FReply::Handled();
 }
 
 /* ReSharper disable once CppMemberFunctionMayBeStatic */
 FReply SAboutJsonAsAsset::OnGithubButtonClicked() {
-	FString TheURL = "https:/*github.com/JsonAsAsset/JsonAsAsset";
-	FPlatformProcess::LaunchURL(*TheURL, nullptr, nullptr);
+	const FString URL = "https://github.com/JsonAsAsset/JsonAsAsset";
+	FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
 
 	return FReply::Handled();
 }

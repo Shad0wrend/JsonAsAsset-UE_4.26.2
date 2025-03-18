@@ -142,8 +142,7 @@ void FJsonAsAssetModule::PluginButtonClicked() {
 		LogListing->ClearMessages();
 
 		/* Import asset by IImporter */
-		IImporter* Importer = new IImporter();
-		Importer->ImportReference(File);
+		IImporter::ImportReference(File);
 	}
 }
 
@@ -207,9 +206,8 @@ void FJsonAsAssetModule::StartupModule() {
 	            LOCTEXT("OpenPluginSettings", "Open Settings"),
 	            FText::GetEmpty(),
 	            FSimpleDelegate::CreateStatic([]() {
-	                TSharedPtr<SNotificationItem> NotificationItem = ImportantNotificationPtr.Pin();
-	                if (NotificationItem.IsValid())
-	                {
+	                const TSharedPtr<SNotificationItem> NotificationItem = ImportantNotificationPtr.Pin();
+	                if (NotificationItem.IsValid()) {
 	                    NotificationItem->Fadeout();
 	                    ImportantNotificationPtr.Reset();
 	                }
@@ -279,7 +277,7 @@ void FJsonAsAssetModule::RegisterMenus() {
 	TSharedPtr<FUICommandList> Actions = MakeShared<FUICommandList>();
 	Plugin = IPluginManager::Get().FindPlugin("JsonAsAsset");
 
-	FUIAction UIAction(
+	const FUIAction UIAction(
 		FExecuteAction::CreateRaw(this, &FJsonAsAssetModule::PluginButtonClicked),
 		FCanExecuteAction::CreateLambda([this]() { return !Settings->ExportDirectory.Path.IsEmpty(); })
 	);
@@ -316,7 +314,7 @@ void FJsonAsAssetModule::RegisterMenus() {
 	Section.AddEntry(PluginActionButtonEntry);
 
 	/* Settings dropdown */
-	FToolMenuEntry PluginMenuEntry = FToolMenuEntry::InitComboButton(
+	const FToolMenuEntry PluginMenuEntry = FToolMenuEntry::InitComboButton(
 		"JsonAsAssetMenu",
 		FUIAction(),
 		FOnGetContent::CreateRaw(this, &FJsonAsAssetModule::CreateToolbarDropdown),
@@ -519,7 +517,7 @@ void FJsonAsAssetModule::CreateLocalFetchDropdown(FMenuBuilder MenuBuilder) cons
 		FNewMenuDelegate::CreateLambda([this](FMenuBuilder& InnerMenuBuilder) {
 			InnerMenuBuilder.BeginSection("JsonAsAssetSection", LOCTEXT("JsonAsAssetSection", "Console"));
 			{
-				bool bIsLocalFetchRunning = IsProcessRunning("LocalFetch.exe");
+				const bool bIsLocalFetchRunning = IsProcessRunning("LocalFetch.exe");
 
 				if (bIsLocalFetchRunning) {
 					InnerMenuBuilder.AddMenuEntry(

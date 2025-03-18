@@ -60,8 +60,8 @@ IImporter::IImporter(const FString& FileName, const FString& FilePath,
 			!PropertyName.Equals(TEXT("Name")) &&
 			!PropertyName.Equals(TEXT("Class")) &&
 			!PropertyName.Equals(TEXT("Flags")) &&
-			!PropertyName.Equals(TEXT("Properties")))
-		{
+			!PropertyName.Equals(TEXT("Properties"))
+		) {
 			AssetData->SetField(PropertyName, Pair.Value);
 		}
 	}
@@ -237,7 +237,7 @@ TArray<TSharedPtr<FJsonValue>> IImporter::GetObjectsWithTypeStartingWith(const F
 			TSharedPtr<FJsonObject> JsonObjectType = JsonObjectValue->AsObject();
 
 			if (JsonObjectType.IsValid() && JsonObjectType->HasField(TEXT("Type"))) {
-				FString TypeValue = JsonObjectType->GetStringField(TEXT("Type"));
+				const FString TypeValue = JsonObjectType->GetStringField(TEXT("Type"));
 
 				/* Check if the "Type" field starts with the specified string */
 				if (TypeValue.StartsWith(StartsWithStr)) {
@@ -252,6 +252,7 @@ TArray<TSharedPtr<FJsonValue>> IImporter::GetObjectsWithTypeStartingWith(const F
 
 bool IImporter::HandleAssetCreation(UObject* Asset) const {
 	FAssetRegistryModule::AssetCreated(Asset);
+	
 	if (!Asset->MarkPackageDirty()) return false;
 	
 	Package->SetDirtyFlag(true);
@@ -266,11 +267,12 @@ bool IImporter::HandleAssetCreation(UObject* Asset) const {
 	ContentBrowserModule.Get().SyncBrowserToAssets(Assets);
 
 	Asset->PostLoad();
+	
 	return true;
 }
 
 template <typename T>
-TObjectPtr<T> IImporter::DownloadWrapper(TObjectPtr<T> InObject, FString Type, FString Name, FString Path) {
+TObjectPtr<T> IImporter::DownloadWrapper(TObjectPtr<T> InObject, FString Type, const FString Name, const FString Path) {
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 
 	FMessageLog MessageLogger = FMessageLog(FName("JsonAsAsset"));
@@ -362,15 +364,12 @@ void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectP
 	/* Try to load object using the object path and the object name combined */
 	TObjectPtr<T> LoadedObject = Cast<T>(StaticLoadObject(T::StaticClass(), nullptr, *(ObjectPath + "." + ObjectName)));
 
-	if (!Outer.IsEmpty())
-	{
-		AActor* NewLoadedObject = Cast<AActor>(ParentObject);
+	if (!Outer.IsEmpty()) {
+		const AActor* NewLoadedObject = Cast<AActor>(ParentObject);
 		auto Components = NewLoadedObject->GetComponents();
 		
-		for (UActorComponent* Component : Components)
-		{
-			if (ObjectName == Component->GetName())
-			{
+		for (UActorComponent* Component : Components) {
+			if (ObjectName == Component->GetName()) {
 				LoadedObject = Cast<T>(Component);
 			}
 		}
@@ -385,8 +384,8 @@ void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectP
 
 	Object = LoadedObject;
 
-	if (!Object)
-	{
+	/* If object is still null, send off to Local Fetch to download */
+	if (!Object) {
 		Object = DownloadWrapper(LoadedObject, ObjectType, ObjectName, ObjectPath);
 	}
 }

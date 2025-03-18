@@ -145,11 +145,11 @@ bool FTextureCreatorUtilities::CreateVolumeTexture(UTexture*& OutVolumeTexture, 
 
 	DeserializeTexture(VolumeTexture, Properties);
 
-	const int SizeX = Properties->GetNumberField(TEXT("SizeX"));
+	/* const int SizeX = Properties->GetNumberField(TEXT("SizeX"));
 	const int SizeY = Properties->GetNumberField(TEXT("SizeY"));
-	/* const int SizeZ = Properties->GetNumberField(TEXT("SizeZ")); Need to add the property */
-	const int SizeZ = 1;
-	int Size = SizeX * SizeY * SizeZ;
+	const int SizeZ = Properties->GetNumberField(TEXT("SizeZ")); Need to add the property */
+	/*constexpr int SizeZ = 1;
+	int Size = SizeX * SizeY * SizeZ;*/
 
 	/* Decompression */
 	/*uint8* DecompressedData = static_cast<uint8*>(FMemory::Malloc(Size));
@@ -222,7 +222,7 @@ bool FTextureCreatorUtilities::DeserializeTexture2D(UTexture2D* InTexture2D, con
 	if (Properties->TryGetStringField(TEXT("AddressY"), AddressY)) InTexture2D->AddressY = static_cast<TextureAddress>(StaticEnum<TextureAddress>()->GetValueByNameString(AddressY));
 	if (Properties->TryGetBoolField(TEXT("bHasBeenPaintedInEditor"), bHasBeenPaintedInEditor)) InTexture2D->bHasBeenPaintedInEditor = bHasBeenPaintedInEditor;
 
-	/* ~~~~~~~~~~~~- Platform Data ~~~~~~~~~~~~- */
+	/* ~~~~~~~~~~~~~ Platform Data ~~~~~~~~~~~~~ */
 #if ENGINE_MAJOR_VERSION >= 5
 	FTexturePlatformData* PlatformData = InTexture2D->GetPlatformData();
 #else

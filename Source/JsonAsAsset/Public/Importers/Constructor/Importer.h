@@ -169,7 +169,7 @@ public:
     TArray<TObjectPtr<T>> LoadObject(const TArray<TSharedPtr<FJsonValue>>& PackageArray, TArray<TObjectPtr<T>> Array);
 
 public:
-    /* Sends off to the ImportExports function once read */
+    /* Sends off to the ReadExportsAndImport function once read */
     static void ImportReference(const FString& File);
 
     /*

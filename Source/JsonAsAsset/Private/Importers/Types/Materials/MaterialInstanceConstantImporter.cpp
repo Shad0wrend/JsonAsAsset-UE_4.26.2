@@ -34,7 +34,7 @@ bool IMaterialInstanceConstantImporter::Import() {
 		ReadStaticParameters(AssetData->GetObjectField(TEXT("StaticParameters")), StaticSwitchParametersObjects, StaticComponentMaskParametersObjects);
 	}
 
-	/* ~~~~~~~~- STATIC PARAMETERS ~~~~~~~~~~- */
+	/* ~~~~~~~~~ STATIC PARAMETERS ~~~~~~~~~~~ */
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
 	FStaticParameterSet NewStaticParameterSet; /* Unreal Engine 5.2 and beyond have a different method */
 #endif

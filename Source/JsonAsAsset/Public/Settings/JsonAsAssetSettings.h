@@ -167,6 +167,7 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Encryption", meta=(EditCondition="bEnableLocalFetch", DisplayName="Dynamic Keys"))
 	TArray<FAesKey> DynamicKeys;
+	
 	/**
 	 * Local Fetch URL
 	 *

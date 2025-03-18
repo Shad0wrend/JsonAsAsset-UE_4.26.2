@@ -38,12 +38,6 @@ UPackage* FAssetUtilities::CreateAssetPackage(const FString& FullPath) {
 	return Package;
 }
 
-UPackage* FAssetUtilities::CreateAssetPackage(const FString& Name, const FString& OutputPath) {
-	UPackage* Ignore = nullptr; /* Put here because &nullptr doesn't work */
-	
-	return CreateAssetPackage(Name, OutputPath, Ignore);
-}
-
 UPackage* FAssetUtilities::CreateAssetPackage(const FString& Name, const FString& OutputPath, UPackage*& OutOutermostPkg) {
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 	
@@ -110,6 +104,12 @@ UPackage* FAssetUtilities::CreateAssetPackage(const FString& Name, const FString
 	return Package;
 }
 
+UPackage* FAssetUtilities::CreateAssetPackage(const FString& Name, const FString& OutputPath) {
+	UPackage* Ignore = nullptr; /* Put here because &nullptr doesn't work */
+	
+	return CreateAssetPackage(Name, OutputPath, Ignore);
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 template bool FAssetUtilities::ConstructAsset<UMaterialInterface>(const FString& Path, const FString& Type, TObjectPtr<UMaterialInterface>& OutObject, bool& bSuccess);
 template bool FAssetUtilities::ConstructAsset<USubsurfaceProfile>(const FString& Path, const FString& Type, TObjectPtr<USubsurfaceProfile>& OutObject, bool& bSuccess);
@@ -122,7 +122,7 @@ template bool FAssetUtilities::ConstructAsset<UMaterialFunctionInterface>(const 
 template bool FAssetUtilities::ConstructAsset<USoundNode>(const FString& Path, const FString& Type, TObjectPtr<USoundNode>& OutObject, bool& bSuccess);
 template bool FAssetUtilities::ConstructAsset<UCurveLinearColor>(const FString& Path, const FString& Type, TObjectPtr<UCurveLinearColor>& OutObject, bool& bSuccess);
 
-/* Constructing assets ect.. */
+/* Importing assets from Local Fetch */
 template <typename T>
 bool FAssetUtilities::ConstructAsset(const FString& Path, const FString& Type, TObjectPtr<T>& OutObject, bool& bSuccess) {
 	/* Skip if no type provided */
@@ -221,7 +221,7 @@ bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& 
 	UTexture* Texture = nullptr;
 	TArray<uint8> Data = TArray<uint8>();
 
-	/* ~~~~~~~~~~~~~~- Download Texture Data ~~~~~~~~~~~~ */
+	/* ~~~~~~~~~~~~~~~ Download Texture Data ~~~~~~~~~~~~ */
 	if (Type != "TextureRenderTarget2D") {
 		FHttpModule* HttpModule = &FHttpModule::Get();
 #if ENGINE_MAJOR_VERSION >= 5

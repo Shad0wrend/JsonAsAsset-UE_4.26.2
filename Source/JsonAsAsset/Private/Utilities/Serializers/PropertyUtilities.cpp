@@ -362,7 +362,7 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 			NewJsonValue = NewValue;
 		}
 
-		/* To serialize struct, we need it's type and value pointer, because struct value doesn't contain type information */
+		/* To serialize struct, we need its type and value pointer, because struct value doesn't contain type information */
 		DeserializeStruct(StructProperty->Struct, NewJsonValue->AsObject().ToSharedRef(), Value);
 	}
 	else if (const FByteProperty* ByteProperty = CastField<const FByteProperty>(Property)) {
@@ -773,7 +773,7 @@ bool UPropertySerializer::ComparePropertyValuesInner(FProperty* Property, const 
 		return ObjectSerializer->CompareObjectsWithContext(ObjectIndex, PropertyObject, Context);
 	}
 
-	/* To serialize struct, we need it's type and value pointer, because struct value doesn't contain type information */
+	/* To serialize struct, we need its type and value pointer, because struct value doesn't contain type information */
 	if (const FStructProperty* StructProperty = CastField<const FStructProperty>(Property)) {
 		return CompareStructs(StructProperty->Struct, JsonValue->AsObject().ToSharedRef(), CurrentValue, Context);
 	}
