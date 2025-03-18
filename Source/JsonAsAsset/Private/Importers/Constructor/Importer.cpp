@@ -7,7 +7,6 @@
 /* Content Browser Modules */
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
-#include "AssetRegistry/AssetRegistryModule.h"
 
 /* Utilities */
 #include "Utilities/AssetUtilities.h"

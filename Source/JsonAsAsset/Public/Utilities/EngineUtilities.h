@@ -1,10 +1,9 @@
-﻿/* Copyright JAA Contributors 2024-2025 */
+/* Copyright JAA Contributors 2024-2025 */
 
 #pragma once
 
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
-#include "AssetRegistry/AssetRegistryModule.h"
 #include "Interfaces/IMainFrameModule.h"
 #include "IContentBrowserSingleton.h"
 #include "Windows/WindowsHWrapper.h"

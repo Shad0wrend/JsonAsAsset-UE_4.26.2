@@ -19,7 +19,6 @@
 #include "UObject/SavePackage.h"
 
 #include "HttpModule.h"
-#include "AssetRegistry/AssetRegistryModule.h"
 #include "Interfaces/IHttpResponse.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -30,7 +29,7 @@
 UPackage* FAssetUtilities::CreateAssetPackage(const FString& FullPath) {
 	UPackage* Package = CreatePackage(
 		/* 4.25 and below need an Outer */
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 26
+#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 26) || (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION == 26 && ENGINE_PATCH_VERSION == 0)
 		nullptr, 
 #endif
 		*FullPath);
@@ -51,7 +50,7 @@ UPackage* FAssetUtilities::CreateAssetPackage(const FString& Name, const FString
 	FString ModifiablePath;
 
 	/* References Automatically Formatted */
-	if ((!OutputPath.StartsWith("/Game/") && !OutputPath.StartsWith("/Plugins/")) && OutputPath.Contains("/Content/")) {
+	if (!OutputPath.StartsWith("/Game/") && !OutputPath.StartsWith("/Plugins/") && OutputPath.Contains("/Content/")) {
 		OutputPath.Split(*(Settings->ExportDirectory.Path + "/"), nullptr, &ModifiablePath, ESearchCase::IgnoreCase, ESearchDir::FromStart);
 		ModifiablePath.Split("/", nullptr, &ModifiablePath, ESearchCase::IgnoreCase, ESearchDir::FromStart);
 		ModifiablePath.Split("/", &ModifiablePath, nullptr, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
@@ -65,7 +64,7 @@ UPackage* FAssetUtilities::CreateAssetPackage(const FString& Name, const FString
 			FString RemainingPath;
 			/* PluginName = TestName */
 			/* RemainingPath = SetupAssets/Materials */
-			PluginName.Split("/Content/", &PluginName, &RemainingPath, ESearchCase::IgnoreCase, ESearchDir::FromStart);
+			ModifiablePath.Split("/Content/", &PluginName, &RemainingPath, ESearchCase::IgnoreCase, ESearchDir::FromStart);
 			PluginName.Split("/", nullptr, &PluginName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
 
 			/* /PluginName/Materials */
