@@ -11,8 +11,13 @@
 #include "ContentBrowserModule.h"
 #include "IDesktopPlatform.h"
 #include "AssetUtilities.h"
+#include "HttpModule.h"
 #include "TlHelp32.h"
 #include "Json.h"
+#include "PluginUtils.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IPluginManager.h"
+#include "Settings/JsonAsAssetSettings.h"
 #include "Windows/WindowsPlatformApplicationMisc.h"
 
 #if (ENGINE_MAJOR_VERSION != 4 || ENGINE_MINOR_VERSION < 27)
@@ -471,4 +476,115 @@ inline auto AppendNotification(const FText& Text, const FText& SubText, float Ex
 
 inline int32 ConvertVersionStringToInt(const FString& VersionStr) {
 	return FCString::Atoi(*VersionStr.Replace(TEXT("."), TEXT("")));
+}
+
+inline FString ReadPathFromObject(const TSharedPtr<FJsonObject>* PackageIndex) {
+	FString ObjectType, ObjectName, ObjectPath, Outer;
+	PackageIndex->Get()->GetStringField(TEXT("ObjectName")).Split("'", &ObjectType, &ObjectName);
+
+	ObjectPath = PackageIndex->Get()->GetStringField(TEXT("ObjectPath"));
+	ObjectPath.Split(".", &ObjectPath, nullptr);
+
+	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
+
+	/* Rare case of needing a GameName */
+	if (!Settings->AssetSettings.GameName.IsEmpty()) {
+		ObjectPath = ObjectPath.Replace(*(Settings->AssetSettings.GameName + "/Content"), TEXT("/Game"));
+	}
+
+	ObjectPath = ObjectPath.Replace(TEXT("Engine/Content"), TEXT("/Engine"));
+	ObjectName = ObjectName.Replace(TEXT("'"), TEXT(""));
+
+	if (ObjectName.Contains(".")) {
+		ObjectName.Split(".", nullptr, &ObjectName);
+	}
+
+	if (ObjectName.Contains(".")) {
+		ObjectName.Split(".", &Outer, &ObjectName);
+	}
+
+	return ObjectPath + "." + ObjectName;
+}
+
+/* Creates a plugin in the name (may result in bugs if inputted wrong) */
+static void CreatePlugin(FString PluginName) {
+	/* Plugin creation is different between UE5 and UE4 */
+#if ENGINE_MAJOR_VERSION >= 5
+	FPluginUtils::FNewPluginParamsWithDescriptor CreationParams;
+	CreationParams.Descriptor.bCanContainContent = true;
+
+	CreationParams.Descriptor.FriendlyName = PluginName;
+	CreationParams.Descriptor.Version = 1;
+	CreationParams.Descriptor.VersionName = TEXT("1.0");
+	CreationParams.Descriptor.Category = TEXT("Other");
+
+	FText FailReason;
+	FPluginUtils::FLoadPluginParams LoadParams;
+	LoadParams.bEnablePluginInProject = true;
+	LoadParams.bUpdateProjectPluginSearchPath = true;
+	LoadParams.bSelectInContentBrowser = false;
+
+	FPluginUtils::CreateAndLoadNewPlugin(PluginName, FPaths::ProjectPluginsDir(), CreationParams, LoadParams);
+#else
+	FPluginUtils::FNewPluginParams CreationParams;
+	CreationParams.bCanContainContent = true;
+
+	FText FailReason;
+	FPluginUtils::FMountPluginParams LoadParams;
+	LoadParams.bEnablePluginInProject = true;
+	LoadParams.bUpdateProjectPluginSearchPath = true;
+	LoadParams.bSelectInContentBrowser = false;
+
+	FPluginUtils::CreateAndMountNewPlugin(PluginName, FPaths::ProjectPluginsDir(), CreationParams, LoadParams, FailReason);
+#endif
+
+#define LOCTEXT_NAMESPACE "UMG"
+#if WITH_EDITOR
+	/* Setup notification's arguments */
+	FFormatNamedArguments Args;
+	Args.Add(TEXT("PluginName"), FText::FromString(PluginName));
+
+	/* Create notification */
+	FNotificationInfo Info(FText::Format(LOCTEXT("PluginCreated", "Plugin Created: {PluginName}"), Args));
+	Info.ExpireDuration = 10.0f;
+	Info.bUseLargeFont = true;
+	Info.bUseSuccessFailIcons = false;
+	Info.WidthOverride = FOptionalSize(350);
+	SetNotificationSubText(Info, FText::FromString(FString("Created successfully")));
+	
+	TSharedPtr<SNotificationItem> NotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
+	NotificationPtr->SetCompletionState(SNotificationItem::CS_Success);
+#endif
+#undef LOCTEXT_NAMESPACE
+}
+
+inline void SendHttpRequest(const FString& URL, TFunction<void(FHttpRequestPtr, FHttpResponsePtr, bool)> OnComplete, const FString& Verb = "GET", const FString& ContentType = "", const FString& Content = "") {
+	FHttpModule* Http = &FHttpModule::Get();
+	if (!Http) {
+		UE_LOG(LogTemp, Error, TEXT("HTTP module not available"));
+		return;
+	}
+
+#if ENGINE_MAJOR_VERSION >= 5
+	const TSharedRef<IHttpRequest> Request = Http->CreateRequest();
+#else
+	const TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
+#endif
+	
+	Request->SetURL(URL);
+	Request->SetVerb(Verb);
+
+	if (!ContentType.IsEmpty()) {
+		Request->SetHeader(TEXT("Content-Type"), ContentType);
+	}
+    
+	if (!Content.IsEmpty()) {
+		Request->SetContentAsString(Content);
+	}
+
+	Request->OnProcessRequestComplete().BindLambda([OnComplete](const FHttpRequestPtr& RequestPtr, const FHttpResponsePtr& Response, const bool bWasSuccessful) {
+		OnComplete(RequestPtr, Response, bWasSuccessful);
+	});
+
+	Request->ProcessRequest();
 }

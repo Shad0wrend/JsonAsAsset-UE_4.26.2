@@ -2,8 +2,10 @@
 
 #include "Importers/Types/Animation/AnimationBaseImporter.h"
 
+#include "Animation/AnimMontage.h"
 #include "Dom/JsonObject.h"
 #include "Animation/AnimSequence.h"
+#include "Animation/BlendSpace.h"
 
 #if ENGINE_MAJOR_VERSION == 5
 #include "Animation/AnimData/IAnimationDataController.h"
@@ -21,12 +23,39 @@ bool IAnimationBaseImporter::Import() {
 
 	UAnimSequenceBase* AnimSequenceBase = GetSelectedAsset<UAnimSequenceBase>();
 
-	ensure(AnimSequenceBase);
+	if (!AnimSequenceBase && AssetClass->IsChildOf<UAnimMontage>()) {
+		AnimSequenceBase = NewObject<UAnimMontage>(Package, AssetClass, *FileName, RF_Public | RF_Standalone);
+	}
+
 	if (!AnimSequenceBase)
 	{
 		UE_LOG(LogJson, Error, TEXT("Could not get valid AnimSequenceBase"));
 		return false;
 	}
+
+	UObjectSerializer* ObjectSerializer = GetObjectSerializer();
+	ObjectSerializer->SetPackageForDeserialization(Package);
+	ObjectSerializer->SetExportForDeserialization(JsonObject);
+	ObjectSerializer->ParentAsset = AnimSequenceBase;
+
+	ObjectSerializer->DeserializeExports(AllJsonObjects);
+
+	/* Deserialize properties */
+	GetObjectSerializer()->DeserializeObjectProperties(KeepPropertiesShared(AssetData, {
+		"RetargetSource",
+		
+		"AdditiveAnimType",
+		"RefPoseType",
+		"RefPoseSeq",
+		"Notifies",
+
+		/* AnimMontages */
+		"BlendIn",
+		"BlendOut",
+		"SlotAnimTracks",
+		"CompositeSections",
+		"Skeleton"
+	}), AnimSequenceBase);
 
 	USkeleton* Skeleton = AnimSequenceBase->GetSkeleton();
 	ensure(Skeleton);
@@ -198,22 +227,6 @@ bool IAnimationBaseImporter::Import() {
 			CastedAnimSequence->AuthoredSyncMarkers.Add(AuthoredSyncMarker);
 		}
 	}
-
-	/* Deserialize properties */
-	GetObjectSerializer()->DeserializeObjectProperties(KeepPropertiesShared(AssetData, {
-		"RetargetSource",
-		
-		"AdditiveAnimType",
-		"RefPoseType",
-		"RefPoseSeq",
-		"Notifies",
-
-		/* AnimMontages */
-		"BlendIn",
-		"BlendOut",
-		"SlotAnimTracks",
-		"CompositeSections"
-	}), AnimSequenceBase);
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
 	if (ITargetPlatform* RunningPlatform = GetTargetPlatformManagerRef().GetRunningTargetPlatform()) {

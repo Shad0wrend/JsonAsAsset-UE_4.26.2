@@ -22,8 +22,5 @@ public:
 	
 	static bool Construct_TypeTexture(const FString& Path, const FString& RealPath, UTexture*& OutTexture);
 
-	/* Creates a plugin in the name (may result in bugs if inputted wrong) */
-	static void CreatePlugin(FString PluginName);
-
 	static TSharedPtr<FJsonObject> API_RequestExports(const FString& Path, const FString& FetchPath = "/api/export?raw=true&path=");
 };

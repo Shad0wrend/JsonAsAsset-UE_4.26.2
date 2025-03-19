@@ -93,9 +93,7 @@ public:
 	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings", meta = (DisplayName = "Enable Asset Tools (experimental)"))
 	bool bEnableAssetTools;
 
-	/**
-	* This property is generally not required for normal operations, but is necessary for compatibility with older versions of game builds.
-	*/
+	/* Unreal Engine Game's Project Name (Set by Local Fetch) */
 	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings")
 	FString GameName;
 };

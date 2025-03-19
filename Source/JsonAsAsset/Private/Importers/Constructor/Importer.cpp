@@ -353,7 +353,6 @@ void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectP
 
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 
-	/* Rare case of needing a GameName */
 	if (!Settings->AssetSettings.GameName.IsEmpty()) {
 		ObjectPath = ObjectPath.Replace(*(Settings->AssetSettings.GameName + "/Content"), TEXT("/Game"));
 	}

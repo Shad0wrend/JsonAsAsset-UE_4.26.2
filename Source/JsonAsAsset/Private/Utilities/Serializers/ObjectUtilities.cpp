@@ -3,6 +3,7 @@
 #include "Utilities/Serializers/ObjectUtilities.h"
 #include "Utilities/Serializers/PropertyUtilities.h"
 #include "UObject/Package.h"
+#include "Utilities/EngineUtilities.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogObjectSerializer, All, All);
 PRAGMA_DISABLE_OPTIMIZATION
@@ -90,8 +91,7 @@ void UObjectSerializer::SetPackageForDeserialization(UPackage* SelfPackage) {
 	this->SourcePackage = SelfPackage;
 }
 
-void UObjectSerializer::SetExportForDeserialization(TSharedPtr<FJsonObject> Object)
-{
+void UObjectSerializer::SetExportForDeserialization(TSharedPtr<FJsonObject> Object) {
 	ExportsToNotDeserialize.Add(Object->GetStringField(TEXT("Name")));
 }
 
@@ -110,6 +110,12 @@ void UObjectSerializer::DeserializeExports(TArray<TSharedPtr<FJsonValue>> Export
 		if (ExportsToNotDeserialize.Contains(Name)) continue;
 
 		FString ClassName = ExportObject->GetStringField(TEXT("Class"));
+
+		if (ExportObject->HasField("Template")) {
+			const TSharedPtr<FJsonObject> TemplateObject = ExportObject->GetObjectField(TEXT("Template"));
+			ClassName = ReadPathFromObject(&TemplateObject).Replace(TEXT("Default__"), TEXT(""));
+		}
+
 		const UClass* Class = FindObject<UClass>(ANY_PACKAGE, *ClassName);
 
 		if (!Class) continue;

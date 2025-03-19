@@ -130,6 +130,25 @@ void FJsonAsAssetModule::PluginButtonClicked() {
 		}
 	}
 
+	if (Settings->bEnableLocalFetch) {
+		/* If GameName isn't set, try getting it from the API */
+		if (Settings->AssetSettings.GameName.IsEmpty()) {
+			SendHttpRequest(TEXT("http://localhost:1500/api/name"), [this](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
+				if (bWasSuccessful && Response.IsValid()) {
+					UJsonAsAssetSettings* Settings = GetMutableDefault<UJsonAsAssetSettings>();
+
+					Settings->AssetSettings.GameName = Response->GetContentAsString();
+					
+					SavePluginConfig(Settings);
+				}
+				
+				PluginButtonClicked();
+			});
+
+			return;
+		}
+	}
+
 	/* Dialog for a JSON File */
 	TArray<FString> OutFileNames = OpenFileDialog("Open JSON file", "JSON Files|*.json");
 	if (OutFileNames.Num() == 0)

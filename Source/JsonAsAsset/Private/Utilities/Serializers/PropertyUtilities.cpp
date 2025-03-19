@@ -275,6 +275,11 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 			ObjectName.Split(".", nullptr, &ObjectName);
 			ObjectName.Split("'", &ObjectName, nullptr);
 		}
+
+		if (ObjectName.Contains(":")) {
+			ObjectName.Split(":", nullptr, &ObjectName);
+			ObjectName.Split("'", &ObjectName, nullptr);
+		}
 		
 		if (UObject** FoundObjectPtr = ReferencedObjects.Find(ObjectName)) {
 			UObject* FoundObject = *FoundObjectPtr;

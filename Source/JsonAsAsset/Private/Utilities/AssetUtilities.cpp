@@ -311,57 +311,6 @@ bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& 
 	return true;
 }
 
-void FAssetUtilities::CreatePlugin(FString PluginName) {
-	/* Plugin creation is different between UE5 and UE4 */
-#if ENGINE_MAJOR_VERSION >= 5
-	FPluginUtils::FNewPluginParamsWithDescriptor CreationParams;
-	CreationParams.Descriptor.bCanContainContent = true;
-
-	CreationParams.Descriptor.FriendlyName = PluginName;
-	CreationParams.Descriptor.Version = 1;
-	CreationParams.Descriptor.VersionName = TEXT("1.0");
-	CreationParams.Descriptor.Category = TEXT("Other");
-
-	FText FailReason;
-	FPluginUtils::FLoadPluginParams LoadParams;
-	LoadParams.bEnablePluginInProject = true;
-	LoadParams.bUpdateProjectPluginSearchPath = true;
-	LoadParams.bSelectInContentBrowser = false;
-
-	FPluginUtils::CreateAndLoadNewPlugin(PluginName, FPaths::ProjectPluginsDir(), CreationParams, LoadParams);
-#else
-	FPluginUtils::FNewPluginParams CreationParams;
-	CreationParams.bCanContainContent = true;
-
-	FText FailReason;
-	FPluginUtils::FMountPluginParams LoadParams;
-	LoadParams.bEnablePluginInProject = true;
-	LoadParams.bUpdateProjectPluginSearchPath = true;
-	LoadParams.bSelectInContentBrowser = false;
-
-	FPluginUtils::CreateAndMountNewPlugin(PluginName, FPaths::ProjectPluginsDir(), CreationParams, LoadParams, FailReason);
-#endif
-
-#define LOCTEXT_NAMESPACE "UMG"
-#if WITH_EDITOR
-	/* Setup notification's arguments */
-	FFormatNamedArguments Args;
-	Args.Add(TEXT("PluginName"), FText::FromString(PluginName));
-
-	/* Create notification */
-	FNotificationInfo Info(FText::Format(LOCTEXT("PluginCreated", "Plugin Created: {PluginName}"), Args));
-	Info.ExpireDuration = 10.0f;
-	Info.bUseLargeFont = true;
-	Info.bUseSuccessFailIcons = false;
-	Info.WidthOverride = FOptionalSize(350);
-	SetNotificationSubText(Info, FText::FromString(FString("Created successfully")));
-	
-	TSharedPtr<SNotificationItem> NotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
-	NotificationPtr->SetCompletionState(SNotificationItem::CS_Success);
-#endif
-#undef LOCTEXT_NAMESPACE
-}
-
 TSharedPtr<FJsonObject> FAssetUtilities::API_RequestExports(const FString& Path, const FString& FetchPath) {
 	FHttpModule* HttpModule = &FHttpModule::Get();
 
