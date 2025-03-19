@@ -204,7 +204,7 @@ public:
 
     /* Function to check if an asset needs to be imported. Once imported, the asset will be set and returned. */
     template <class T = UObject>
-    TObjectPtr<T> DownloadWrapper(TObjectPtr<T> InObject, FString Type, FString Name, FString Path);
+    static TObjectPtr<T> DownloadWrapper(TObjectPtr<T> InObject, FString Type, FString Name, FString Path);
 
 protected:
     UPropertySerializer* PropertySerializer;

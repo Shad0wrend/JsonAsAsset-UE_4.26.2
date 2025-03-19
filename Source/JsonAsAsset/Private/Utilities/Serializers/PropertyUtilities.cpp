@@ -189,8 +189,7 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 		TSharedPtr<FJsonObject> SoftJsonObjectProperty;
 		FString PathString = "";
 		
-		switch (NewJsonValue->Type)
-		{
+		switch (NewJsonValue->Type) {
 			/* FModel, extract it from the object */
 			case EJson::Object:
 				SoftJsonObjectProperty = NewJsonValue->AsObject();
@@ -204,15 +203,12 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 			break;
 		}
 
-		if (PathString != "")
-		{
+		if (PathString != "") {
 			FSoftObjectPtr* ObjectPtr = static_cast<FSoftObjectPtr*>(Value);
 			*ObjectPtr = FSoftObjectPath(PathString);
 
-			if (!ObjectPtr->LoadSynchronous())
-			{
+			if (!ObjectPtr->LoadSynchronous()) {
 				/* Try importing it using Local Fetch */
-				IImporter* Importer = new IImporter();
 				FString PackagePath;
 				FString AssetName;
 				PathString.Split(".", &PackagePath, &AssetName);
@@ -220,7 +216,7 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 
 				FString PropertyClassName = SoftObjectProperty->PropertyClass->GetName();
 				
-				Importer->DownloadWrapper(T, PropertyClassName, AssetName, PackagePath);
+				IImporter::DownloadWrapper(T, PropertyClassName, AssetName, PackagePath);
 			}
 		}
 	}
@@ -335,7 +331,6 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 
 				if (!ObjectPtr->LoadSynchronous()) {
 					/* Try importing it using Local Fetch */
-					IImporter* Importer = new IImporter();
 					FString PackagePath;
 					FString AssetName;
 					PathString.Split(".", &PackagePath, &AssetName);
@@ -343,7 +338,7 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 
 					FString PropertyClassName = "DataAsset";
 				
-					Importer->DownloadWrapper(T, PropertyClassName, AssetName, PackagePath);
+					IImporter::DownloadWrapper(T, PropertyClassName, AssetName, PackagePath);
 				}
 			}
 		}
