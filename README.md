@@ -67,7 +67,8 @@ JsonAsAsset is a user-friendly Unreal Engine plugin for importing assets from pa
 | Sound Classes | Most/all sound classes are supported. SoundWave is downloaded by [Local Fetch](#local-fetch). |
 | Animation Asset Types | Skeleton, SkeletalMeshLODSettings, BlendSpace, BlendSpace1D, AimOffsetBlendSpace, AimOffsetBlendSpace1D |
 | Physics Asset Types | PhysicsAsset, PhysicalMaterial |
-| Landscape | LandscapeGrassType, FoliageType_InstancedStaticMesh, FoliageType_Actor |
+| Sequencer Asset Types | CameraAnim |
+| Landscape Asset Types | LandscapeGrassType, FoliageType_InstancedStaticMesh, FoliageType_Actor |
 
 ##### The following asset types add onto a pre-existing asset
 | Asset Category | Asset Types / Description |
