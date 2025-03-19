@@ -271,6 +271,11 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 
 		FString ObjectName = JsonValueAsObject->GetStringField(TEXT("ObjectName"));
 
+		if (ObjectName.Contains(".")) {
+			ObjectName.Split(".", nullptr, &ObjectName);
+			ObjectName.Split("'", &ObjectName, nullptr);
+		}
+		
 		if (UObject** FoundObjectPtr = ReferencedObjects.Find(ObjectName)) {
 			UObject* FoundObject = *FoundObjectPtr;
 

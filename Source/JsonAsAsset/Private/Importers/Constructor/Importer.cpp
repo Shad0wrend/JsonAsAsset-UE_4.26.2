@@ -133,6 +133,12 @@ TMap<FString, TArray<FString>> ImporterTemplatedTypes = {
 		{
 			TEXT("TextureRenderTarget2D"),
 		}
+	},
+	{
+		TEXT("Sequencer Assets"),
+		{
+			TEXT("CameraAnim"),
+		}
 	}
 };
 

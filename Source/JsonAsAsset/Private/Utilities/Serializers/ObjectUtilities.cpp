@@ -96,6 +96,8 @@ void UObjectSerializer::SetExportForDeserialization(TSharedPtr<FJsonObject> Obje
 }
 
 void UObjectSerializer::DeserializeExports(TArray<TSharedPtr<FJsonValue>> Exports) {
+	TMap<TSharedPtr<FJsonObject>, UObject*> ExportsMap;
+	
 	for (TSharedPtr<FJsonValue> Object : Exports) {
 		TSharedPtr<FJsonObject> ExportObject = Object->AsObject();
 
@@ -108,16 +110,23 @@ void UObjectSerializer::DeserializeExports(TArray<TSharedPtr<FJsonValue>> Export
 		if (ExportsToNotDeserialize.Contains(Name)) continue;
 
 		FString ClassName = ExportObject->GetStringField(TEXT("Class"));
-		UClass* FoundClass = FindObject<UClass>(ANY_PACKAGE, *ClassName);
+		const UClass* Class = FindObject<UClass>(ANY_PACKAGE, *ClassName);
 
-		if (!FoundClass) continue;
-		
-		UObject* NewUObject = NewObject<UObject>(ParentAsset, FoundClass, FName(*Name));
+		if (!Class) continue;
+
+		FString Outer = ExportObject->GetStringField(TEXT("Outer"));
+		UObject* ObjectOuter = ParentAsset;
+
+		if (UObject** FoundObjectPtr = PropertySerializer->ReferencedObjects.Find(Outer)) {
+			ObjectOuter = *FoundObjectPtr;
+		}
+
+		UObject* NewUObject = NewObject<UObject>(ObjectOuter, Class, FName(*Name));
 
 		if (ExportObject->HasField(TEXT("Properties"))) {
 			TSharedPtr<FJsonObject> Properties = ExportObject->GetObjectField(TEXT("Properties"));
 
-			DeserializeObjectProperties(Properties, NewUObject);
+			ExportsMap.Add(Properties, NewUObject);
 		}
 
 		/* Add it to the referenced objects */
@@ -125,6 +134,13 @@ void UObjectSerializer::DeserializeExports(TArray<TSharedPtr<FJsonValue>> Export
 
 		/* Already deserialized */
 		ExportsToNotDeserialize.Add(Name);
+	}
+
+	for (const auto Pair : ExportsMap) {
+		TSharedPtr<FJsonObject> Properties = Pair.Key;
+		UObject* Object = Pair.Value;
+
+		DeserializeObjectProperties(Properties, Object);
 	}
 }
 
