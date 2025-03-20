@@ -486,9 +486,13 @@ void IImporter::SavePackage() const {
 }
 
 bool IImporter::OnAssetCreation(UObject* Asset) const {
-	SavePackage();
+	const bool Synced = HandleAssetCreation(Asset);
 	
-	return HandleAssetCreation(Asset);
+	if (Synced) {
+		SavePackage();
+	}
+	
+	return Synced;
 }
 
 FName IImporter::GetExportNameOfSubobject(const FString& PackageIndex) {
