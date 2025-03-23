@@ -74,7 +74,6 @@ private:
     void CreateLocalFetchDropdown(FMenuBuilder MenuBuilder) const;
     void CreateVersioningDropdown(FMenuBuilder MenuBuilder) const;
     void CreateLastDropdown(FMenuBuilder MenuBuilder) const;
-    void ImportConvexCollision() const;
 
     static void SupportedAssetsDropdown(FMenuBuilder& InnerMenuBuilder, bool bIsLocalFetch = false);
 

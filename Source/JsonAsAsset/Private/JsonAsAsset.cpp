@@ -35,6 +35,7 @@
 /* ReSharper disable once CppUnusedIncludeDirective */
 #include "HttpModule.h"
 #include "Logging/MessageLog.h"
+#include "Modules/Tools/ConvexCollision.h"
 #include "Modules/UI/AboutJsonAsAsset.h"
 #include "Modules/UI/CommandsModule.h"
 #include "Modules/UI/StyleModule.h"
@@ -428,20 +429,17 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 		if (Settings->AssetSettings.bEnableAssetTools) {
 			MenuBuilder.AddSubMenu(
 				LOCTEXT("JsonAsAssetAssetToolsMenu", "Open Asset Tools"),
-				LOCTEXT("JsonAsAssetAssetToolsMenuToolTip", "Extra functionality / tools to do very specific actions with assets."),
+				LOCTEXT("JsonAsAssetAssetToolsMenuToolTip", "Extra functionality / tools to do very specific data importing with assets."),
 				FNewMenuDelegate::CreateLambda([this](FMenuBuilder& InnerMenuBuilder) {
 					InnerMenuBuilder.BeginSection("JsonAsAssetSection", LOCTEXT("JsonAsAssetSection", "Asset Tools"));
 					{
 						InnerMenuBuilder.AddMenuEntry(
 							LOCTEXT("JsonAsAssetAssetToolsCollisionExButton", "Import Folder Collision Convex"),
-							LOCTEXT("JsonAsAssetAssetToolsButtonTooltip", "Imports convex collision data from a folder of JSON files and applies it to the corresponding assets."),
+							LOCTEXT("JsonAsAssetAssetToolsButtonTooltip", "Imports convex collision data using Local Fetch and applies it to the corresponding assets."),
 							FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.BspMode"),
 
 							FUIAction(
-								FExecuteAction::CreateRaw(this, &FJsonAsAssetModule::ImportConvexCollision),
-								FCanExecuteAction::CreateLambda([this]() {
-									return true;
-								})
+								FExecuteAction::CreateStatic(&FToolConvexCollision::Execute)
 							),
 							NAME_None
 						);
@@ -677,105 +675,6 @@ void FJsonAsAssetModule::CreateLastDropdown(FMenuBuilder MenuBuilder) const {
 		),
 		NAME_None
 	);
-}
-
-void FJsonAsAssetModule::ImportConvexCollision() const {
-	TArray<FAssetData> AssetDataList = GetAssetsInSelectedFolder();
-	TArray<FString> OutFolderNames = OpenFolderDialog("Select a folder for JSON files");
-
-	if (OutFolderNames.Num() == 0 || AssetDataList.Num() == 0) {
-		/* Exit if no folder is selected */
-		return;
-	}
-
-	for (const FAssetData& AssetData : AssetDataList) {
-		if (UStaticMesh* StaticMesh = Cast<UStaticMesh>(AssetData.GetAsset())) {
-			StaticMesh->ReleaseResources();
-			StaticMesh->Modify(true);
-
-			/* Get the name of the static mesh */
-			FString StaticMeshName = StaticMesh->GetName();
-
-			FString JsonFileName = StaticMeshName + ".json";
-			FString JsonFilePath = OutFolderNames[0] / JsonFileName;
-
-			UBodySetup* BodySetup = nullptr;
-#if !(ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27)
-			BodySetup = StaticMesh->GetBodySetup();
-#else
-			BodySetup = StaticMesh->BodySetup;
-#endif
-
-			if (FPaths::FileExists(JsonFilePath)) {
-				UE_LOG(LogTemp, Log, TEXT("Found JSON file for Static Mesh: %s"), *JsonFilePath);
-
-				FString ContentBefore;
-				if (FFileHelper::LoadFileToString(ContentBefore, *JsonFilePath)) {
-					FString Content = FString(TEXT("{\"data\": "));
-					Content.Append(ContentBefore);
-					Content.Append(FString("}"));
-
-					TSharedPtr<FJsonObject> JsonParsed;
-					const TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(Content);
-
-					if (FJsonSerializer::Deserialize(JsonReader, JsonParsed)) {
-						const TArray<TSharedPtr<FJsonValue>> DataObjects = JsonParsed->GetArrayField(TEXT("data"));
-
-						for (const TSharedPtr<FJsonValue>& DataObject : DataObjects) {
-							if (!DataObject.IsValid() || !DataObject->AsObject().IsValid()) {
-								continue;
-							}
-
-							TSharedPtr<FJsonObject> JsonObject = DataObject->AsObject();
-							FString TypeValue;
-
-							/* Check if the "Type" field exists and matches "BodySetup" */
-							if (JsonObject->TryGetStringField(TEXT("Type"), TypeValue) && TypeValue == "BodySetup") {
-								/* Check for "Class" with value "UScriptClass'BodySetup'" */
-								FString ClassValue;
-								if (JsonObject->TryGetStringField(TEXT("Class"), ClassValue) && ClassValue == "UScriptClass'BodySetup'") {
-									/* Navigate to "Properties" */
-									TSharedPtr<FJsonObject> PropertiesObject = JsonObject->GetObjectField(TEXT("Properties"));
-									if (PropertiesObject.IsValid()) {
-										/* Navigate to "AggGeom" */
-										TSharedPtr<FJsonObject> AggGeomObject = PropertiesObject->GetObjectField(TEXT("AggGeom"));
-										if (AggGeomObject.IsValid()) {
-											FKAggregateGeom AggGeom;
-
-											GObjectSerializer->DeserializeObjectProperties(PropertiesObject, BodySetup);
-											BodySetup->CollisionTraceFlag = ECollisionTraceFlag::CTF_UseDefault;
-											StaticMesh->MarkPackageDirty();
-											BodySetup->PostEditChange();
-											StaticMesh->Modify(true);
-
-											/* Notification */
-											AppendNotification(
-												FText::FromString("Imported Convex Collision: " + StaticMeshName),
-												FText::FromString(StaticMeshName),
-												3.5f,
-												FAppStyle::GetBrush("PhysicsAssetEditor.EnableCollision.Small"),
-												SNotificationItem::CS_Success,
-												false,
-												310.0f
-											);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-
-			/* Notify the editor about the changes */
-			BodySetup->InvalidatePhysicsData();
-			BodySetup->CreatePhysicsMeshes();
-
-			StaticMesh->MarkPackageDirty();
-			BodySetup->PostEditChange();
-			StaticMesh->PostLoad();
-		}
-	}
 }
 
 void FJsonAsAssetModule::SupportedAssetsDropdown(FMenuBuilder& InnerMenuBuilder, bool bIsLocalFetch) {

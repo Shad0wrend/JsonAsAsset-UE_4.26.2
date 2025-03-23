@@ -4,21 +4,23 @@
 
 #include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Notifications/SNotificationList.h"
+#include "Utilities/Serializers/PropertyUtilities.h"
+#include "Windows/WindowsPlatformApplicationMisc.h"
+#include "Utilities/Serializers/ObjectUtilities.h"
+#include "Settings/JsonAsAssetSettings.h"
 #include "Interfaces/IMainFrameModule.h"
+#include "Interfaces/IPluginManager.h"
 #include "IContentBrowserSingleton.h"
 #include "Windows/WindowsHWrapper.h"
+#include "Interfaces/IHttpRequest.h"
 #include "DesktopPlatformModule.h"
 #include "ContentBrowserModule.h"
 #include "IDesktopPlatform.h"
 #include "AssetUtilities.h"
+#include "PluginUtils.h"
 #include "HttpModule.h"
 #include "TlHelp32.h"
 #include "Json.h"
-#include "PluginUtils.h"
-#include "Interfaces/IHttpRequest.h"
-#include "Interfaces/IPluginManager.h"
-#include "Settings/JsonAsAssetSettings.h"
-#include "Windows/WindowsPlatformApplicationMisc.h"
 
 #if (ENGINE_MAJOR_VERSION != 4 || ENGINE_MINOR_VERSION < 27)
 #include "Engine/DeveloperSettings.h"
@@ -587,4 +589,13 @@ inline void SendHttpRequest(const FString& URL, TFunction<void(FHttpRequestPtr, 
 	});
 
 	Request->ProcessRequest();
+}
+
+inline UObjectSerializer* CreateObjectSerializer()
+{
+	UPropertySerializer* PropertySerializer = NewObject<UPropertySerializer>();
+	UObjectSerializer* ObjectSerializer = NewObject<UObjectSerializer>();
+	ObjectSerializer->SetPropertySerializer(PropertySerializer);
+
+	return ObjectSerializer;
 }
