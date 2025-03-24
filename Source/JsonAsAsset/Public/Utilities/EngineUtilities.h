@@ -113,6 +113,15 @@ inline void SpawnPrompt(const FString& Title, const FString& Text) {
 	FMessageDialog::Open(EAppMsgType::Ok, DialogMessage);
 }
 
+inline auto SpawnYesNoPrompt = [](const FString& Title, const FString& Text, const TFunction<void(bool)>& OnResponse) {
+	const FText DialogTitle = FText::FromString(Title);
+	const FText DialogMessage = FText::FromString(Text);
+
+	const EAppReturnType::Type Response = FMessageDialog::Open(EAppMsgType::YesNo, DialogMessage, &DialogTitle);
+
+	OnResponse(Response == EAppReturnType::Yes);
+};
+
 /* Gets all assets in selected folder */
 inline TArray<FAssetData> GetAssetsInSelectedFolder() {
 	TArray<FAssetData> AssetDataList;
@@ -132,11 +141,20 @@ inline TArray<FAssetData> GetAssetsInSelectedFolder() {
 
 	/* Check if the folder is the root folder, and show a prompt if */
 	if (CurrentFolder == "/Game") {
-		SpawnPrompt(
-			"Action Not Allowed in Root Content Folder",
-			"You can't do this action in the root folder, this will stall the editor for a long time."
+		bool bContinue = false;
+		
+		SpawnYesNoPrompt(
+			TEXT("Large Operation"),
+			TEXT("This will stall the editor for a long time. Continue anyway?"),
+			[&](const bool bConfirmed) {
+				bContinue = bConfirmed;
+			}
 		);
-		return AssetDataList;
+
+		if (!bContinue) {
+			UE_LOG(LogTemp, Warning, TEXT("Action cancelled by user."));
+			return AssetDataList;
+		}
 	}
 
 	/* Get the Asset Registry Module */

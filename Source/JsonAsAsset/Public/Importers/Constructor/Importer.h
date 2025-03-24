@@ -148,6 +148,8 @@ public:
         }
 
         if (Class == nullptr) return false;
+
+        if (ImporterType == "MaterialInterface") return true;
         
         return Class->IsChildOf(UDataAsset::StaticClass());
     }

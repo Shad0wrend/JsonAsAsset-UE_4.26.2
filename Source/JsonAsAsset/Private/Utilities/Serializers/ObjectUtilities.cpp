@@ -96,6 +96,8 @@ void UObjectSerializer::SetExportForDeserialization(TSharedPtr<FJsonObject> Obje
 }
 
 void UObjectSerializer::DeserializeExports(TArray<TSharedPtr<FJsonValue>> Exports) {
+	PropertySerializer->ReferencedObjects.Empty();
+	
 	TMap<TSharedPtr<FJsonObject>, UObject*> ExportsMap;
 	
 	for (TSharedPtr<FJsonValue> Object : Exports) {
@@ -116,7 +118,7 @@ void UObjectSerializer::DeserializeExports(TArray<TSharedPtr<FJsonValue>> Export
 			ClassName = ReadPathFromObject(&TemplateObject).Replace(TEXT("Default__"), TEXT(""));
 		}
 
-		const UClass* Class = FindObject<UClass>(ANY_PACKAGE, *ClassName);
+		const UClass* Class = LoadObject<UClass>(nullptr, *ClassName);
 
 		if (!Class) continue;
 

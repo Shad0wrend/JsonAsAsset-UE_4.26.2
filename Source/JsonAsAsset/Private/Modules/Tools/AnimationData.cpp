@@ -1,8 +1,9 @@
 ﻿/* Copyright JsonAsAsset Contributors 2024-2025 */
 
-#include "Importers/Types/Animation/AnimationBaseImporter.h"
+#include "Modules/Tools/AnimationData.h"
+#include "Utilities/EngineUtilities.h"
+#include "Utilities/JsonUtilities.h"
 
-#include "Animation/AnimMontage.h"
 #include "Dom/JsonObject.h"
 #include "Animation/AnimSequence.h"
 
@@ -14,17 +15,11 @@
 #include "AnimDataController.h"
 #endif
 
-bool IAnimationBaseImporter::Import() {
+bool ReadAnimationData(const TSharedPtr<FJsonObject>& Properties, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, const TSharedPtr<FJsonObject>& JsonObject, UAnimSequenceBase* AnimSequenceBase) {
 	FString AssetName = JsonObject->GetStringField(TEXT("Name"));
 
 	TArray<TSharedPtr<FJsonValue>> FloatCurves;
 	TArray<TSharedPtr<FJsonValue>> Notifies;
-
-	UAnimSequenceBase* AnimSequenceBase = GetSelectedAsset<UAnimSequenceBase>();
-
-	if (!AnimSequenceBase && AssetClass->IsChildOf<UAnimMontage>()) {
-		AnimSequenceBase = NewObject<UAnimMontage>(Package, AssetClass, *FileName, RF_Public | RF_Standalone);
-	}
 
 	if (!AnimSequenceBase)
 	{
@@ -39,16 +34,17 @@ bool IAnimationBaseImporter::Import() {
 		CastedAnimSequence->AuthoredSyncMarkers.Empty();
 		CastedAnimSequence->Notifies.Empty();
 	}
+	
+	/* Create an object serializer */
+	UObjectSerializer* ObjectSerializer = CreateObjectSerializer();
 
-	UObjectSerializer* ObjectSerializer = GetObjectSerializer();
-	ObjectSerializer->SetPackageForDeserialization(Package);
 	ObjectSerializer->SetExportForDeserialization(JsonObject);
 	ObjectSerializer->ParentAsset = AnimSequenceBase;
 
 	ObjectSerializer->DeserializeExports(AllJsonObjects);
 
 	/* Deserialize properties */
-	GetObjectSerializer()->DeserializeObjectProperties(KeepPropertiesShared(AssetData, {
+	ObjectSerializer->DeserializeObjectProperties(KeepPropertiesShared(Properties, {
 		"RetargetSource",
 		
 		"AdditiveAnimType",
@@ -85,8 +81,8 @@ bool IAnimationBaseImporter::Import() {
 	/* Some CUE4Parse versions have different named objects for curves ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	const TSharedPtr<FJsonObject>* RawCurveData;
 	
-	if (AssetData->TryGetObjectField(TEXT("RawCurveData"), RawCurveData))
-		FloatCurves = AssetData->GetObjectField(TEXT("RawCurveData"))->GetArrayField(TEXT("FloatCurves"));
+	if (Properties->TryGetObjectField(TEXT("RawCurveData"), RawCurveData))
+		FloatCurves = Properties->GetObjectField(TEXT("RawCurveData"))->GetArrayField(TEXT("FloatCurves"));
 	
 	if (JsonObject->TryGetObjectField(TEXT("CompressedCurveData"), RawCurveData))
 		FloatCurves = JsonObject->GetObjectField(TEXT("CompressedCurveData"))->GetArrayField(TEXT("FloatCurves"));
@@ -236,6 +232,65 @@ bool IAnimationBaseImporter::Import() {
 #endif
 	AnimSequenceBase->Modify();
 	AnimSequenceBase->PostEditChange();
-
+	
 	return true;
+}
+
+void FToolAnimationData::Execute() {
+	TArray<FAssetData> AssetDataList = GetAssetsInSelectedFolder();
+
+	if (AssetDataList.Num() == 0) {
+		return;
+	}
+
+	for (const FAssetData& AssetData : AssetDataList) {
+		if (!AssetData.IsValid()) continue;
+		if (AssetData.AssetClass != "AnimSequence") continue;
+		
+		UObject* Asset = AssetData.GetAsset();
+		if (Asset == nullptr) continue;
+		
+		UAnimSequence* AnimSequence = Cast<UAnimSequence>(Asset);
+		if (AnimSequence == nullptr) continue;
+
+		/* Request to API ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+		FString ObjectPath = AssetData.ObjectPath.ToString();
+
+		const TSharedPtr<FJsonObject> Response = FAssetUtilities::API_RequestExports(ObjectPath);
+		if (Response == nullptr || ObjectPath.IsEmpty()) continue;
+
+		/* Not found */
+		if (Response->HasField(TEXT("errored"))) {
+			continue;
+		}
+
+		TArray<TSharedPtr<FJsonValue>> Exports = Response->GetArrayField(TEXT("jsonOutput"));
+		
+		for (const TSharedPtr<FJsonValue>& Export : Exports) {
+			if (!Export.IsValid() || !Export->AsObject().IsValid()) {
+				continue;
+			}
+
+			const TSharedPtr<FJsonObject> JsonObject = Export->AsObject();
+			if (!IsProperExportData(JsonObject)) continue;
+
+			TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
+			const FString Type = JsonObject->GetStringField(TEXT("Type"));
+
+			if (Type == "AnimSequence") {
+				ReadAnimationData(Properties, Exports, JsonObject, AnimSequence);
+				
+				/* Notification */
+				AppendNotification(
+					FText::FromString("Imported Animation Data: " + AnimSequence->GetName()),
+					FText::FromString(AnimSequence->GetName()),
+					3.5f,
+					FAppStyle::GetBrush("PhysicsAssetEditor.EnableCollision.Small"),
+					SNotificationItem::CS_Success,
+					false,
+					310.0f
+				);
+			}
+		}
+	}
 }

@@ -35,6 +35,7 @@
 /* ReSharper disable once CppUnusedIncludeDirective */
 #include "HttpModule.h"
 #include "Logging/MessageLog.h"
+#include "Modules/Tools/AnimationData.h"
 #include "Modules/Tools/ConvexCollision.h"
 #include "Modules/UI/AboutJsonAsAsset.h"
 #include "Modules/UI/CommandsModule.h"
@@ -440,6 +441,17 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 
 							FUIAction(
 								FExecuteAction::CreateStatic(&FToolConvexCollision::Execute)
+							),
+							NAME_None
+						);
+
+						InnerMenuBuilder.AddMenuEntry(
+							LOCTEXT("JsonAsAssetAssetToolsAnimationDataButton", "Import Animation Data from Local Fetch"),
+							LOCTEXT("JsonAsAssetAssetToolsAnimationDataButtonTooltip", "Imports animation data using Local Fetch and applies it to the corresponding assets in the content browser folder."),
+							FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.BspMode"),
+
+							FUIAction(
+								FExecuteAction::CreateStatic(&FToolAnimationData::Execute)
 							),
 							NAME_None
 						);
