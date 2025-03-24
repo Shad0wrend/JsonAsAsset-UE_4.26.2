@@ -15,7 +15,7 @@
 #include "Modules/LocalFetchModule.h"
 #include "Utilities/EngineUtilities.h"
 
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
 #include "DetailCategoryBuilder.h"
 #endif
 
@@ -143,7 +143,7 @@ void FJsonAsAssetSettingsDetails::EditEncryption(TWeakObjectPtr<UJsonAsAssetSett
 			UJsonAsAssetSettings* PluginSettings = GetMutableDefault<UJsonAsAssetSettings>();
 			FHttpModule* HttpModule = &FHttpModule::Get();
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 			const TSharedRef<IHttpRequest> Request = HttpModule->CreateRequest();
 #else
 			TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = HttpModule->CreateRequest();
@@ -152,7 +152,7 @@ void FJsonAsAssetSettingsDetails::EditEncryption(TWeakObjectPtr<UJsonAsAssetSett
 			Request->SetURL("https://fortnitecentral.genxgames.gg/api/v1/aes");
 			Request->SetVerb(TEXT("GET"));
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 			const TSharedPtr<IHttpResponse> Response = FRemoteUtilities::ExecuteRequestSync(Request);
 #else
 			const TSharedPtr<IHttpResponse, ESPMode::ThreadSafe> Response = FRemoteUtilities::ExecuteRequestSync(Request);
@@ -191,7 +191,7 @@ void FJsonAsAssetSettingsDetails::EditEncryption(TWeakObjectPtr<UJsonAsAssetSett
 					}
 				}
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 				const TSharedRef<IHttpRequest> MappingsURLRequest = HttpModule->CreateRequest();
 #else
 				TSharedRef<IHttpRequest, ESPMode::ThreadSafe> MappingsURLRequest = HttpModule->CreateRequest();
@@ -200,7 +200,7 @@ void FJsonAsAssetSettingsDetails::EditEncryption(TWeakObjectPtr<UJsonAsAssetSett
 				MappingsURLRequest->SetURL("https://fortnitecentral.genxgames.gg/api/v1/mappings");
 				MappingsURLRequest->SetVerb(TEXT("GET"));
 				
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 				const TSharedPtr<IHttpResponse> MappingsURLResponse = FRemoteUtilities::ExecuteRequestSync(MappingsURLRequest);
 #else
 				const TSharedPtr<IHttpResponse, ESPMode::ThreadSafe> MappingsURLResponse = FRemoteUtilities::ExecuteRequestSync(MappingsURLRequest);

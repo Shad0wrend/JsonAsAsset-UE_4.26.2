@@ -5,8 +5,9 @@
 #include "CoreMinimal.h"
 #include "Interfaces/IPluginManager.h"
 #include "Utilities/Serializers/PropertyUtilities.h"
+#include "Utilities/AppStyleCompatibility.h"
 
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
 #include "Modules/ModuleInterface.h"
 #endif
 
@@ -82,7 +83,7 @@ private:
 
     TSharedPtr<IPlugin> Plugin;
 
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
     void AddToolbarExtension(FToolBarBuilder& Builder);
 #endif
 };

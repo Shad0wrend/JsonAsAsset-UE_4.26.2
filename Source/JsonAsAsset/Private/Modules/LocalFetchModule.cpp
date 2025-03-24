@@ -5,9 +5,10 @@
 #include "Interfaces/IPluginManager.h"
 #include "Settings/JsonAsAssetSettings.h"
 #include "Windows/WindowsHWrapper.h"
+#include "Utilities/AppStyleCompatibility.h"
 #include <TlHelp32.h>
 
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
 #include "Utilities/EngineUtilities.h"
 #endif
 
@@ -29,7 +30,7 @@ bool LocalFetchModule::LaunchLocalFetch() {
 	FString FullPath = FPaths::ConvertRelativePathToFull(PluginFolder + "/Dependencies/LocalFetch/Release/Win64/LocalFetch.exe");
 	FString Params = "--urls=" + Settings->LocalFetchUrl;
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	return FPlatformProcess::LaunchFileInDefaultExternalApplication(*FullPath, *Params, ELaunchVerb::Open);
 #else
 	FPlatformProcess::LaunchFileInDefaultExternalApplication(*FullPath, *Params, ELaunchVerb::Open);

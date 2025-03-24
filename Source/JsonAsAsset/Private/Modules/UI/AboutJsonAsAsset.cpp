@@ -4,10 +4,11 @@
 #include "Modules/UI/StyleModule.h"
 
 #include "Interfaces/IPluginManager.h"
-#if ENGINE_MAJOR_VERSION >= 5
+#include "Utilities/AppStyleCompatibility.h"
+
+#if ENGINE_UE5
 #include "Styling/StyleColors.h"
 #endif
-#include "Utilities/AppStyleCompatibility.h"
 
 #define LOCTEXT_NAMESPACE "AboutJsonAsAsset"
 
@@ -63,7 +64,7 @@ void SAboutJsonAsAsset::Construct(const FArguments& InArgs) {
 										.Padding(0.f, 4.f)
 										[
 											SNew(STextBlock)
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 												.ColorAndOpacity(FStyleColors::ForegroundHover)
 #endif
 												.Font(FAppStyle::Get().GetFontStyle("AboutScreen.TitleFont"))
@@ -75,7 +76,7 @@ void SAboutJsonAsAsset::Construct(const FArguments& InArgs) {
 										[
 											SNew(SEditableText)
 												.IsReadOnly(true)
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 												.ColorAndOpacity(FStyleColors::ForegroundHover)
 #endif
 												.Text(Version)
@@ -122,7 +123,7 @@ void SAboutJsonAsAsset::Construct(const FArguments& InArgs) {
 						.AutoHeight()
 						[
 							SNew(SListView<TSharedRef<FLineDefinition>>)
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 								.ListViewStyle(&FAppStyle::Get().GetWidgetStyle<FTableViewStyle>("SimpleListView"))
 #endif
 								.ListItemsSource(&AboutLines)

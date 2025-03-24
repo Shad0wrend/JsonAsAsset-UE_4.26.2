@@ -12,7 +12,7 @@
 #include "Materials/MaterialExpressionQualitySwitch.h"
 #include "Materials/MaterialExpressionReroute.h"
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 #include "Materials/MaterialExpressionTextureBase.h"
 #endif
 
@@ -104,7 +104,7 @@ void IMaterialGraph::PropagateExpressions(FMaterialExpressionNodeExportContainer
 			FMaterialExpressionNodeExport SubGraphExport = Container.Find(SubGraphExpressionName);
 			UMaterialExpression* SubGraphExpression = SubGraphExport.Expression;
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 			/* SubgraphExpression is only on Unreal Engine 5 */
 			Expression->SubgraphExpression = SubGraphExpression;
 #else
@@ -211,7 +211,7 @@ void IMaterialGraph::AddExpressionToParent(UObject* Parent, UMaterialExpression*
 	/* Comments are added differently */
 	if (UMaterialExpressionComment* Comment = Cast<UMaterialExpressionComment>(Expression)) {
 		/* In Unreal Engine 5, we have to get the expression collection to add the comment */
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 		if (UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(Parent)) MaterialFunction->GetExpressionCollection().AddComment(Comment);
 		if (UMaterial* Material = Cast<UMaterial>(Parent)) Material->GetExpressionCollection().AddComment(Comment);
 #else
@@ -221,7 +221,7 @@ void IMaterialGraph::AddExpressionToParent(UObject* Parent, UMaterialExpression*
 #endif
 	} else {
 		/* Adding expressions is different between UE4 and UE5 */
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 		if (UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(Parent)) {
 			MaterialFunction->GetExpressionCollection().AddExpression(Expression);
 		}
@@ -255,7 +255,7 @@ UMaterialExpression* IMaterialGraph::CreateEmptyExpression(FMaterialExpressionNo
 	UObject* Parent = Export.Parent;
 
 	if (!Class) {
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 		TArray<FString> Redirects = TArray{
 			FLinkerLoad::FindNewPathNameForClass("/Script/InterchangeImport." + Type.ToString(), false),
 			FLinkerLoad::FindNewPathNameForClass("/Script/Landscape." + Type.ToString(), false)
@@ -277,7 +277,7 @@ UMaterialExpression* IMaterialGraph::CreateEmptyExpression(FMaterialExpressionNo
 		return OnMissingNodeClass(Export, Container);
 	}
 
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
 	/* Manually handled in UE4, as it doesn't exist */
 	if (Type == "MaterialExpressionPinBase") {
 		return NewObject<UMaterialExpression>(
@@ -309,7 +309,7 @@ UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeE
 	/* Get Json Objects from Export */
 	const TSharedPtr<FJsonObject> Properties = Export.GetProperties();
 
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
 	/* In Unreal Engine 4, to combat the absence of Sub-graphs, create a Material Function in place of it */
 	if (Type == "MaterialExpressionComposite") {
 		const FString SubgraphFunctionName = FileName + "_" + Name.ToString().Replace(TEXT("MaterialExpression"), TEXT(""));
@@ -522,7 +522,7 @@ FExpressionInput IMaterialGraph::PopulateExpressionInput(const FJsonObject* Json
 		if (FScalarMaterialInput* ScalarInput = reinterpret_cast<FScalarMaterialInput*>(&Input)) {
 			bool UseConstant;
 			if (JsonProperties->TryGetBoolField(TEXT("UseConstant"), UseConstant)) ScalarInput->UseConstant = UseConstant;
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 			float Constant;
 #else
 			double Constant;

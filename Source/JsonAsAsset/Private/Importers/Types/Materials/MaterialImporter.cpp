@@ -3,7 +3,7 @@
 #include "Importers/Types/Materials/MaterialImporter.h"
 
 /* Include Material.h (depends on UE Version) */
-#if (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 3) || ENGINE_MAJOR_VERSION == 4
+#if (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 3) || ENGINE_UE4
 #include "Materials/Material.h"
 #else
 #include "MaterialDomain.h"
@@ -18,7 +18,7 @@ bool IMaterialImporter::Import() {
 	UMaterial* Material = Cast<UMaterial>(MaterialFactory->FactoryCreateNew(UMaterial::StaticClass(), OutermostPkg, *FileName, RF_Standalone | RF_Public, nullptr, GWarn));
 
 	/* Clear any default expressions the engine adds */
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	Material->GetExpressionCollection().Empty();
 #else
 	Material->Expressions.Empty();
@@ -42,6 +42,12 @@ bool IMaterialImporter::Import() {
 	PropagateExpressions(ExpressionContainer);
 
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
+
+#if ENGINE_UE5
+	UMaterialEditorOnlyData* EditorOnlyData = Material->GetEditorOnlyData();
+#else
+	UMaterial* EditorOnlyData = Material;
+#endif
 	
 	if (!Settings->AssetSettings.MaterialImportSettings.bSkipResultNodeConnection) {
 		TArray<FString> IgnoredProperties = TArray<FString> {
@@ -55,13 +61,9 @@ bool IMaterialImporter::Import() {
 			if (RawConnectionData->HasField(Property))
 				RawConnectionData->RemoveField(Property);
 		}
-
+		
 		/* Connect all pins using deserializer */
-#if ENGINE_MAJOR_VERSION >= 5
-		GetObjectSerializer()->DeserializeObjectProperties(RawConnectionData, Material->GetEditorOnlyData());
-#else
-		GetObjectSerializer()->DeserializeObjectProperties(RawConnectionData, Material);
-#endif
+		GetObjectSerializer()->DeserializeObjectProperties(RawConnectionData, EditorOnlyData);
 
 		/* CustomizedUVs defined here */
 		const TArray<TSharedPtr<FJsonValue>>* InputsPtr;
@@ -74,11 +76,7 @@ bool IMaterialImporter::Import() {
 
 				if (ExpressionContainer.Contains(InputExpressionName)) {
 					FExpressionInput Input = PopulateExpressionInput(InputObject, ExpressionContainer.GetExpressionByName(InputExpressionName));
-#if ENGINE_MAJOR_VERSION >= 5
-					Material->GetEditorOnlyData()->CustomizedUVs[i] = *reinterpret_cast<FVector2MaterialInput*>(&Input);
-#else
-					Material->CustomizedUVs[i] = *reinterpret_cast<FVector2MaterialInput*>(&Input);
-#endif
+					EditorOnlyData->CustomizedUVs[i] = *reinterpret_cast<FVector2MaterialInput*>(&Input);
 				}
 				i++;
 			}
@@ -101,11 +99,7 @@ bool IMaterialImporter::Import() {
 			ParameterGroupData.Add(GroupData);
 		}
 
-#if ENGINE_MAJOR_VERSION >= 5
-		Material->GetEditorOnlyData()->ParameterGroupData = ParameterGroupData;
-#else
-		Material->ParameterGroupData = ParameterGroupData;
-#endif
+		EditorOnlyData->ParameterGroupData = ParameterGroupData;
 	}
 
 	/* Handle edit changes, and add it to the content browser */
@@ -117,7 +111,7 @@ bool IMaterialImporter::Import() {
 		int ShadingModelField;
 		
 		if (ShadingModelsPtr->Get()->TryGetNumberField(TEXT("ShadingModelField"), ShadingModelField)) {
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 			Material->GetShadingModels().SetShadingModelField(ShadingModelField);
 #else
 			/* Not to sure what to do in UE4, no function exists to override it. */

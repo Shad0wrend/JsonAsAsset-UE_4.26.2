@@ -9,7 +9,7 @@ bool IMaterialFunctionImporter::Import() {
 	UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(MaterialFunctionFactory->FactoryCreateNew(UMaterialFunction::StaticClass(), OutermostPkg, *FileName, RF_Standalone | RF_Public, nullptr, GWarn));
 
 	/* Empty all expressions, we create them */
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	MaterialFunction->GetExpressionCollection().Empty();
 #else
 	MaterialFunction->FunctionExpressions.Empty();

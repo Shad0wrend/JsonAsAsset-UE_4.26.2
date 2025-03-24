@@ -41,7 +41,7 @@ bool ICurveLinearColorAtlasImporter::Import() {
 
 	bool bSquareResolution = false;
 
-#if !(ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27)
+#if !UE4_27_ONLY_BELOW
 	if (AssetData->TryGetBoolField(TEXT("bSquareResolution"), bSquareResolution)) {
 		Object->bSquareResolution = bSquareResolution;
 	}
@@ -59,7 +59,7 @@ bool ICurveLinearColorAtlasImporter::Import() {
 		Object->TextureSize = TextureSize;
 	}
 
-#if !(ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27)
+#if !UE4_27_ONLY_BELOW
 	if (AssetData->TryGetNumberField(TEXT("TextureHeight"), TextureHeight)) {
 		Object->TextureHeight = TextureHeight;
 	}
@@ -76,7 +76,7 @@ bool ICurveLinearColorAtlasImporter::Import() {
 	const TArray<TSharedPtr<FJsonValue>> GradientCurves = AssetData->GetArrayField(TEXT("GradientCurves"));
 	TArray<TObjectPtr<UCurveLinearColor>> CurvesLocal;
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	CurvesLocal = LoadObject(GradientCurves, CurvesLocal);
 	Object->GradientCurves = CurvesLocal;
 	Object->PostEditChangeProperty(PropertyChangedEvent);

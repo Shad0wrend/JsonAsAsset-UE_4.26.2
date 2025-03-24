@@ -416,7 +416,7 @@ inline TSharedPtr<FJsonObject> KeepPropertiesShared(const TSharedPtr<FJsonObject
 inline void SavePluginConfig(UDeveloperSettings* EditorSettings) {
 	EditorSettings->SaveConfig();
 	
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	EditorSettings->TryUpdateDefaultConfigFile();
 	EditorSettings->ReloadConfig(nullptr, nullptr, UE::LCPF_PropagateToInstances);
 #else
@@ -454,7 +454,7 @@ inline auto ProcessExports(const TArray<TSharedPtr<FJsonValue>>& Exports,
 
 /* ReSharper disable once CppParameterNeverUsed */
 inline void SetNotificationSubText(FNotificationInfo& Notification, const FText& SubText) {
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	Notification.SubText = SubText;
 #endif
 }
@@ -529,7 +529,7 @@ inline FString ReadPathFromObject(const TSharedPtr<FJsonObject>* PackageIndex) {
 /* Creates a plugin in the name (may result in bugs if inputted wrong) */
 static void CreatePlugin(FString PluginName) {
 	/* Plugin creation is different between UE5 and UE4 */
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	FPluginUtils::FNewPluginParamsWithDescriptor CreationParams;
 	CreationParams.Descriptor.bCanContainContent = true;
 
@@ -585,7 +585,7 @@ inline void SendHttpRequest(const FString& URL, TFunction<void(FHttpRequestPtr, 
 		return;
 	}
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	const TSharedRef<IHttpRequest> Request = Http->CreateRequest();
 #else
 	const TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();

@@ -31,12 +31,12 @@ inline FVector ObjectToVector(const FJsonObject* Object) {
 	return FVector(Object->GetNumberField(TEXT("X")), Object->GetNumberField(TEXT("Y")), Object->GetNumberField(TEXT("Z")));
 }
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 inline FVector3f ObjectToVector3f(const FJsonObject* Object) {
 	return FVector3f(Object->GetNumberField(TEXT("X")), Object->GetNumberField(TEXT("Y")), Object->GetNumberField(TEXT("Z")));
 }
-
 #else
+
 inline FVector ObjectToVector3f(const FJsonObject* Object) {
 	return FVector(Object->GetNumberField(TEXT("X")), Object->GetNumberField(TEXT("Y")), Object->GetNumberField(TEXT("Z")));
 }

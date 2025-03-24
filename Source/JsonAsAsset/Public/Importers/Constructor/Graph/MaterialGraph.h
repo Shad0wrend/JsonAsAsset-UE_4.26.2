@@ -108,7 +108,7 @@ protected:
 	UMaterialExpression* OnMissingNodeClass(FMaterialExpressionNodeExport& Export, FMaterialExpressionNodeExportContainer& Container);
 	void SpawnMaterialDataMissingNotification() const;
 
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
 	/*
 	 * In Unreal Engine 4, to combat the absence of Sub-graphs, create a Material Function in place of it
 	 * This holds a mapping to the name of the composite node it was created from, and the material

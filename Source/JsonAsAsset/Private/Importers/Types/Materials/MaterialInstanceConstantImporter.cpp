@@ -35,8 +35,8 @@ bool IMaterialInstanceConstantImporter::Import() {
 	}
 
 	/* ~~~~~~~~~ STATIC PARAMETERS ~~~~~~~~~~~ */
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
-	FStaticParameterSet NewStaticParameterSet; /* Unreal Engine 5.2 and beyond have a different method */
+#if UE5_2_BEYOND || UE4_27_BELOW
+	FStaticParameterSet NewStaticParameterSet; /* Unreal Engine 5.2/4.26 and beyond have a different method */
 #endif
 
 	TArray<FStaticSwitchParameter> StaticSwitchParameters;
@@ -60,13 +60,14 @@ bool IMaterialInstanceConstantImporter::Import() {
 		);
 
 		StaticSwitchParameters.Add(Parameter);
-		#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 2
-			MaterialInstanceConstant->GetEditorOnlyData()->StaticParameters.StaticSwitchParameters.Add(Parameter);
-		#endif
-		#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
-			/* Unreal Engine 5.2 and beyond have a different method */
-			NewStaticParameterSet.StaticSwitchParameters.Add(Parameter); 
-		#endif
+#if UE5_1_BELOW
+		MaterialInstanceConstant->GetEditorOnlyData()->StaticParameters.StaticSwitchParameters.Add(Parameter);
+#endif
+		
+#if UE5_2_BEYOND || UE4_27_BELOW
+		/* Unreal Engine 5.2/4.26 and beyond have a different method */
+		NewStaticParameterSet.StaticSwitchParameters.Add(Parameter); 
+#endif
 	}
 
 	TArray<FStaticComponentMaskParameter> StaticSwitchMaskParameters;
@@ -93,15 +94,21 @@ bool IMaterialInstanceConstantImporter::Import() {
 		);
 
 		StaticSwitchMaskParameters.Add(Parameter);
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 2
+#if UE5_1_BELOW
 		MaterialInstanceConstant->GetEditorOnlyData()->StaticParameters.StaticComponentMaskParameters.Add(Parameter);
 #endif
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
-		NewStaticParameterSet.EditorOnly.StaticComponentMaskParameters.Add(Parameter);
+		
+#if UE5_2_BEYOND || UE4_27_BELOW
+		NewStaticParameterSet.
+		/* EditorOnly is needed on 5.2+ */
+		#if UE5_2_BEYOND
+			EditorOnly.
+		#endif
+		StaticComponentMaskParameters.Add(Parameter);
 #endif
 	}
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
+#if UE5_2_BEYOND || UE4_27_BELOW
 	FMaterialUpdateContext MaterialUpdateContext(FMaterialUpdateContext::EOptions::Default & ~FMaterialUpdateContext::EOptions::RecreateRenderStates);
 
 	MaterialInstanceConstant->UpdateStaticPermutation(NewStaticParameterSet, &MaterialUpdateContext);

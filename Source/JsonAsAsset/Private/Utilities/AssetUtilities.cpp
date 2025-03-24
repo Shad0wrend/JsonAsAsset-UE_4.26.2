@@ -29,7 +29,7 @@
 UPackage* FAssetUtilities::CreateAssetPackage(const FString& FullPath) {
 	UPackage* Package = CreatePackage(
 		/* 4.25, 4.26.0 and below need an Outer */
-#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 26) || (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION == 26 && ENGINE_PATCH_VERSION == 0)
+#if UE4_25_BELOW || (UE4_26_0)
 		nullptr, 
 #endif
 		*FullPath);
@@ -224,7 +224,7 @@ bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& 
 	/* ~~~~~~~~~~~~~~~ Download Texture Data ~~~~~~~~~~~~ */
 	if (Type != "TextureRenderTarget2D") {
 		FHttpModule* HttpModule = &FHttpModule::Get();
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 		const TSharedRef<IHttpRequest> HttpRequest = HttpModule->CreateRequest();
 #else
 		const TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = HttpModule->CreateRequest();
@@ -234,7 +234,7 @@ bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& 
 		HttpRequest->SetHeader("content-type", "application/octet-stream");
 		HttpRequest->SetVerb(TEXT("GET"));
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 		const TSharedPtr<IHttpResponse> HttpResponse = FRemoteUtilities::ExecuteRequestSync(HttpRequest);
 #else
 		const TSharedPtr<IHttpResponse, ESPMode::ThreadSafe> HttpResponse = FRemoteUtilities::ExecuteRequestSync(HttpRequest);
@@ -294,7 +294,7 @@ bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& 
 	if (Settings->AssetSettings.bSavePackagesOnImport) {
 		const FString PackageName = Package->GetName();
 		const FString PackageFileName = FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension());
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 		FSavePackageArgs SaveArgs; {
 			SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
 			SaveArgs.SaveFlags = SAVE_NoError;
@@ -314,7 +314,7 @@ bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& 
 TSharedPtr<FJsonObject> FAssetUtilities::API_RequestExports(const FString& Path, const FString& FetchPath) {
 	FHttpModule* HttpModule = &FHttpModule::Get();
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	const TSharedRef<IHttpRequest> HttpRequest = HttpModule->CreateRequest();
 #else
 	const TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = HttpModule->CreateRequest();
@@ -326,7 +326,7 @@ TSharedPtr<FJsonObject> FAssetUtilities::API_RequestExports(const FString& Path,
 
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	const TSharedRef<IHttpRequest> NewRequest = HttpModule->CreateRequest();
 #else
 	const TSharedRef<IHttpRequest, ESPMode::ThreadSafe> NewRequest = HttpModule->CreateRequest();
@@ -334,7 +334,7 @@ TSharedPtr<FJsonObject> FAssetUtilities::API_RequestExports(const FString& Path,
 	NewRequest->SetURL(Settings->LocalFetchUrl + FetchPath + Path);
 	NewRequest->SetVerb(TEXT("GET"));
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	const TSharedPtr<IHttpResponse> NewResponse = FRemoteUtilities::ExecuteRequestSync(NewRequest);
 #else
 	const TSharedPtr<IHttpResponse, ESPMode::ThreadSafe> NewResponse = FRemoteUtilities::ExecuteRequestSync(NewRequest);

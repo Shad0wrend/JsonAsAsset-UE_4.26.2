@@ -18,7 +18,7 @@ bool FTextureCreatorUtilities::CreateTexture2D(UTexture*& OutTexture2D, TArray<u
 
 	UTexture2D* Texture2D = NewObject<UTexture2D>(OutermostPkg, UTexture2D::StaticClass(), *FileName, RF_Standalone | RF_Public);
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	Texture2D->SetPlatformData(new FTexturePlatformData());
 #else
 	Texture2D->PlatformData = new FTexturePlatformData();
@@ -26,7 +26,7 @@ bool FTextureCreatorUtilities::CreateTexture2D(UTexture*& OutTexture2D, TArray<u
 
 	DeserializeTexture2D(Texture2D, SubObjectProperties);
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	FTexturePlatformData* PlatformData = Texture2D->GetPlatformData();
 #else
 	FTexturePlatformData* PlatformData = Texture2D->PlatformData;
@@ -77,7 +77,7 @@ bool FTextureCreatorUtilities::CreateTexture2D(UTexture*& OutTexture2D, TArray<u
 bool FTextureCreatorUtilities::CreateTextureCube(UTexture*& OutTextureCube, const TArray<uint8>& Data, const TSharedPtr<FJsonObject>& Properties) const {
 	UTextureCube* TextureCube = NewObject<UTextureCube>(Package, UTextureCube::StaticClass(), *FileName, RF_Public | RF_Standalone);
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	TextureCube->SetPlatformData(new FTexturePlatformData());
 #else
 	TextureCube->PlatformData = new FTexturePlatformData();
@@ -85,7 +85,7 @@ bool FTextureCreatorUtilities::CreateTextureCube(UTexture*& OutTextureCube, cons
 
 	DeserializeTexture(TextureCube, Properties);
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	FTexturePlatformData* PlatformData = TextureCube->GetPlatformData();
 #else
 	FTexturePlatformData* PlatformData = TextureCube->PlatformData;
@@ -125,12 +125,12 @@ bool FTextureCreatorUtilities::CreateVolumeTexture(UTexture*& OutVolumeTexture, 
 
 	DeserializeTexture(VolumeTexture, Properties);
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	VolumeTexture->SetPlatformData(new FTexturePlatformData());
 #endif
 	FString PixelFormat;
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	FTexturePlatformData* PlatformData = VolumeTexture->GetPlatformData();
 #else
 	FTexturePlatformData* PlatformData = VolumeTexture->PlatformData;
@@ -223,7 +223,7 @@ bool FTextureCreatorUtilities::DeserializeTexture2D(UTexture2D* InTexture2D, con
 	if (Properties->TryGetBoolField(TEXT("bHasBeenPaintedInEditor"), bHasBeenPaintedInEditor)) InTexture2D->bHasBeenPaintedInEditor = bHasBeenPaintedInEditor;
 
 	/* ~~~~~~~~~~~~~ Platform Data ~~~~~~~~~~~~~ */
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	FTexturePlatformData* PlatformData = InTexture2D->GetPlatformData();
 #else
 	FTexturePlatformData* PlatformData = InTexture2D->PlatformData;

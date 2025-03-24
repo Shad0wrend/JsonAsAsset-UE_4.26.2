@@ -471,7 +471,7 @@ void IImporter::SavePackage() const {
 
 	/* User option to save packages on import */
 	if (Settings->AssetSettings.bSavePackagesOnImport) {
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 		FSavePackageArgs SaveArgs; {
 			SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
 			SaveArgs.Error = GError;

@@ -75,7 +75,7 @@ bool IAnimationBaseImporter::Import() {
 	
 	/* In Unreal Engine 5, a new data model has been added to edit animation curves */
 	/* Unreal Engine 5.2 changed handling getting a data model */
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
+#if UE5_2_BEYOND
 	IAnimationDataController& Controller = AnimSequenceBase->GetController();
 #if ENGINE_MINOR_VERSION >= 3
 	IAnimationDataModel* DataModel = AnimSequenceBase->GetDataModel();
@@ -106,7 +106,7 @@ bool IAnimationBaseImporter::Import() {
 		int CurveTypeFlags = FloatCurveObject->AsObject()->GetIntegerField(TEXT("CurveTypeFlags"));
 
 		/* Adding the track name to skeletons differ between Unreal Engine 4 and 5 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
 		FSmartName NewTrackName;
 
 		Skeleton->AddSmartNameAndModify(USkeleton::AnimCurveMappingName, FName(*DisplayName), NewTrackName);
@@ -193,13 +193,13 @@ bool IAnimationBaseImporter::Import() {
 			 * Unreal Engine 4: Simply adding curves to RawCurveData
 			 * Unreal Engine 5: Using a AnimDataController to handle adding curves
 			*/
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
+#if UE5_2_BEYOND
 			Controller.SetCurveKey(CurveId, RichKey);
 #endif
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
 			FRawCurveTracks& Tracks = AnimSequenceBase->RawCurveData;
 #endif
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
 			Tracks.AddFloatCurveKey(NewTrackName, CurveTypeFlags, RichKey.Time, RichKey.Value);
 
 			for (FFloatCurve& Track : Tracks.FloatCurves)
@@ -213,15 +213,15 @@ bool IAnimationBaseImporter::Import() {
 				}
 			}
 #endif
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 2
+#if UE5_1_BELOW
 #endif
 		}
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
+#if UE5_2_BEYOND
 		Controller.CloseBracket();
 #endif
 	}
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
+#if UE5_2_BEYOND
 	if (ITargetPlatform* RunningPlatform = GetTargetPlatformManagerRef().GetRunningTargetPlatform()) {
 		CastedAnimSequence->CacheDerivedData(RunningPlatform);
 	}
@@ -231,7 +231,7 @@ bool IAnimationBaseImporter::Import() {
 	}
 #endif
 
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
 	AnimSequenceBase->MarkRawDataAsModified();
 #endif
 	AnimSequenceBase->Modify();

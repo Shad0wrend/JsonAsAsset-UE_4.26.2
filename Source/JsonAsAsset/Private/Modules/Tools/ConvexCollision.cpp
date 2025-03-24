@@ -3,6 +3,8 @@
 #include "Modules/Tools/ConvexCollision.h"
 #include "Utilities/EngineUtilities.h"
 
+#include "PhysicsEngine/BodySetup.h"
+
 void FToolConvexCollision::Execute() {
 	TArray<FAssetData> AssetDataList = GetAssetsInSelectedFolder();
 
@@ -37,7 +39,7 @@ void FToolConvexCollision::Execute() {
 		TArray<TSharedPtr<FJsonValue>> Exports = Response->GetArrayField(TEXT("jsonOutput"));
 		
 		/* Get Body Setup (different in Unreal Engine versions) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#if !(ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27)
+#if !UE4_27_ONLY_BELOW
 		UBodySetup* BodySetup = StaticMesh->GetBodySetup();
 #else
 		UBodySetup* BodySetup = StaticMesh->BodySetup;

@@ -6,14 +6,14 @@
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 #include "Interfaces/IMainFrameModule.h"
 #else
 /* ReSharper disable once CppUnusedIncludeDirective */
 #include "MainFrame/Public/Interfaces/IMainFrameModule.h"
 #endif
 
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
 #include "ToolMenus.h"
 #include "Logging/MessageLog.h"
 #include "LevelEditor.h"
@@ -201,7 +201,7 @@ void FJsonAsAssetModule::StartupModule() {
 
 	    FNotificationInfo Info(TitleText);
 
-	#if ENGINE_MAJOR_VERSION >= 5
+	#if ENGINE_UE5
 	    Info.SubText = MessageText;
 	#else
 	    Info.Text = MessageText;
@@ -254,7 +254,7 @@ void FJsonAsAssetModule::StartupModule() {
         MessageLogModule.RegisterLogListing("JsonAsAsset", NSLOCTEXT("JsonAsAsset", "JsonAsAssetLogLabel", "JsonAsAsset"), InitOptions);
     }
 
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
 	FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor"); {
     	TSharedPtr<FExtender> ToolbarExtender = MakeShareable(new FExtender);
     	ToolbarExtender->AddToolBarExtension("Settings", EExtensionHook::After, PluginCommands, FToolBarExtensionDelegate::CreateRaw(this, &FJsonAsAssetModule::AddToolbarExtension));
@@ -348,7 +348,7 @@ void FJsonAsAssetModule::RegisterMenus() {
 	Section.AddEntry(PluginMenuEntry);
 }
 
-#if ENGINE_MAJOR_VERSION == 4
+#if ENGINE_UE4
 void FJsonAsAssetModule::AddToolbarExtension(FToolBarBuilder& Builder) {
 	Builder.AddToolBarButton(
 		FUIAction(
@@ -426,42 +426,6 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 			),
 			NAME_None
 		);
-
-		if (Settings->AssetSettings.bEnableAssetTools) {
-			MenuBuilder.AddSubMenu(
-				LOCTEXT("JsonAsAssetAssetToolsMenu", "Open Asset Tools"),
-				LOCTEXT("JsonAsAssetAssetToolsMenuToolTip", "Extra functionality / tools to do very specific data importing with assets."),
-				FNewMenuDelegate::CreateLambda([this](FMenuBuilder& InnerMenuBuilder) {
-					InnerMenuBuilder.BeginSection("JsonAsAssetSection", LOCTEXT("JsonAsAssetSection", "Asset Tools"));
-					{
-						InnerMenuBuilder.AddMenuEntry(
-							LOCTEXT("JsonAsAssetAssetToolsCollisionExButton", "Import Folder Collision Convex"),
-							LOCTEXT("JsonAsAssetAssetToolsButtonTooltip", "Imports convex collision data using Local Fetch and applies it to the corresponding assets."),
-							FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.BspMode"),
-
-							FUIAction(
-								FExecuteAction::CreateStatic(&FToolConvexCollision::Execute)
-							),
-							NAME_None
-						);
-
-						InnerMenuBuilder.AddMenuEntry(
-							LOCTEXT("JsonAsAssetAssetToolsAnimationDataButton", "Import Animation Data from Local Fetch"),
-							LOCTEXT("JsonAsAssetAssetToolsAnimationDataButtonTooltip", "Imports animation data using Local Fetch and applies it to the corresponding assets in the content browser folder."),
-							FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.BspMode"),
-
-							FUIAction(
-								FExecuteAction::CreateStatic(&FToolAnimationData::Execute)
-							),
-							NAME_None
-						);
-					}
-					InnerMenuBuilder.EndSection();
-				}),
-				false,
-				FSlateIcon(FAppStyle::Get().GetStyleSetName(), "ProjectSettings.TabIcon")
-			);
-		}
 	}
 
 	MenuBuilder.EndSection();
@@ -606,6 +570,48 @@ void FJsonAsAssetModule::CreateLocalFetchDropdown(FMenuBuilder MenuBuilder) cons
 		false,
 		FSlateIcon()
 	);
+
+	if (Settings->AssetSettings.bEnableAssetTools) {
+		MenuBuilder.AddSubMenu(
+			LOCTEXT("JsonAsAssetAssetToolsMenu", "Tools"),
+			LOCTEXT("JsonAsAssetAssetToolsMenuToolTip", "Extra tools to use with Local Fetch"),
+			FNewMenuDelegate::CreateLambda([this](FMenuBuilder& InnerMenuBuilder) {
+				InnerMenuBuilder.BeginSection("JsonAsAssetToolsSection", LOCTEXT("JsonAsAssetToolsSection", "Tools"));
+				{
+					InnerMenuBuilder.AddMenuEntry(
+						LOCTEXT("JsonAsAssetAssetToolsCollisionExButton", "Import Static Mesh Properties from Local Fetch"),
+						LOCTEXT("JsonAsAssetAssetToolsButtonTooltip", "Imports collision, properties and more using Local Fetch and applies it to the corresponding assets in the content browser folder."),
+						FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.BspMode"),
+
+						FUIAction(
+							FExecuteAction::CreateStatic(&FToolConvexCollision::Execute),
+							FCanExecuteAction::CreateLambda([this]() {
+								return IsProcessRunning("LocalFetch.exe");
+							})
+						),
+						NAME_None
+					);
+
+					InnerMenuBuilder.AddMenuEntry(
+						LOCTEXT("JsonAsAssetAssetToolsAnimationDataButton", "Import Animation Data from Local Fetch"),
+						LOCTEXT("JsonAsAssetAssetToolsAnimationDataButtonTooltip", "Imports animation data using Local Fetch and applies it to the corresponding assets in the content browser folder."),
+						FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.BspMode"),
+
+						FUIAction(
+							FExecuteAction::CreateStatic(&FToolAnimationData::Execute),
+							FCanExecuteAction::CreateLambda([this]() {
+								return IsProcessRunning("LocalFetch.exe");
+							})
+						),
+						NAME_None
+					);
+				}
+				InnerMenuBuilder.EndSection();
+			}),
+			false
+		);
+	}
+	
 	MenuBuilder.EndSection();
 }
 
@@ -665,7 +671,7 @@ void FJsonAsAssetModule::CreateLastDropdown(FMenuBuilder MenuBuilder) const {
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "MessageLog.Action"),
 		FUIAction(
 			FExecuteAction::CreateLambda([this]() {
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 				TSharedPtr<SWindow> AboutWindow =
 					SNew(SWindow)
 					.Title(LOCTEXT("AboutJsonAsAsset", "About JsonAsAsset"))
@@ -755,13 +761,13 @@ void FJsonAsAssetModule::CheckForUpdates() {
 
 	FHttpModule* HttpModule = &FHttpModule::Get();
 
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	const TSharedRef<IHttpRequest> Request = HttpModule->CreateRequest();
 #else
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = HttpModule->CreateRequest();
 #endif
 	
-#if ENGINE_MAJOR_VERSION >= 5
+#if ENGINE_UE5
 	const TSharedPtr<IHttpResponse> Response = FRemoteUtilities::ExecuteRequestSync(Request);
 #else
 	const TSharedPtr<IHttpResponse, ESPMode::ThreadSafe> Response = FRemoteUtilities::ExecuteRequestSync(Request);
