@@ -1,6 +1,8 @@
 ﻿/* Copyright JsonAsAsset Contributors 2024-2025 */
 
 #include "Modules/Tools/ConvexCollision.h"
+
+#include "Engine/StaticMeshSocket.h"
 #include "Utilities/EngineUtilities.h"
 
 #include "PhysicsEngine/BodySetup.h"
@@ -11,9 +13,6 @@ void FToolConvexCollision::Execute() {
 	if (AssetDataList.Num() == 0) {
 		return;
 	}
-	
-	/* Create an object serializer */
-	UObjectSerializer* ObjectSerializer = CreateObjectSerializer();
 
 	for (const FAssetData& AssetData : AssetDataList) {
 		if (!AssetData.IsValid()) continue;
@@ -58,8 +57,26 @@ void FToolConvexCollision::Execute() {
 
 			if (Type == "StaticMesh") {
 				StaticMesh->DistanceFieldSelfShadowBias = 0.0;
+
+				/* Create an object serializer */
+				UObjectSerializer* ObjectSerializer = CreateObjectSerializer();
+
+				StaticMesh->Sockets.Empty();
+
+				ObjectSerializer->SetExportForDeserialization(JsonObject);
+				ObjectSerializer->ParentAsset = StaticMesh;
+
+				ObjectSerializer->DeserializeExports(Exports);
+
+				for (FUObjectExport UObjectExport : ObjectSerializer->GetPropertySerializer()->ExportsContainer.Exports) {
+					if (UStaticMeshSocket* Socket = Cast<UStaticMeshSocket>(UObjectExport.Object)) {
+						StaticMesh->AddSocket(Socket);
+					}
+				}
+				
 				ObjectSerializer->DeserializeObjectProperties(RemovePropertiesShared(Properties, {
-					"StaticMaterials"
+					"StaticMaterials",
+					"Sockets"
 				}), StaticMesh);
 			}
 
@@ -69,7 +86,8 @@ void FToolConvexCollision::Execute() {
 			/* Empty any collision data */
 			BodySetup->AggGeom.EmptyElements();
 			BodySetup->CollisionTraceFlag = CTF_UseDefault;
-			
+
+			UObjectSerializer* ObjectSerializer = CreateObjectSerializer();
 			ObjectSerializer->DeserializeObjectProperties(Properties, BodySetup);
 
 			BodySetup->PostEditChange();

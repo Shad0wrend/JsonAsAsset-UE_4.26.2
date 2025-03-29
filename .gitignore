@@ -4,8 +4,8 @@ Binaries/Win64/UnrealEditor.modules
 Binaries/Win64/UE4Editor.modules
 
 # Particle System Importing is not finalized
-Source/JsonAsAsset/Private/Importers/Types/ParticleSystemImporter.cpp
-Source/JsonAsAsset/Public/Importers/Types/ParticleSystemImporter.h
+Source/JsonAsAsset/Public/Importers/Types/Cascade/*
+Source/JsonAsAsset/Private/Importers/Types/Cascade/*
 
 # VS Code Settings
 .vscode/settings.json

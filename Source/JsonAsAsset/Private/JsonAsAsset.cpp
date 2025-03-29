@@ -36,6 +36,7 @@
 #include "HttpModule.h"
 #include "Logging/MessageLog.h"
 #include "Modules/Tools/AnimationData.h"
+#include "Modules/Tools/ClearImportData.h"
 #include "Modules/Tools/ConvexCollision.h"
 #include "Modules/UI/AboutJsonAsAsset.h"
 #include "Modules/UI/CommandsModule.h"
@@ -417,7 +418,11 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 		MenuBuilder.AddMenuEntry(
 		LOCTEXT("JsonAsAssetDocumentationButton", "Documentation"),
 		LOCTEXT("JsonAsAssetDocumentationButtonTooltip", "View JsonAsAsset documentation"),
+#if ENGINE_UE5
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Documentation"),
+#else
+			FSlateIcon(FEditorStyle::GetStyleSetName(), "LevelEditor.BrowseDocumentation"),
+#endif
 			FUIAction(
 				FExecuteAction::CreateLambda([this]() {
 					FString URL = "https://github.com/JsonAsAsset/JsonAsAsset";
@@ -459,7 +464,11 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 	MenuBuilder.AddMenuEntry(
 		LOCTEXT("JsonAsAssetSettingsButton", "Open Plugin Settings"),
 		LOCTEXT("JsonAsAssetSettingsButtonTooltip", "Navigate to the JsonAsAsset plugin settings"),
+#if ENGINE_UE5
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Settings"),
+#else
+		FSlateIcon(FEditorStyle::GetStyleSetName(), "ProjectSettings.TabIcon"),
+#endif
 		FUIAction(
 			FExecuteAction::CreateLambda([this]() {
 				/* Send user to plugin settings */
@@ -572,8 +581,9 @@ void FJsonAsAssetModule::CreateLocalFetchDropdown(FMenuBuilder MenuBuilder) cons
 	);
 
 	if (Settings->AssetSettings.bEnableAssetTools) {
+		MenuBuilder.AddSeparator();
 		MenuBuilder.AddSubMenu(
-			LOCTEXT("JsonAsAssetAssetToolsMenu", "Tools"),
+			LOCTEXT("JsonAsAssetAssetToolsMenu", "Fetch Tools"),
 			LOCTEXT("JsonAsAssetAssetToolsMenuToolTip", "Extra tools to use with Local Fetch"),
 			FNewMenuDelegate::CreateLambda([this](FMenuBuilder& InnerMenuBuilder) {
 				InnerMenuBuilder.BeginSection("JsonAsAssetToolsSection", LOCTEXT("JsonAsAssetToolsSection", "Tools"));
@@ -605,6 +615,20 @@ void FJsonAsAssetModule::CreateLocalFetchDropdown(FMenuBuilder MenuBuilder) cons
 						),
 						NAME_None
 					);
+					
+					InnerMenuBuilder.AddMenuEntry(
+						LOCTEXT("JsonAsAssetAssetToolsClearImportDataButton", "Clear Import Data"),
+						LOCTEXT("JsonAsAssetAssetToolClearImportDataButtonTooltip", ""),
+						FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.BspMode"),
+
+						FUIAction(
+							FExecuteAction::CreateStatic(&FToolClearImportData::Execute),
+							FCanExecuteAction::CreateLambda([this]() {
+								return IsProcessRunning("LocalFetch.exe");
+							})
+						),
+						NAME_None
+					);
 				}
 				InnerMenuBuilder.EndSection();
 			}),
@@ -627,7 +651,12 @@ void FJsonAsAssetModule::CreateVersioningDropdown(FMenuBuilder MenuBuilder) cons
 	MenuBuilder.BeginSection("JsonAsAssetVersioningSection", FText::FromString("Versioning"));
 	
 	FText Text, Tooltip;
-	FSlateIcon Icon = FSlateIcon(FAppStyle::GetAppStyleSetName(), "Blueprint.CompileStatus.Background", NAME_None);
+	FSlateIcon Icon =
+#if ENGINE_UE5
+		FSlateIcon(FAppStyle::GetAppStyleSetName(), "Blueprint.CompileStatus.Background", NAME_None);
+#else
+		FSlateIcon(FEditorStyle::GetStyleSetName(), "MainFrame.CreditsUnrealEd");
+#endif
 
 	/* A new release is available */
 	if (Versioning.bNewVersionAvailable) {

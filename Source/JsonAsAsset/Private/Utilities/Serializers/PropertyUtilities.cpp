@@ -116,8 +116,6 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 
 	TSharedRef<FJsonValue> NewJsonValue = JsonValue;
 
-	if (NewJsonValue->IsNull()) return;
-
 	if (MapProperty) {
 		FProperty* KeyProperty = MapProperty->KeyProp;
 		FProperty* ValueProperty = MapProperty->ValueProp;
@@ -196,8 +194,7 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 				PathString = SoftJsonObjectProperty->GetStringField(TEXT("AssetPathName"));
 			break;
 
-			/* Older game builds
-			 */
+			/* Older game builds */
 			default:
 				PathString = NewJsonValue->AsString();
 			break;
@@ -223,6 +220,10 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 	else if (const FObjectPropertyBase* ObjectProperty = CastField<const FObjectPropertyBase>(Property)) {
 		/* Need to serialize full UObject for object property */
 		TObjectPtr<UObject> Object = NULL;
+
+		if (NewJsonValue->IsNull()) {
+			ObjectProperty->SetObjectPropertyValue(Value, nullptr);
+		}
 
 		auto JsonValueAsObject = NewJsonValue->AsObject();
 		bool bUseDefaultLoadObject = !JsonValueAsObject->GetStringField(TEXT("ObjectName")).Contains(":ParticleModule");
@@ -270,6 +271,7 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 		}
 
 		FString ObjectName = JsonValueAsObject->GetStringField(TEXT("ObjectName"));
+		FString ObjectPath = JsonValueAsObject->GetStringField(TEXT("ObjectPath"));
 
 		if (ObjectName.Contains(".")) {
 			ObjectName.Split(".", nullptr, &ObjectName);
@@ -280,22 +282,20 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 			ObjectName.Split(":", nullptr, &ObjectName);
 			ObjectName.Split("'", &ObjectName, nullptr);
 		}
-		
-		if (UObject** FoundObjectPtr = ReferencedObjects.Find(ObjectName)) {
-			UObject* FoundObject = *FoundObjectPtr;
+
+		if (FUObjectExport Export = ExportsContainer.Find(ObjectName); Export.Object != nullptr) {
+			UObject* FoundObject = Export.Object;
 
 			if (FoundObject) {
 				ObjectProperty->SetObjectPropertyValue(Value, FoundObject);
 			}
 		}
 
-		if (ObjectName.StartsWith("Distribution")) {
-			FString DistributionSecondaryName;
-			ObjectName.Split(".", nullptr, &DistributionSecondaryName);
-			DistributionSecondaryName = DistributionSecondaryName.Replace(TEXT("'"), TEXT(""));
+		if (UObject* Parent = ObjectSerializer->ParentAsset) {
+			FString Name = Parent->GetName();
 
-			if (UObject** FoundObjectPtr = ReferencedObjects.Find(DistributionSecondaryName)) {
-				UObject* FoundObject = *FoundObjectPtr;
+			if (FUObjectExport Export = ExportsContainer.Find(ObjectName, Name); Export.Object != nullptr) {
+				UObject* FoundObject = Export.Object;
 
 				if (FoundObject) {
 					ObjectProperty->SetObjectPropertyValue(Value, FoundObject);

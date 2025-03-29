@@ -73,7 +73,6 @@ struct FMaterialExpressionNodeExportContainer {
 	}
 };
 
-
 /*
  * Material Graph Handler
  * Handles everything needed to create a material graph from JSON.

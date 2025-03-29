@@ -67,6 +67,99 @@ public:
 	virtual bool Compare(UScriptStruct* Struct, const TSharedPtr<FJsonObject> JsonValue, const void* StructData, const TSharedPtr<FObjectCompareContext> Context) override;
 };
 
+/* A structure to hold data for a UObject export. */
+struct FUObjectExport {
+	FUObjectExport(): Object(nullptr), Parent(nullptr) {};
+
+	FName Name;
+	FName Type;
+	FName Outer;
+
+	/* The json object of the expression, this is not Properties */
+	TSharedPtr<FJsonObject> JsonObject;
+
+	/* Object created */
+	UObject* Object;
+
+	/* Parent of this expression */
+	UObject* Parent;
+
+	int Position;
+
+	FUObjectExport(const FName& Name, const FName& Type, const FName Outer, const TSharedPtr<FJsonObject>& JsonObject, UObject* Object, UObject* Parent, int Position)
+		: Name(Name), Type(Type), Outer(Outer), JsonObject(JsonObject), Object(Object), Parent(Parent), Position(Position) {
+	}
+
+	TSharedPtr<FJsonObject> GetProperties() const {
+		TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
+
+		return Properties;
+	}
+};
+
+struct FUObjectExportContainer {
+	/* Array of Expression Exports */
+	TArray<FUObjectExport> Exports;
+	
+	FUObjectExportContainer() {};
+
+	FUObjectExport Find(const FName Name) {
+		for (FUObjectExport Export : Exports) {
+			if (Export.Name == Name) {
+				return Export;
+			}
+		}
+
+		return FUObjectExport();
+	}
+
+	FUObjectExport Find(const FName Name, const FName Outer) {
+		for (FUObjectExport Export : Exports) {
+			if (Export.Name == Name && Export.Outer == Outer) {
+				return Export;
+			}
+		}
+
+		return FUObjectExport();
+	}
+
+	FUObjectExport Find(const int Position) {
+		for (FUObjectExport Export : Exports) {
+			if (Export.Position == Position) {
+				return Export;
+			}
+		}
+
+		return FUObjectExport();
+	}
+
+	FUObjectExport Find(const FString Name) {
+		return Find(FName(*Name));
+	}
+
+	FUObjectExport Find(const FString Name, const FString Outer) {
+		return Find(FName(*Name), FName(*Outer));
+	}
+	
+	bool Contains(const FName Name) {
+		for (FUObjectExport Export : Exports) {
+			if (Export.Name == Name) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	void Empty() {
+		Exports.Empty();
+	}
+	
+	int Num() const {
+		return Exports.Num();
+	}
+};
+
 UCLASS()
 class JSONASASSET_API UPropertySerializer : public UObject
 {
@@ -87,8 +180,7 @@ class JSONASASSET_API UPropertySerializer : public UObject
 public:
 	UPropertySerializer();
 
-	UPROPERTY()
-	TMap<FString, UObject*> ReferencedObjects;
+	FUObjectExportContainer ExportsContainer;
 	
 	TArray<FFailedPropertyInfo> FailedProperties;
 	void ClearCachedData();
