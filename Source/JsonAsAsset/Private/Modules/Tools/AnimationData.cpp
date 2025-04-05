@@ -274,6 +274,9 @@ void FToolAnimationData::Execute() {
 
 			TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
 			const FString Type = JsonObject->GetStringField(TEXT("Type"));
+			const FString Name = JsonObject->GetStringField(TEXT("Name"));
+
+			if (Name != Asset->GetName()) continue;
 
 			if (Type == "AnimSequence") {
 				ReadAnimationData(Properties, Exports, JsonObject, AnimSequence);

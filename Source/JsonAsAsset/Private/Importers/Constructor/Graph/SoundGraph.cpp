@@ -185,7 +185,12 @@ void ISoundGraph::OnDownloadSoundWave(FHttpRequestPtr Request, const FHttpRespon
 		}
 
 		IAssetTools& AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
-		auto AssetsImported = AssetTools.ImportAssets({ SavePath }, FPaths::GetPath(AssetPtr));
+		UAutomatedAssetImportData* ImportData = NewObject<UAutomatedAssetImportData>();
+		ImportData->Filenames.Add(SavePath);
+		ImportData->DestinationPath = FPaths::GetPath(AssetPtr);
+		ImportData->bReplaceExisting = true;
+		
+		auto AssetsImported = AssetTools.ImportAssetsAutomated(ImportData);
 		if (!AssetsImported.IsValidIndex(0)) {
 			USoundWave* SoundWave = Cast<USoundWave>(StaticLoadObject(USoundWave::StaticClass(), nullptr, *AssetPtr));
 			Node->SetSoundWave(SoundWave);

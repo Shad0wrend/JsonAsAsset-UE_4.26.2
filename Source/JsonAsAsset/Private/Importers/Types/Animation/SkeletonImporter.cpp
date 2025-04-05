@@ -5,6 +5,12 @@
 bool ISkeletonImporter::Import() {
 	USkeleton* Skeleton = GetSelectedAsset<USkeleton>(true);
 
+	if (Skeleton) {
+		if (Skeleton->GetName() != FileName) {
+			Skeleton = nullptr;
+		}
+	}
+
 	/* If there is no skeleton, create one. */
 	if (!Skeleton) {
 		Skeleton = NewObject<USkeleton>(Package, USkeleton::StaticClass(), *FileName, RF_Public | RF_Standalone);

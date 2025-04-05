@@ -3,6 +3,7 @@
 #include "Utilities/Serializers/PropertyUtilities.h"
 
 #include "GameplayTagContainer.h"
+#include "GameplayTagsManager.h"
 #include "Importers/Constructor/Importer.h"
 #include "Utilities/Serializers/ObjectUtilities.h"
 #include "UObject/TextProperty.h"
@@ -303,12 +304,10 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 			}
 		}
 	} else if (const FStructProperty* StructProperty = CastField<const FStructProperty>(Property)) {
-		/* FGameplayTag */
-		if (StructProperty->Struct == FGameplayTag::StaticStruct())
-		{
+		if (StructProperty->Struct == FGameplayTag::StaticStruct()) {
 			FGameplayTag* GameplayTagStr = static_cast<FGameplayTag*>(Value);
-			*GameplayTagStr = FGameplayTag::RequestGameplayTag(FName(*NewJsonValue->AsString()));
-			
+			FGameplayTag NewTag = FGameplayTag::RequestGameplayTag(FName(*NewJsonValue->AsObject()->GetStringField("TagName")), false);
+			*GameplayTagStr = NewTag;
 			return;
 		}
 
