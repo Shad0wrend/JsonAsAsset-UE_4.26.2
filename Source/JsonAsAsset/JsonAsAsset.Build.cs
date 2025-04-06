@@ -56,6 +56,8 @@ public class JsonAsAsset : ModuleRules
 			"Detex",
 			"NVTT",
 			"RenderCore",
+			"AnimGraphRuntime", 
+			"AnimGraph",
 
 #if UE_5_0_OR_LATER
 			/* Only Unreal Engine 5 */

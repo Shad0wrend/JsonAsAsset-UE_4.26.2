@@ -1,10 +1,19 @@
 ﻿/* Copyright JsonAsAsset Contributors 2024-2025 */
 
 #include "Importers/Types/Animation/BlendSpaceImporter.h"
+
+#if ENGINE_UE5
+#include "Animation/BlendSpaceBase.h"
+#else
 #include "Animation/BlendSpace.h"
+#endif
 
 bool IBlendSpaceImporter::Import() {
-	UBlendSpace* BlendSpace = NewObject<UBlendSpace>(Package, AssetClass, *FileName, RF_Public | RF_Standalone);
+#if ENGINE_UE5
+	auto BlendSpace = NewObject<UBlendSpace>(Package, AssetClass, *FileName, RF_Public | RF_Standalone);
+#else
+	UBlendSpaceBase* BlendSpace = NewObject<UBlendSpaceBase>(Package, AssetClass, *FileName, RF_Public | RF_Standalone);
+#endif
 	
 	BlendSpace->Modify();
 	

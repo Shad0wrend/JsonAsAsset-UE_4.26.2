@@ -69,7 +69,8 @@ public:
 
 /* A structure to hold data for a UObject export. */
 struct FUObjectExport {
-	FUObjectExport(): Object(nullptr), Parent(nullptr) {};
+	FUObjectExport(): Object(nullptr), Parent(nullptr), Position(-1) {
+	};
 
 	FName Name;
 	FName Type;
@@ -90,10 +91,18 @@ struct FUObjectExport {
 		: Name(Name), Type(Type), Outer(Outer), JsonObject(JsonObject), Object(Object), Parent(Parent), Position(Position) {
 	}
 
+	FUObjectExport(const FName& Name, const FName& Type, const FName Outer, const TSharedPtr<FJsonObject>& JsonObject, UObject* Object, UObject* Parent)
+		: Name(Name), Type(Type), Outer(Outer), JsonObject(JsonObject), Object(Object), Parent(Parent), Position(-1) {
+	}
+
 	TSharedPtr<FJsonObject> GetProperties() const {
 		TSharedPtr<FJsonObject> Properties = JsonObject->GetObjectField(TEXT("Properties"));
 
 		return Properties;
+	}
+
+	bool IsValid() const {
+		return JsonObject != nullptr && Object != nullptr;
 	}
 };
 
@@ -181,6 +190,8 @@ public:
 	UPropertySerializer();
 
 	FUObjectExportContainer ExportsContainer;
+
+	TArray<FString> BlacklistedPropertyNames;
 	
 	TArray<FFailedPropertyInfo> FailedProperties;
 	void ClearCachedData();

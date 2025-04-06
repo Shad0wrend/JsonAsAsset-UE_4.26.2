@@ -609,11 +609,55 @@ inline void SendHttpRequest(const FString& URL, TFunction<void(FHttpRequestPtr, 
 	Request->ProcessRequest();
 }
 
-inline UObjectSerializer* CreateObjectSerializer()
-{
+inline UObjectSerializer* CreateObjectSerializer() {
 	UPropertySerializer* PropertySerializer = NewObject<UPropertySerializer>();
 	UObjectSerializer* ObjectSerializer = NewObject<UObjectSerializer>();
 	ObjectSerializer->SetPropertySerializer(PropertySerializer);
 
 	return ObjectSerializer;
+}
+
+inline TArray<TSharedPtr<FJsonValue>> GetExportsStartingWith(const FString& Start, const FString& Property, TArray<TSharedPtr<FJsonValue>> AllJsonObjects) {
+	TArray<TSharedPtr<FJsonValue>> FilteredObjects;
+
+	for (const TSharedPtr<FJsonValue>& JsonObjectValue : AllJsonObjects) {
+		if (JsonObjectValue->Type == EJson::Object) {
+			TSharedPtr<FJsonObject> JsonObject = JsonObjectValue->AsObject();
+
+			if (JsonObject.IsValid() && JsonObject->HasField(Property)) {
+				const FString StringValue = JsonObject->GetStringField(Property);
+
+				/* Check if the "Type" field starts with the specified string */
+				if (StringValue.StartsWith(Start)) {
+					FilteredObjects.Add(JsonObjectValue);
+				}
+			}
+		}
+	}
+
+	return FilteredObjects;
+}
+
+inline TSharedPtr<FJsonObject> GetExportStartingWith(const FString& Start, const FString& Property, TArray<TSharedPtr<FJsonValue>> AllJsonObjects, bool bExportProperties = false) {
+	for (const TSharedPtr<FJsonValue>& JsonObjectValue : AllJsonObjects) {
+		if (JsonObjectValue->Type == EJson::Object) {
+			TSharedPtr<FJsonObject> JsonObject = JsonObjectValue->AsObject();
+
+			if (JsonObject.IsValid() && JsonObject->HasField(Property)) {
+				const FString StringValue = JsonObject->GetStringField(Property);
+
+				/* Check if the "Type" field starts with the specified string */
+				if (StringValue.StartsWith(Start)) {
+					if (bExportProperties) {
+						if (JsonObject->HasField(TEXT("Properties"))) {
+							return JsonObject->GetObjectField(TEXT("Properties"));
+						}
+					}
+					return JsonObject;
+				}
+			}
+		}
+	}
+
+	return TSharedPtr<FJsonObject>();
 }

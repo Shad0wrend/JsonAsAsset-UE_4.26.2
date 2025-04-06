@@ -40,7 +40,7 @@ namespace { \
 }
 
 /* Global handler for converting JSON to assets */
-class IImporter {
+class JSONASASSET_API IImporter {
 public:
     /* Constructors ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     IImporter()

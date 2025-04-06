@@ -116,6 +116,10 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 	const FArrayProperty* ArrayProperty = CastField<const FArrayProperty>(Property);
 
 	TSharedRef<FJsonValue> NewJsonValue = JsonValue;
+	
+	if (BlacklistedPropertyNames.Contains(Property->GetName())) {
+		return;
+	}
 
 	if (MapProperty) {
 		FProperty* KeyProperty = MapProperty->KeyProp;
@@ -401,12 +405,16 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 		*static_cast<FString*>(Value) = StringValue;
 	}
 	else if (const FEnumProperty* EnumProperty = CastField<const FEnumProperty>(Property)) {
-		const FString EnumAsString = NewJsonValue->AsString();
+		FString EnumAsString = NewJsonValue->AsString();
 
+		if (EnumAsString.Contains("::")) {
+			EnumAsString.Split("::", nullptr, &EnumAsString);
+		}
+		
 		/* Prefer readable enum names in result json to raw numbers */
 		int64 EnumerationValue = EnumProperty->GetEnum()->GetValueByNameString(EnumAsString);
-		
-		if (ensure(EnumerationValue != INDEX_NONE)) {
+
+		if (EnumerationValue != INDEX_NONE) {
 			EnumProperty->GetUnderlyingProperty()->SetIntPropertyValue(Value, EnumerationValue);
 		}
 	}

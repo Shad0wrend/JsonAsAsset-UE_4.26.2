@@ -20,22 +20,31 @@ bool IAnimationBaseImporter::Import() {
 	TArray<TSharedPtr<FJsonValue>> FloatCurves;
 	TArray<TSharedPtr<FJsonValue>> Notifies;
 
-	UAnimSequenceBase* AnimSequenceBase = GetSelectedAsset<UAnimSequenceBase>();
+	UAnimSequenceBase* AnimSequenceBase = GetSelectedAsset<UAnimSequenceBase>(true);
+
+	if (AnimSequenceBase && !AnimSequenceBase->GetName().Equals(AssetName)) {
+		AnimSequenceBase = nullptr;
+	}
 
 	if (!AnimSequenceBase && AssetClass->IsChildOf<UAnimMontage>()) {
 		AnimSequenceBase = NewObject<UAnimMontage>(Package, AssetClass, *FileName, RF_Public | RF_Standalone);
 	}
 
-	if (!AnimSequenceBase)
-	{
+	if (!AnimSequenceBase) {
 		UE_LOG(LogJson, Error, TEXT("Could not get valid AnimSequenceBase"));
+		const FText DialogText = FText::Format(
+			FText::FromString(TEXT("Importing an asset of type '{0}' requires a base asset selected to modify. Select one in your content browser.")),
+			FText::FromString("AnimationBaseImporter")
+		);
+
+		FMessageDialog::Open(EAppMsgType::Ok, DialogText);
+		
 		return false;
 	}
 
 	UAnimSequence* CastedAnimSequence = Cast<UAnimSequence>(AnimSequenceBase);
 
-	if (CastedAnimSequence)
-	{
+	if (CastedAnimSequence) {
 		CastedAnimSequence->AuthoredSyncMarkers.Empty();
 		CastedAnimSequence->Notifies.Empty();
 	}
@@ -67,8 +76,7 @@ bool IAnimationBaseImporter::Import() {
 
 	USkeleton* Skeleton = AnimSequenceBase->GetSkeleton();
 	ensure(Skeleton);
-	if (!Skeleton)
-	{
+	if (!Skeleton) {
 		UE_LOG(LogJson, Error, TEXT("Could not get valid Skeleton"));
 		return false;
 	}
@@ -92,8 +100,7 @@ bool IAnimationBaseImporter::Import() {
 		FloatCurves = JsonObject->GetObjectField(TEXT("CompressedCurveData"))->GetArrayField(TEXT("FloatCurves"));
 
 	/* Import the curves */
-	for (TSharedPtr<FJsonValue> FloatCurveObject : FloatCurves)
-	{
+	for (TSharedPtr<FJsonValue> FloatCurveObject : FloatCurves) {
 		/* Curve Display Name */
 		FString DisplayName = "";
 		if (FloatCurveObject->AsObject()->HasField(TEXT("Name"))) {
@@ -202,10 +209,8 @@ bool IAnimationBaseImporter::Import() {
 #if ENGINE_UE4
 			Tracks.AddFloatCurveKey(NewTrackName, CurveTypeFlags, RichKey.Time, RichKey.Value);
 
-			for (FFloatCurve& Track : Tracks.FloatCurves)
-			{
-				if (Track.Name == NewTrackName)
-				{
+			for (FFloatCurve& Track : Tracks.FloatCurves) {
+				if (Track.Name == NewTrackName) {
 					int32 LastIndex = Track.FloatCurve.Keys.Num() - 1;
 					Track.FloatCurve.Keys[LastIndex].ArriveTangent = RichKey.ArriveTangent;
 					Track.FloatCurve.Keys[LastIndex].LeaveTangent = RichKey.LeaveTangent;
@@ -237,5 +242,5 @@ bool IAnimationBaseImporter::Import() {
 	AnimSequenceBase->Modify();
 	AnimSequenceBase->PostEditChange();
 
-	return true;
+	return OnAssetCreation(AnimSequenceBase);
 }

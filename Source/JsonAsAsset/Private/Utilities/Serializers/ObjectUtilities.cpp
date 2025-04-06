@@ -2,11 +2,17 @@
 
 #include "Utilities/Serializers/ObjectUtilities.h"
 
-#include "Engine/StaticMeshSocket.h"
+#include "Utilities/AppStyleCompatibility.h"
+
+#if ENGINE_UE5
+#include "AnimGraphNode_Base.h"
+#else
+#include "AnimGraph/Classes/AnimGraphNode_Base.h"
+#endif
+
 #include "Utilities/Serializers/PropertyUtilities.h"
 #include "UObject/Package.h"
 #include "Utilities/EngineUtilities.h"
-#include "Utilities/JsonUtilities.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogObjectSerializer, All, All);
 PRAGMA_DISABLE_OPTIMIZATION
@@ -465,8 +471,22 @@ void UObjectSerializer::DeserializeObjectProperties(const TSharedPtr<FJsonObject
 		if (!PropertySerializer->ShouldSerializeProperty(Property)) continue;
 
 		void* PropertyValue = Property->ContainerPtrToValuePtr<void>(Object);
-		bool HasHandledProperty = PassthroughPropertyHandler(Property, PropertyName, PropertyValue, Properties, PropertySerializer);
+		const bool HasHandledProperty = PassthroughPropertyHandler(Property, PropertyName, PropertyValue, Properties, PropertySerializer);
 
+		/* Handler Specifically for Animation Blueprint Graph Nodes */
+		if (PropertyName == TEXT("Node") && Cast<UAnimGraphNode_Base>(Object)) {
+			const FStructProperty* StructProperty = CastField<FStructProperty>(Property);
+			
+			if (StructProperty && StructProperty->Struct->IsChildOf(FAnimNode_Base::StaticStruct())) {
+				void* StructPtr = StructProperty->ContainerPtrToValuePtr<void>(Object);
+				const FAnimNode_Base* AnimNode = static_cast<FAnimNode_Base*>(StructPtr);
+
+				if (AnimNode) {
+					PropertySerializer->DeserializeStruct(StructProperty->Struct, Properties.ToSharedRef(), PropertyValue);
+				}
+			}
+		}
+		
 		if (Properties->HasField(PropertyName) && !HasHandledProperty && PropertyName != "LODParentPrimitive") {
 			const TSharedPtr<FJsonValue>& ValueObject = Properties->Values.FindChecked(PropertyName);
 
