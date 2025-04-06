@@ -8,6 +8,12 @@
 	#define UE4_26_0 0
 #endif
 
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION == 26
+	#define UE4_26 1
+#else
+	#define UE4_26 0
+#endif
+
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 27
 	#define UE4_27_BELOW 1
 #else

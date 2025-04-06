@@ -28,7 +28,7 @@ void FToolClearImportData::Execute() {
 		}
 
 		if (USkeletalMesh* SkeletalMesh = Cast<USkeletalMesh>(Asset)) {
-#if UE4_26_0
+#if UE4_26
 			SkeletalMesh->AssetImportData = nullptr;
 #else
 			SkeletalMesh->SetAssetImportData(nullptr);
