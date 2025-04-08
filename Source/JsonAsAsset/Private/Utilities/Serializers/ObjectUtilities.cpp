@@ -474,10 +474,8 @@ void UObjectSerializer::DeserializeObjectProperties(const TSharedPtr<FJsonObject
 		const bool HasHandledProperty = PassthroughPropertyHandler(Property, PropertyName, PropertyValue, Properties, PropertySerializer);
 
 		/* Handler Specifically for Animation Blueprint Graph Nodes */
-		if (PropertyName == TEXT("Node") && Cast<UAnimGraphNode_Base>(Object)) {
-			const FStructProperty* StructProperty = CastField<FStructProperty>(Property);
-			
-			if (StructProperty && StructProperty->Struct->IsChildOf(FAnimNode_Base::StaticStruct())) {
+		if (const FStructProperty* StructProperty = CastField<FStructProperty>(Property)) {
+			if (StructProperty->Struct->IsChildOf(FAnimNode_Base::StaticStruct())) {
 				void* StructPtr = StructProperty->ContainerPtrToValuePtr<void>(Object);
 				const FAnimNode_Base* AnimNode = static_cast<FAnimNode_Base*>(StructPtr);
 

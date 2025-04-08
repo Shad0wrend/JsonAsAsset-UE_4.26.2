@@ -50,7 +50,7 @@ inline bool HandlePackageCreation(UObject* Asset, UPackage* Package) {
  * @return Selected Asset
  */
 template <typename T>
-T* GetSelectedAsset(const bool SupressErrors = false) {
+T* GetSelectedAsset(const bool SupressErrors = false, FString OptionalAssetNameCheck = "") {
 	const FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
 	TArray<FAssetData> SelectedAssets;
 	ContentBrowserModule.Get().GetSelectedAssets(SelectedAssets);
@@ -90,6 +90,10 @@ T* GetSelectedAsset(const bool SupressErrors = false) {
 		FMessageDialog::Open(EAppMsgType::Ok, DialogText);
 		
 		return nullptr;
+	}
+
+	if (CastedAsset && OptionalAssetNameCheck != "" && !CastedAsset->GetName().Equals(OptionalAssetNameCheck)) {
+		CastedAsset = nullptr;
 	}
 
 	return CastedAsset;
@@ -660,4 +664,77 @@ inline TSharedPtr<FJsonObject> GetExportStartingWith(const FString& Start, const
 	}
 
 	return TSharedPtr<FJsonObject>();
+}
+
+/* Helper Math functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+inline TSharedPtr<FJsonObject> GetVectorJson(const FVector& Vec) {
+	TSharedPtr<FJsonObject> OutVec = MakeShareable(new FJsonObject);
+	
+	OutVec->SetNumberField(TEXT("X"), Vec.X);
+	OutVec->SetNumberField(TEXT("Y"), Vec.Y);
+	OutVec->SetNumberField(TEXT("Z"), Vec.Z);
+	
+	return OutVec;
+}
+
+inline TSharedPtr<FJsonObject> GetRotationJson(const FQuat& Quat) {
+	TSharedPtr<FJsonObject> OutRot = MakeShareable(new FJsonObject);
+	
+	OutRot->SetNumberField(TEXT("X"), Quat.X);
+	OutRot->SetNumberField(TEXT("Y"), Quat.Y);
+	OutRot->SetNumberField(TEXT("Z"), Quat.Z);
+	OutRot->SetNumberField(TEXT("W"), Quat.W);
+	OutRot->SetBoolField(TEXT("IsNormalized"), true);
+	OutRot->SetNumberField(TEXT("Size"), Quat.Size());
+	OutRot->SetNumberField(TEXT("SizeSquared"), Quat.SizeSquared());
+	
+	return OutRot;
+}
+
+inline TSharedPtr<FJsonObject> GetTransformJson(const FTransform& Transform) {
+	TSharedPtr<FJsonObject> OutTransform = MakeShareable(new FJsonObject);
+	
+	OutTransform->SetObjectField(TEXT("Rotation"), GetRotationJson(Transform.GetRotation()));
+	OutTransform->SetObjectField(TEXT("Translation"), GetVectorJson(Transform.GetTranslation()));
+	OutTransform->SetObjectField(TEXT("Scale3D"), GetVectorJson(Transform.GetScale3D()));
+	
+	return OutTransform;
+}
+
+inline FTransform GetTransformFromJson(const TSharedPtr<FJsonObject>& JsonObject) {
+	FTransform OutTransform = FTransform::Identity;
+	
+	if (!JsonObject.IsValid()) {
+		return OutTransform;
+	}
+
+	if (JsonObject->HasField(TEXT("Rotation"))) {
+		const TSharedPtr<FJsonObject> RotObj = JsonObject->GetObjectField(TEXT("Rotation"));
+		FQuat Quat;
+		Quat.X = RotObj->GetNumberField(TEXT("X"));
+		Quat.Y = RotObj->GetNumberField(TEXT("Y"));
+		Quat.Z = RotObj->GetNumberField(TEXT("Z"));
+		Quat.W = RotObj->GetNumberField(TEXT("W"));
+		OutTransform.SetRotation(Quat);
+	}
+
+	if (JsonObject->HasField(TEXT("Translation"))) {
+		const TSharedPtr<FJsonObject> TransObj = JsonObject->GetObjectField(TEXT("Translation"));
+		FVector Trans;
+		Trans.X = TransObj->GetNumberField(TEXT("X"));
+		Trans.Y = TransObj->GetNumberField(TEXT("Y"));
+		Trans.Z = TransObj->GetNumberField(TEXT("Z"));
+		OutTransform.SetTranslation(Trans);
+	}
+
+	if (JsonObject->HasField(TEXT("Scale3D"))) {
+		const TSharedPtr<FJsonObject> ScaleObj = JsonObject->GetObjectField(TEXT("Scale3D"));
+		FVector Scale;
+		Scale.X = ScaleObj->GetNumberField(TEXT("X"));
+		Scale.Y = ScaleObj->GetNumberField(TEXT("Y"));
+		Scale.Z = ScaleObj->GetNumberField(TEXT("Z"));
+		OutTransform.SetScale3D(Scale);
+	}
+
+	return OutTransform;
 }

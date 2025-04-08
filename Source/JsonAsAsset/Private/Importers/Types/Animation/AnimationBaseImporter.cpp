@@ -20,11 +20,7 @@ bool IAnimationBaseImporter::Import() {
 	TArray<TSharedPtr<FJsonValue>> FloatCurves;
 	TArray<TSharedPtr<FJsonValue>> Notifies;
 
-	UAnimSequenceBase* AnimSequenceBase = GetSelectedAsset<UAnimSequenceBase>(true);
-
-	if (AnimSequenceBase && !AnimSequenceBase->GetName().Equals(AssetName)) {
-		AnimSequenceBase = nullptr;
-	}
+	UAnimSequenceBase* AnimSequenceBase = GetSelectedAsset<UAnimSequenceBase>(true, AssetName);
 
 	if (!AnimSequenceBase && AssetClass->IsChildOf<UAnimMontage>()) {
 		AnimSequenceBase = NewObject<UAnimMontage>(Package, AssetClass, *FileName, RF_Public | RF_Standalone);

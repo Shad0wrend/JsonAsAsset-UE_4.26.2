@@ -184,9 +184,6 @@ bool FAssetUtilities::ConstructAsset(const FString& Path, const FString& Type, T
 				CreatePlugin(RootName);
 			}
 
-			UPackage* Package = CreateAssetPackage(*NewPath);
-			Package->FullyLoad();
-
 			/* Import asset by IImporter */
 			bSuccess = IImporter::ReadExportsAndImport(Response->GetArrayField(TEXT("jsonOutput")), PackagePath, true);
 
