@@ -30,7 +30,8 @@ public class JsonAsAsset : ModuleRules
 			"UnrealEd", 
 			"MainFrame",
 			"GameplayTags",
-			"ApplicationCore"
+			"ApplicationCore",
+			"AnimGraph"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new[]

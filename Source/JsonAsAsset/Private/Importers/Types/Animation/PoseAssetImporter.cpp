@@ -22,7 +22,7 @@ bool IPoseAssetImporter::Import() {
 	if (UAnimSequence* OptionalAnimationSequence = GetSelectedAsset<UAnimSequence>(true)) {
 		PoseAsset->SourceAnimation = OptionalAnimationSequence;
 	}
-	
+
 	return OnAssetCreation(PoseAsset);
 }
 
@@ -58,10 +58,10 @@ void IPoseAssetImporter::ReverseCookLocalSpacePose(USkeleton* Skeleton) const {
 		/* Build a mapping from track index (as int32) to index into LocalSpacePose. */
 		TMap<int32, int32> TrackToBufferIndex; {
 			if (Pose->HasField(TEXT("TrackToBufferIndex"))) {
-				TArray<TSharedPtr<FJsonValue>> TrackToBufferJson = Pose->GetArrayField(TEXT("TrackToBufferIndex"));
+				const TArray<TSharedPtr<FJsonValue>> TrackToBufferJson = Pose->GetArrayField(TEXT("TrackToBufferIndex"));
 			
 				for (TSharedPtr<FJsonValue> TrackToBuffer : TrackToBufferJson) {
-					TSharedPtr<FJsonObject> TrackToBufferObject = TrackToBuffer->AsObject();
+					const TSharedPtr<FJsonObject> TrackToBufferObject = TrackToBuffer->AsObject();
 				
 					if (TrackToBufferObject.IsValid()) {
 						int32 Key = FCString::Atoi(*TrackToBufferObject->GetStringField(TEXT("Key")));
@@ -108,6 +108,8 @@ void IPoseAssetImporter::ReverseCookLocalSpacePose(USkeleton* Skeleton) const {
 						FullTransform.SetRotation(AdditiveTransform.GetRotation() * DefaultTransform.GetRotation());
 						FullTransform.SetTranslation(DefaultTransform.GetTranslation() + AdditiveTransform.GetTranslation());
 						FullTransform.SetScale3D(DefaultTransform.GetScale3D() + AdditiveTransform.GetScale3D());
+
+						FullTransform.NormalizeRotation();
 					}
 
 					SourceLocalSpacePose[i] = MakeShareable(new FJsonValueObject(GetTransformJson(FullTransform)));

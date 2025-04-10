@@ -142,6 +142,16 @@ struct FUObjectExportContainer {
 		return FUObjectExport();
 	}
 
+	UObject* FindRef(const int Position) {
+		for (const FUObjectExport Export : Exports) {
+			if (Export.Position == Position) {
+				return Export.Object;
+			}
+		}
+
+		return nullptr;
+	}
+
 	FUObjectExport Find(const FString Name) {
 		return Find(FName(*Name));
 	}

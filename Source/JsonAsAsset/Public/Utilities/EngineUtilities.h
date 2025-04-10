@@ -50,13 +50,13 @@ inline bool HandlePackageCreation(UObject* Asset, UPackage* Package) {
  * @return Selected Asset
  */
 template <typename T>
-T* GetSelectedAsset(const bool SupressErrors = false, FString OptionalAssetNameCheck = "") {
+T* GetSelectedAsset(const bool SuppressErrors = false, FString OptionalAssetNameCheck = "") {
 	const FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
 	TArray<FAssetData> SelectedAssets;
 	ContentBrowserModule.Get().GetSelectedAssets(SelectedAssets);
 
 	if (SelectedAssets.Num() == 0) {
-		if (SupressErrors == true) {
+		if (SuppressErrors == true) {
 			return nullptr;
 		}
 		
@@ -76,7 +76,7 @@ T* GetSelectedAsset(const bool SupressErrors = false, FString OptionalAssetNameC
 	T* CastedAsset = Cast<T>(SelectedAsset);
 
 	if (!CastedAsset) {
-		if (SupressErrors == true) {
+		if (SuppressErrors == true) {
 			return nullptr;
 		}
 		
