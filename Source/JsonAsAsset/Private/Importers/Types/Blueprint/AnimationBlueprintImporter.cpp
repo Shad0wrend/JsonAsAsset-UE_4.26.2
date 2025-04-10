@@ -253,10 +253,11 @@ void IAnimationBlueprintImporter::CreateAnimGraphNodes(UEdGraph* AnimGraph, cons
 		}
 
 		const UClass* Class = FindObject<UClass>(ANY_PACKAGE, *NodeType);
-		ensureMsgf(Class, TEXT("Animation Blueprint Node Class was not found: %s"), *NodeType);
+		if (!Class) continue;
 
 		UAnimGraphNode_Base* Node = NewObject<UAnimGraphNode_Base>(AnimGraph, Class, NAME_None, RF_Transactional);
 		Node->NodeGuid = NodeGuid;
+		
 
 		/* Add new node */
 		OutContainer.Exports.Add(
