@@ -12,7 +12,7 @@ inline void AutoLayoutAnimGraphRecursive(
 	UAnimGraphNode_Base* Node,
 	TSet<UAnimGraphNode_Base*>& Visited,
 	TMap<UAnimGraphNode_Base*, FVector2D>& Positions,
-	float X,
+	const float X,
 	float& Y,
 	float& CachedPoseY,
 	float CachedPoseXOffset
@@ -21,7 +21,6 @@ inline void AutoLayoutAnimGraphRecursive(
 	Visited.Add(Node);
 
 	/* Constants */
-	constexpr float CachedPoseYOffset = 1000.f;
 	constexpr float CachedPoseXSpacing = 0.f;
 	constexpr float XSpacing = 150.f;
 	constexpr float YSpacing = 150.f;
@@ -46,7 +45,7 @@ inline void AutoLayoutAnimGraphRecursive(
 	if (Node->IsA<UAnimGraphNode_BlendListByEnum>()) {
 		float DefaultHeight = (Node->NodeHeight > 0.f ? Node->NodeHeight : 150.f);
 		if (TempInputNodes.Num() > 0) {
-			NodeHeight = FMath::Max(DefaultHeight / (float)TempInputNodes.Num(), 50.f);
+			NodeHeight = FMath::Max(DefaultHeight / static_cast<float>(TempInputNodes.Num()), 50.f);
 		}
 	}
 
@@ -94,8 +93,8 @@ inline void AutoLayoutAnimGraphRecursive(
 	/* Apply cached pose X offset */
 	const float FinalX = X + CachedPoseXOffset;
 
-	Node->NodePosX = (int32)FinalX;
-	Node->NodePosY = (int32)Y;
+	Node->NodePosX = static_cast<int32>(FinalX);
+	Node->NodePosY = static_cast<int32>(Y);
 	Positions.Add(Node, FVector2D(FinalX, Y));
 
 	/* For BlendListByBool nodes, ensure a minimum vertical offset to avoid overlapping */

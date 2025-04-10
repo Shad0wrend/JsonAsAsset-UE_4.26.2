@@ -6,20 +6,15 @@
 
 class UAnimGraphNode_Base;
 
-class IAnimationBlueprintImporter : public IImporter {
+class IAnimationBlueprintImporter final : public IImporter {
 public:
 	IAnimationBlueprintImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass):
 		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass) {
 	}
 
-	TArray<TSharedPtr<FJsonValue>> BakedStateMachines;
-	
-	TSharedPtr<FJsonObject> RootAnimNodeProperties;
-	FUObjectExportContainer RootAnimNodeContainer;
-
 	virtual bool Import() override;
 
-public:
+private:
 	void ProcessEvaluateGraphExposedInputs(const TSharedPtr<FJsonObject>& AnimNodeProperties) const;
 
 	/* Finds an Animation Graph in an Animation Blueprint */
@@ -42,6 +37,16 @@ public:
 
 	/* Links two nodes together using a PinName */
 	static void LinkPoseInputPin(const FString& PinName, UAnimGraphNode_Base* Node, UAnimGraphNode_Base* TargetNode, UEdGraph* AnimGraph);
+
+protected:
+	/* Global Cached data to reuse */
+	TArray<FString> NodesKeys;
+	TArray<FString> ReversedNodesKeys;
+	
+	TArray<TSharedPtr<FJsonValue>> BakedStateMachines;
+	
+	TSharedPtr<FJsonObject> RootAnimNodeProperties;
+	FUObjectExportContainer RootAnimNodeContainer;
 };
 
 REGISTER_IMPORTER(IAnimationBlueprintImporter, (TArray<FString>{ 

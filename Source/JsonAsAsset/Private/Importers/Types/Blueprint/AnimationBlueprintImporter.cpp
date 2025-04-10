@@ -5,7 +5,6 @@
 #include "AnimationStateMachineGraph.h"
 #include "AnimationStateMachineSchema.h"
 #include "AnimGraphNode_Base.h"
-#include "AnimGraphNode_BlendListByEnum.h"
 #include "AnimGraphNode_SaveCachedPose.h"
 #include "AnimGraphNode_StateMachine.h"
 #include "AnimGraphNode_StateResult.h"
@@ -16,23 +15,27 @@
 #include "Importers/Types/Blueprint/Utilities/AnimNodeLayoutUtillties.h"
 #include "Importers/Types/Blueprint/Utilities/StateMachineUtilities.h"
 
+extern bool GShowAnimationBlueprintImporterWarning = true;
+
 bool IAnimationBlueprintImporter::Import() {
-	SpawnPrompt("Preface Warning", "None of this is final, this is completely a work in progress with flaws. None of it is perfect. If you find a issue, fix it.\n\nTo remove this warning, go to AnimationBlueprintImporter.cpp and remove it there.");
+	if (GShowAnimationBlueprintImporterWarning) {
+		SpawnPrompt("Preface Warning", "None of this is final, this is completely a work in progress with flaws. None of it is perfect. If you find a issue, fix it.\n\nTo remove this warning, go to AnimationBlueprintImporter.cpp and set GShowAnimationBlueprintImporterWarning to false.");
+		GShowAnimationBlueprintImporterWarning = false;
+	}
 	UAnimBlueprint* AnimBlueprint = GetSelectedAsset<UAnimBlueprint>();
 	if (!AnimBlueprint) return false;
 	
 	RootAnimNodeProperties = GetExportStartingWith("Default__", "Name", AllJsonObjects, true);
 	if (!RootAnimNodeProperties.IsValid()) return false;
 
-	/* Filter AnimNodeProperties to keep only properties with "AnimGraphNode" in the name ~~~~~~~~~~~~~~~ */
+	/* Filter AnimNodeProperties ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	FilterAnimGraphNodeProperties(RootAnimNodeProperties);
 	ProcessEvaluateGraphExposedInputs(RootAnimNodeProperties);
 
 	/* Parse LinkIDs to proper Node IDs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	TArray<FString> NodesKeys;
 	RootAnimNodeProperties->Values.GetKeys(NodesKeys);
-
-	TArray<FString> ReversedNodesKeys = NodesKeys;
+	
+	ReversedNodesKeys = NodesKeys;
 	Algo::Reverse(ReversedNodesKeys);
 
 	for (const FString& Key : NodesKeys) {
@@ -62,9 +65,7 @@ bool IAnimationBlueprintImporter::Import() {
 				}
             
 				const FString StartKey = ReversedNodesKeys[StateRootNodeIndex];
-				TSet<FString> Visited;
-            
-				HarvestAndTagConnectedStateMachineNodes(StartKey, StateObject->GetStringField(TEXT("StateName")), MachineName, RootAnimNodeProperties->Values, Visited);
+				HarvestAndTagConnectedStateMachineNodes(StartKey, StateObject->GetStringField(TEXT("StateName")), MachineName, RootAnimNodeProperties->Values);
 			}
 		}
 	}
@@ -140,7 +141,7 @@ void IAnimationBlueprintImporter::CreateGraph(const TSharedPtr<FJsonObject>& Ani
 			}
 
 			StateMachine->EditorStateMachineGraph = EditorStateMachineGraph;
-			CreateStateMachineGraph(EditorStateMachineGraph, StateMachineObject, GetObjectSerializer());
+			CreateStateMachineGraph(EditorStateMachineGraph, StateMachineObject, GetObjectSerializer(), RootAnimNodeContainer, ReversedNodesKeys);
 
 			/* Add nodes to graph */
 			if (!StateMachineObject->HasField(TEXT("States"))) continue;
@@ -228,8 +229,21 @@ void IAnimationBlueprintImporter::CreateAnimGraphNodes(UEdGraph* AnimGraph, cons
 			NodeType = "AnimGraphNode_LinkedInputPose";
 		}
 
-		// TODO:
-		if (NodeType == "AnimGraphNode_TransitionResult") continue;
+		/* Only add json object data, transition result is handled different */
+		if (NodeType == "AnimGraphNode_TransitionResult") {
+			OutContainer.Exports.Add(
+				FUObjectExport(
+					FName(*Key),
+					FName(*NodeType),
+					FName(AnimGraph->GetName()),
+					Value,
+					nullptr,
+					nullptr
+				)
+			);
+
+			continue;
+		}
 
 		/* Parse the NodeGuid, if not parsed properly, generate a new one */
 		FGuid NodeGuid; {
@@ -275,6 +289,8 @@ void IAnimationBlueprintImporter::HandleNodeDeserialization(FUObjectExportContai
 	GetObjectSerializer()->GetPropertySerializer()->BlacklistedPropertyNames.Add(TEXT("LinkID"));
 
 	for (FUObjectExport NodeExport : Container.Exports) {
+		if (NodeExport.Object == nullptr) continue;
+
 		UAnimGraphNode_Base* Node = Cast<UAnimGraphNode_Base>(NodeExport.Object);
 		TSharedPtr<FJsonObject> NodeProperties = NodeExport.JsonObject;
 
@@ -304,9 +320,6 @@ void IAnimationBlueprintImporter::HandleNodeDeserialization(FUObjectExportContai
 					SaveCachedPose->Modify();
 				}
 			}
-		}
-
-		if (UAnimGraphNode_BlendListByEnum* BlendListByEnum = Cast<UAnimGraphNode_BlendListByEnum>(Node)) {
 		}
 
 		/* Let the user know that this node has nodes plugged into it */

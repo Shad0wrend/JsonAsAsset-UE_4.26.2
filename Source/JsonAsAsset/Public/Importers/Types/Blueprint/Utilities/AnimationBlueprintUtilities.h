@@ -123,9 +123,8 @@ inline TArray<TPair<FString, FString>> FindLinkIDs(const TSharedPtr<FJsonValue>&
     return Results;
 }
 
-inline void HarvestAndTagConnectedStateMachineNodes(const FString& StartKey, const FString& StateName, const FString& MachineName, TMap<FString, TSharedPtr<FJsonValue>>& Nodes, TSet<FString>& Visited) {
-	if (Visited.Contains(StartKey) || !Nodes.Contains(StartKey)) return;
-	Visited.Add(StartKey);
+inline void HarvestAndTagConnectedStateMachineNodes(const FString& StartKey, const FString& StateName, const FString& MachineName, TMap<FString, TSharedPtr<FJsonValue>>& Nodes) {
+	if (!Nodes.Contains(StartKey)) return;
 
 	const TSharedPtr<FJsonValue> NodeValue = Nodes.FindChecked(StartKey);
 	
@@ -147,6 +146,6 @@ inline void HarvestAndTagConnectedStateMachineNodes(const FString& StartKey, con
 			return;
 		}
 		
-		HarvestAndTagConnectedStateMachineNodes(NextKey, StateName, MachineName, Nodes, Visited);
+		HarvestAndTagConnectedStateMachineNodes(NextKey, StateName, MachineName, Nodes);
 	}
 }

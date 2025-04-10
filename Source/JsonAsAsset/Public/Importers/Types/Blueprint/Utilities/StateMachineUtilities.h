@@ -135,7 +135,9 @@ inline void AutoLayoutStateMachineGraph(UAnimationStateMachineGraph* StateMachin
 inline void CreateStateMachineGraph(
 	UAnimationStateMachineGraph* StateMachineGraph,
 	const TSharedPtr<FJsonObject>& StateMachineJsonObject,
-	UObjectSerializer* ObjectSerializer
+	UObjectSerializer* ObjectSerializer,
+	FUObjectExportContainer RootContainer,
+	TArray<FString> ReversedNodesKeys
 ) {
 	if (!StateMachineGraph || !StateMachineJsonObject.IsValid()) {
 		return;
@@ -220,7 +222,7 @@ inline void CreateStateMachineGraph(
 
 		UAnimGraphNode_TransitionResult* TransitionResult = AnimationTransitionGraph->MyResultNode;
         FAnimNode_TransitionResult& ResultStruct = TransitionResult->Node;
-		
+
         ResultStruct.bCanEnterTransition = TransitionObject->GetBoolField(TEXT("bDesiredTransitionReturnValue"));
 
 		/* Set TransitionNode data */
@@ -245,6 +247,22 @@ inline void CreateStateMachineGraph(
 
 		TransitionNode->bAutomaticRuleBasedOnSequencePlayerInState = TransitionStateObject->GetBoolField(TEXT("bAutomaticRemainingTimeRule"));
 		ObjectSerializer->DeserializeObjectProperties(TransitionObject, TransitionNode);
+
+		/* CanTakeDelegateIndex is the index in nodes where the transition result node is */
+		const int CanTakeDelegateIndex = TransitionStateObject->GetIntegerField(TEXT("CanTakeDelegateIndex"));
+		
+		if (CanTakeDelegateIndex != -1 &&
+			/* Hide if it's already automatically transitioning */
+			TransitionNode->bAutomaticRuleBasedOnSequencePlayerInState
+		) {
+			FString DelegateExportName = ReversedNodesKeys[CanTakeDelegateIndex];
+			
+			/* Use if needed */
+			/* const FUObjectExport DelegateExport = RootContainer.Find(DelegateExportName); */
+
+			TransitionResult->NodeComment = DelegateExportName;
+			TransitionResult->bCommentBubbleVisible = true;
+		}
 		
 		/* Connect State Nodes together using the Transition Node */
         if (UEdGraphPin* const FromOutput = FindOutputPin(FromNode)) {
