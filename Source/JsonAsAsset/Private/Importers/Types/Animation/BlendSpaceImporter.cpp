@@ -1,12 +1,7 @@
 ﻿/* Copyright JsonAsAsset Contributors 2024-2025 */
 
 #include "Importers/Types/Animation/BlendSpaceImporter.h"
-
-#if ENGINE_UE5
-#include "Animation/BlendSpaceBase.h"
-#else
 #include "Animation/BlendSpace.h"
-#endif
 
 bool IBlendSpaceImporter::Import() {
 #if ENGINE_UE5

@@ -102,7 +102,6 @@ void IAnimationBlueprintImporter::CreateGraph(const TSharedPtr<FJsonObject>& Ani
 		for (UEdGraphNode* Node : AnimGraph->Nodes) {
 			if (Node) {
 				Node->BreakAllNodeLinks();
-				Node->MarkPendingKill();
 				Node->ConditionalBeginDestroy();
 			}
 		}
@@ -185,7 +184,6 @@ void IAnimationBlueprintImporter::CreateGraph(const TSharedPtr<FJsonObject>& Ani
 					if (Graph->MyResultNode) {
 						Graph->MyResultNode->BreakAllNodeLinks();
 						Graph->RemoveNode(Graph->MyResultNode);
-						Graph->MyResultNode->MarkPendingKill();
 						Graph->MyResultNode->ConditionalBeginDestroy();
 						Graph->MyResultNode = nullptr;
 					}

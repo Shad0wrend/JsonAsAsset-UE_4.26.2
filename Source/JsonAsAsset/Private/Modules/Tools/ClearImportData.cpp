@@ -23,7 +23,7 @@ void FToolClearImportData::Execute() {
 			AnimSequence->Modify();
 		}
 
-		if (UStaticMesh* StaticMesh = Cast<UStaticMesh>(Asset)) {
+		if (const UStaticMesh* StaticMesh = Cast<UStaticMesh>(Asset)) {
 			StaticMesh->AssetImportData->SourceData.SourceFiles.Empty();
 		}
 
@@ -35,5 +35,7 @@ void FToolClearImportData::Execute() {
 #endif
 			SkeletalMesh->Modify();
 		}
+
+		Asset->Modify();
 	}
 }
