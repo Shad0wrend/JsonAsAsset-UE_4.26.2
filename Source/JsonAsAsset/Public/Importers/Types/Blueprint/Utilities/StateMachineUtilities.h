@@ -253,7 +253,7 @@ inline void CreateStateMachineGraph(
 		
 		if (CanTakeDelegateIndex != -1 &&
 			/* Hide if it's already automatically transitioning */
-			TransitionNode->bAutomaticRuleBasedOnSequencePlayerInState
+			!TransitionNode->bAutomaticRuleBasedOnSequencePlayerInState
 		) {
 			FString DelegateExportName = ReversedNodesKeys[CanTakeDelegateIndex];
 			
