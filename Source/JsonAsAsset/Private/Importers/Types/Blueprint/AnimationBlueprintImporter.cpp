@@ -222,6 +222,10 @@ void IAnimationBlueprintImporter::CreateAnimGraphNodes(UEdGraph* AnimGraph, cons
 			}
 		}
 
+		if (NodeType == "AnimGraphNode") {
+			NodeType = Key;
+		}
+
 		/* Redirections */
 		if (NodeType == "AnimGraphNode_SubInput") {
 			NodeType = "AnimGraphNode_LinkedInputPose";
