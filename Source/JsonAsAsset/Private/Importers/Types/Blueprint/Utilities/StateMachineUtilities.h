@@ -8,6 +8,7 @@
 #include "AnimationStateMachineSchema.h"
 #include "AnimationTransitionGraph.h"
 #include "AnimGraphNode_TransitionResult.h"
+#include "AnimStateConduitNode.h"
 #include "AnimStateEntryNode.h"
 #include "AnimStateNode.h"
 #include "AnimStateTransitionNode.h"
@@ -21,12 +22,12 @@ inline void AutoLayoutStateMachineGraph(UAnimationStateMachineGraph* StateMachin
         return; 
     }
 
-    UAnimStateNode* InitialState = nullptr; {
+    UAnimStateNodeBase* InitialState = nullptr; {
         if (StateMachineGraph->EntryNode) {
             const UEdGraphPin* EntryPin = StateMachineGraph->EntryNode->FindPin(TEXT("Entry"));
         	
             if (EntryPin && EntryPin->LinkedTo.Num() > 0) { 
-                InitialState = Cast<UAnimStateNode>(EntryPin->LinkedTo[0]->GetOwningNode()); 
+                InitialState = Cast<UAnimStateNodeBase>(EntryPin->LinkedTo[0]->GetOwningNode()); 
             }
         }
     }
@@ -35,13 +36,13 @@ inline void AutoLayoutStateMachineGraph(UAnimationStateMachineGraph* StateMachin
         return;
     }
     
-    TMap<UAnimStateNode*, int32> StateLevels;
-    TQueue<UAnimStateNode*> NodesToProcess;
+    TMap<UAnimStateNodeBase*, int32> StateLevels;
+    TQueue<UAnimStateNodeBase*> NodesToProcess;
     
     StateLevels.Add(InitialState, 0);
     NodesToProcess.Enqueue(InitialState);
     
-    TMap<UAnimStateNode*, TArray<UAnimStateNode*>> OutgoingTransitions;
+    TMap<UAnimStateNodeBase*, TArray<UAnimStateNodeBase*>> OutgoingTransitions;
 	
     for (UEdGraphNode* Node : StateMachineGraph->Nodes) {
         const UAnimStateTransitionNode* TransitionNode = Cast<UAnimStateTransitionNode>(Node);
@@ -53,8 +54,8 @@ inline void AutoLayoutStateMachineGraph(UAnimationStateMachineGraph* StateMachin
         const UEdGraphPin* OutPin = TransitionNode->GetOutputPin();
     	
         if (InPin && OutPin && InPin->LinkedTo.Num() > 0 && OutPin->LinkedTo.Num() > 0) {
-            UAnimStateNode* FromState = Cast<UAnimStateNode>(InPin->LinkedTo[0]->GetOwningNode());
-            UAnimStateNode* ToState = Cast<UAnimStateNode>(OutPin->LinkedTo[0]->GetOwningNode());
+            UAnimStateNodeBase* FromState = Cast<UAnimStateNodeBase>(InPin->LinkedTo[0]->GetOwningNode());
+            UAnimStateNodeBase* ToState = Cast<UAnimStateNodeBase>(OutPin->LinkedTo[0]->GetOwningNode());
         	
             if (FromState && ToState) { 
                 OutgoingTransitions.FindOrAdd(FromState).AddUnique(ToState); 
@@ -63,13 +64,13 @@ inline void AutoLayoutStateMachineGraph(UAnimationStateMachineGraph* StateMachin
     }
     
     while (!NodesToProcess.IsEmpty()) {
-        UAnimStateNode* Current;
+        UAnimStateNodeBase* Current;
         NodesToProcess.Dequeue(Current);
     	
         const int32 CurrentLevel = StateLevels.FindChecked(Current);
     	
         if (OutgoingTransitions.Contains(Current)) {
-            for (UAnimStateNode* NextState : OutgoingTransitions[Current]) {
+            for (UAnimStateNodeBase* NextState : OutgoingTransitions[Current]) {
                 const int32 NextLevel = CurrentLevel + 1;
             	
                 if (!StateLevels.Contains(NextState) || NextLevel < StateLevels[NextState]) {
@@ -80,9 +81,9 @@ inline void AutoLayoutStateMachineGraph(UAnimationStateMachineGraph* StateMachin
         }
     }
     
-    TMap<int32, TArray<UAnimStateNode*>> StatesByLevel;
+    TMap<int32, TArray<UAnimStateNodeBase*>> StatesByLevel;
     for (auto& Pair : StateLevels) {
-        UAnimStateNode* State = Pair.Key;
+        UAnimStateNodeBase* State = Pair.Key;
         int32 Level = Pair.Value;
     	
         StatesByLevel.FindOrAdd(Level).Add(State);
@@ -93,9 +94,9 @@ inline void AutoLayoutStateMachineGraph(UAnimationStateMachineGraph* StateMachin
 	
     for (auto& LevelGroup : StatesByLevel) {
         int32 Level = LevelGroup.Key;
-        TArray<UAnimStateNode*>& NodesInLevel = LevelGroup.Value;
+        TArray<UAnimStateNodeBase*>& NodesInLevel = LevelGroup.Value;
     	
-        NodesInLevel.Sort([](const UAnimStateNode& A, const UAnimStateNode& B) {
+        NodesInLevel.Sort([](const UAnimStateNodeBase& A, const UAnimStateNodeBase& B) {
             return A.GetName() < B.GetName();
         });
     	
@@ -103,7 +104,7 @@ inline void AutoLayoutStateMachineGraph(UAnimationStateMachineGraph* StateMachin
         float StartY = -((NodesInLevel.Num() - 1) * VerticalSpacing) * 0.5f;
     	
         for (int32 i = 0; i < NodesInLevel.Num(); ++i) {
-            UAnimStateNode* Node = NodesInLevel[i];
+            UAnimStateNodeBase* Node = NodesInLevel[i];
             Node->NodePosX = X;
             Node->NodePosY = StartY + i * VerticalSpacing;
         }
@@ -119,8 +120,8 @@ inline void AutoLayoutStateMachineGraph(UAnimationStateMachineGraph* StateMachin
         const UEdGraphPin* OutputPin = TransitionNode->GetOutputPin();
     	
         if (InputPin && OutputPin && InputPin->LinkedTo.Num() > 0 && OutputPin->LinkedTo.Num() > 0) {
-            UAnimStateNode* FromState = Cast<UAnimStateNode>(InputPin->LinkedTo[0]->GetOwningNode());
-            UAnimStateNode* ToState = Cast<UAnimStateNode>(OutputPin->LinkedTo[0]->GetOwningNode());
+            UAnimStateNodeBase* FromState = Cast<UAnimStateNodeBase>(InputPin->LinkedTo[0]->GetOwningNode());
+            UAnimStateNodeBase* ToState = Cast<UAnimStateNodeBase>(OutputPin->LinkedTo[0]->GetOwningNode());
         	
             if (FromState && ToState) {
                 TransitionNode->NodePosX = (FromState->NodePosX + ToState->NodePosX) * 0.5f;
@@ -156,18 +157,42 @@ inline void CreateStateMachineGraph(
 	for (int32 i = 0; i < States.Num(); ++i) {
 		const TSharedPtr<FJsonObject> StateObject = States[i]->AsObject();
 		const FString StateName = StateObject->GetStringField("StateName");
-        
-		UAnimStateNode* StateNode = FEdGraphSchemaAction_NewStateNode::SpawnNodeFromTemplate<UAnimStateNode>(
-			StateMachineGraph,
-			NewObject<UAnimStateNode>(StateMachineGraph, UAnimStateNode::StaticClass(), *StateName, RF_Transactional)
-		);
-        
-		if (!StateNode->BoundGraph) {
-			UAnimationStateGraph* BoundGraph = NewObject<UAnimationStateGraph>(StateNode, UAnimationStateGraph::StaticClass(), *StateName, RF_Transactional);
-			StateNode->BoundGraph = BoundGraph;
+		const bool bIsAConduit = StateObject->GetBoolField("bIsAConduit");
+
+		UAnimStateNodeBase* Node;
+		UEdGraph* BoundGraph = nullptr;
+
+		if (bIsAConduit) {
+			UAnimStateConduitNode* ConduitNode = FEdGraphSchemaAction_NewStateNode::SpawnNodeFromTemplate<UAnimStateConduitNode>(
+				StateMachineGraph,
+				NewObject<UAnimStateConduitNode>(StateMachineGraph, UAnimStateConduitNode::StaticClass(), *StateName, RF_Transactional)
+			);
+
+			BoundGraph = ConduitNode->BoundGraph;
+					        
+			if (!BoundGraph) {
+				BoundGraph = NewObject<UAnimationTransitionGraph>(ConduitNode, UAnimationTransitionGraph::StaticClass(), *StateName, RF_Transactional);
+				ConduitNode->BoundGraph = BoundGraph;
+			}
+
+			Node = ConduitNode;
+		} else {
+			UAnimStateNode* StateNode = FEdGraphSchemaAction_NewStateNode::SpawnNodeFromTemplate<UAnimStateNode>(
+				StateMachineGraph,
+				NewObject<UAnimStateNode>(StateMachineGraph, UAnimStateNode::StaticClass(), *StateName, RF_Transactional)
+			);
+			
+			BoundGraph = StateNode->BoundGraph;
+		    
+			if (!BoundGraph) {
+				BoundGraph = NewObject<UAnimationStateGraph>(StateNode, UAnimationStateGraph::StaticClass(), *StateName, RF_Transactional);
+				StateNode->BoundGraph = BoundGraph;
+			}
+
+			Node = StateNode;
 		}
-        
-		FEdGraphUtilities::RenameGraphToNameOrCloseToName(StateNode->BoundGraph, *StateName);
+
+		FEdGraphUtilities::RenameGraphToNameOrCloseToName(BoundGraph, *StateName);
 
 		Container.Exports.Add(
 			FUObjectExport(
@@ -175,7 +200,7 @@ inline void CreateStateMachineGraph(
 				NAME_None,
 				NAME_None,
 				StateObject,
-				StateNode,
+				Node,
 				nullptr
 			)
 		);
@@ -197,8 +222,8 @@ inline void CreateStateMachineGraph(
 
 		TSharedPtr<FJsonObject> PreviousStateObject = PreviousStateExport.JsonObject;
 		
-		UAnimStateNode* const FromNode = Cast<UAnimStateNode>(PreviousStateExport.Object);
-		UAnimStateNode* const ToNode = Cast<UAnimStateNode>(NextStateExport.Object);
+		UAnimStateNodeBase* const FromNode = Cast<UAnimStateNodeBase>(PreviousStateExport.Object);
+		UAnimStateNodeBase* const ToNode = Cast<UAnimStateNodeBase>(NextStateExport.Object);
 
 		/* State Nodes must exist */
 		if (!FromNode || !ToNode) continue;
@@ -288,7 +313,7 @@ inline void CreateStateMachineGraph(
 	const FString InitialStateName = InitialStateObject->GetStringField("StateName");
 
 	/* Find Initial State using the StateNodesMap */
-	UAnimStateNode* InitialStateNode = Cast<UAnimStateNode>(Container.Find(InitialStateName).Object);
+	UAnimStateNodeBase* InitialStateNode = Cast<UAnimStateNodeBase>(Container.Find(InitialStateName).Object);
 	if (!InitialStateNode) return;
 
 	/* Find the EntryNode's Output Pin */

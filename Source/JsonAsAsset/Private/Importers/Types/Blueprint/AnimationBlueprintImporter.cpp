@@ -15,6 +15,10 @@
 #include "Importers/Types/Blueprint/Utilities/AnimNodeLayoutUtillties.h"
 #include "Importers/Types/Blueprint/Utilities/StateMachineUtilities.h"
 
+#if ENGINE_UE5
+#include "UObject/UnrealTypePrivate.h"
+#endif
+
 extern bool GShowAnimationBlueprintImporterWarning = true;
 
 bool IAnimationBlueprintImporter::Import() {
@@ -22,11 +26,20 @@ bool IAnimationBlueprintImporter::Import() {
 		SpawnPrompt("Preface Warning", "None of this is final, this is completely a work in progress with flaws. None of it is perfect. If you find a issue, fix it.\n\nTo remove this warning, go to AnimationBlueprintImporter.cpp and set GShowAnimationBlueprintImporterWarning to false.");
 		GShowAnimationBlueprintImporterWarning = false;
 	}
+	
 	UAnimBlueprint* AnimBlueprint = GetSelectedAsset<UAnimBlueprint>();
 	if (!AnimBlueprint) return false;
+
+	const TSharedPtr<FJsonObject> RootAnimNodeDefaults = GetExportStartingWith("Default__", "Name", AllJsonObjects);
+	if (!RootAnimNodeDefaults.IsValid()) return false;
 	
-	RootAnimNodeProperties = GetExportStartingWith("Default__", "Name", AllJsonObjects, true);
+	RootAnimNodeProperties = RootAnimNodeDefaults->GetObjectField("Properties");
 	if (!RootAnimNodeProperties.IsValid()) return false;
+
+	/* Newer Unreal Engine versions use CopyRecords and SerializedSparseClassData */
+	if (RootAnimNodeDefaults->HasField("SerializedSparseClassData")) {
+		SerializedSparseClassData = RootAnimNodeDefaults->GetObjectField("SerializedSparseClassData");
+	}
 
 	/* Filter AnimNodeProperties ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	FilterAnimGraphNodeProperties(RootAnimNodeProperties);
@@ -259,7 +272,6 @@ void IAnimationBlueprintImporter::CreateAnimGraphNodes(UEdGraph* AnimGraph, cons
 
 		UAnimGraphNode_Base* Node = NewObject<UAnimGraphNode_Base>(AnimGraph, Class, NAME_None, RF_Transactional);
 		Node->NodeGuid = NodeGuid;
-		
 
 		/* Add new node */
 		OutContainer.Exports.Add(
@@ -398,21 +410,38 @@ void IAnimationBlueprintImporter::HandleNodeDeserialization(FUObjectExportContai
 								TObjectPtr<UObject> LoadedObject;
 								LoadObject<UObject>(&StructObject, LoadedObject);
 
-								UStructProperty* StructProperty = LoadStructProperty(StructObject);
+								auto StructProperty = LoadStructProperty(StructObject);
 
 								if (StructProperty) {
-									PropertyBinding.PinType.PinSubCategoryObject = LoadStructProperty(StructObject)->Struct;
+									PropertyBinding.PinType.PinSubCategoryObject = StructProperty->Struct;
 								}
 							}
 						}
 						
 						Node->PropertyBindings.Add(PinNameAsName, PropertyBinding);
+
+						if (PinName == "ActiveEnumValue") {
+							if (UAnimGraphNode_BlendListByEnum* BlendListByEnum = Cast<UAnimGraphNode_BlendListByEnum>(Node)) {
+								/*TSharedPtr<FJsonObject> StructObject = CopyRecordAsObject->GetObjectField("CachedSourceProperty");
+
+								TObjectPtr<UObject> LoadedObject;
+								LoadObject<UObject>(&StructObject, LoadedObject);
+
+								UStructProperty* StructProperty = LoadStructProperty(StructObject);*/
+							}
+						}
 					}
 				}
 
 				Node->NodeComment = NodeExport.Name.ToString();
 				Node->bCommentBubbleVisible = bBoundFunction;
 			}
+		}
+
+		const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
+		if (Settings->AssetSettings.AnimationBlueprintImportSettings.bShowAllNodeKeysAsComment) {
+			Node->NodeComment = NodeExport.Name.ToString();
+			Node->bCommentBubbleVisible = true;
 		}
 		
 		Node->AllocateDefaultPins();

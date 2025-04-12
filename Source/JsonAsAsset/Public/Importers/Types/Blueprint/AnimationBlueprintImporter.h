@@ -47,6 +47,9 @@ protected:
 	
 	TSharedPtr<FJsonObject> RootAnimNodeProperties;
 	FUObjectExportContainer RootAnimNodeContainer;
+
+	/* UE5 Copy Record Cache Data */
+	TSharedPtr<FJsonObject> SerializedSparseClassData;
 };
 
 REGISTER_IMPORTER(IAnimationBlueprintImporter, (TArray<FString>{ 

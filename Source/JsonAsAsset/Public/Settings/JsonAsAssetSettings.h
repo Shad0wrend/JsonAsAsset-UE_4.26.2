@@ -33,6 +33,21 @@ public:
 	bool bSkipResultNodeConnection;
 };
 
+/* Settings for animation blueprints */
+USTRUCT()
+struct FJAnimationBlueprintImportSettings
+{
+	GENERATED_BODY()
+public:
+	/* Constructor to initialize default values */
+	FJAnimationBlueprintImportSettings()
+		: bShowAllNodeKeysAsComment(false)
+	{}
+
+	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Encryption", AdvancedDisplay)
+	bool bShowAllNodeKeysAsComment;
+};
+
 /* Settings for textures */
 USTRUCT()
 struct FJTextureImportSettings
@@ -50,7 +65,7 @@ public:
 	 * Use Case:
 	 * This option is useful when you need to re-import textures that have been updated in a newer version of your Local Fetch build.
 	 */
-	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Encryption", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Config, AdvancedDisplay)
 	bool bDownloadExistingTextures;
 };
 
@@ -76,6 +91,7 @@ public:
 		MaterialImportSettings = FJMaterialImportSettings();
 		SoundImportSettings = FJSoundImportSettings();
 		TextureImportSettings = FJTextureImportSettings();
+		AnimationBlueprintImportSettings = FJAnimationBlueprintImportSettings();
 	}
 
 	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings")
@@ -86,6 +102,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings")
 	FJSoundImportSettings SoundImportSettings;
+
+	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings")
+	FJAnimationBlueprintImportSettings AnimationBlueprintImportSettings;
 
 	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings", meta = (DisplayName = "Save Assets On Import"))
 	bool bSavePackagesOnImport;

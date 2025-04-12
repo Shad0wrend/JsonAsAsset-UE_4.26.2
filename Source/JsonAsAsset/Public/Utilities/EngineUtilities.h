@@ -762,7 +762,11 @@ inline FTransform GetTransformFromJson(const TSharedPtr<FJsonObject>& JsonObject
 	return OutTransform;
 }
 
+#if ENGINE_UE4
 inline UStructProperty* LoadStructProperty(const TSharedPtr<FJsonObject>& JsonObject) {
+#else
+inline FStructProperty* LoadStructProperty(const TSharedPtr<FJsonObject>& JsonObject) {
+#endif
     if (!JsonObject.IsValid()) {
         return nullptr;
     }
@@ -793,7 +797,11 @@ inline UStructProperty* LoadStructProperty(const TSharedPtr<FJsonObject>& JsonOb
         return nullptr;
     }
 
+#if ENGINE_UE4
     UStructProperty* StructProp = FindFProperty<UStructProperty>(StructDef, *PropertyName);
+#else
+    FStructProperty* StructProp = FindFProperty<FStructProperty>(StructDef, *PropertyName);
+#endif
     if (!StructProp) {
         return nullptr;
     }
