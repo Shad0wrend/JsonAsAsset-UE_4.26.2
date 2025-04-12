@@ -330,8 +330,7 @@ inline bool DeserializeJSON(const FString& FilePath, TArray<TSharedPtr<FJsonValu
 	return false;
 }
 
-inline TArray<FString> OpenFileDialog(const FString& Title, const FString& Type)
-{
+inline TArray<FString> OpenFileDialog(const FString& Title, const FString& Type) {
 	TArray<FString> ReturnValue;
 
 	/* Window Handler for Windows */
@@ -666,6 +665,30 @@ inline TSharedPtr<FJsonObject> GetExportStartingWith(const FString& Start, const
 	return TSharedPtr<FJsonObject>();
 }
 
+inline TSharedPtr<FJsonObject> GetExportMatchingWith(const FString& Match, const FString& Property, TArray<TSharedPtr<FJsonValue>> AllJsonObjects, bool bExportProperties = false) {
+	for (const TSharedPtr<FJsonValue>& JsonObjectValue : AllJsonObjects) {
+		if (JsonObjectValue->Type == EJson::Object) {
+			TSharedPtr<FJsonObject> JsonObject = JsonObjectValue->AsObject();
+
+			if (JsonObject.IsValid() && JsonObject->HasField(Property)) {
+				const FString StringValue = JsonObject->GetStringField(Property);
+
+				/* Check if the "Name" field starts with the specified string */
+				if (StringValue.Equals(Match)) {
+					if (bExportProperties) {
+						if (JsonObject->HasField(TEXT("Properties"))) {
+							return JsonObject->GetObjectField(TEXT("Properties"));
+						}
+					}
+					return JsonObject;
+				}
+			}
+		}
+	}
+
+	return TSharedPtr<FJsonObject>();
+}
+
 /* Helper Math functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 inline TSharedPtr<FJsonObject> GetVectorJson(const FVector& Vec) {
 	TSharedPtr<FJsonObject> OutVec = MakeShareable(new FJsonObject);
@@ -737,4 +760,43 @@ inline FTransform GetTransformFromJson(const TSharedPtr<FJsonObject>& JsonObject
 	}
 
 	return OutTransform;
+}
+
+inline UStructProperty* LoadStructProperty(const TSharedPtr<FJsonObject>& JsonObject) {
+    if (!JsonObject.IsValid()) {
+        return nullptr;
+    }
+
+    FString ObjectName;
+    if (!JsonObject->TryGetStringField(TEXT("ObjectName"), ObjectName)) {
+        return nullptr;
+    }
+
+    const int32 FirstQuoteIndex = ObjectName.Find(TEXT("'"));
+    const int32 LastQuoteIndex = ObjectName.Find(TEXT("'"), ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+	
+    if (FirstQuoteIndex == INDEX_NONE || LastQuoteIndex == INDEX_NONE || LastQuoteIndex <= FirstQuoteIndex) {
+        return nullptr;
+    }
+
+    const FString InnerString = ObjectName.Mid(FirstQuoteIndex + 1, LastQuoteIndex - FirstQuoteIndex - 1);
+
+    FString StructName, PropertyName;
+    if (!InnerString.Split(TEXT(":"), &StructName, &PropertyName)) {
+        return nullptr;
+    }
+
+    FString ObjectPath = JsonObject->GetStringField(TEXT("ObjectPath"));
+
+    const UStruct* StructDef = FindObject<UStruct>(ANY_PACKAGE, *StructName);
+    if (!StructDef) {
+        return nullptr;
+    }
+
+    UStructProperty* StructProp = FindFProperty<UStructProperty>(StructDef, *PropertyName);
+    if (!StructProp) {
+        return nullptr;
+    }
+
+	return StructProp;
 }

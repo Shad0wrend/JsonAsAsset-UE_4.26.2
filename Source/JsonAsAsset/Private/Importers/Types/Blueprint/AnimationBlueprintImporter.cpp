@@ -324,18 +324,22 @@ void IAnimationBlueprintImporter::HandleNodeDeserialization(FUObjectExportContai
 		/* Let the user know that this node has nodes plugged into it */
 		if (NodeProperties->HasField("EvaluateGraphExposedInputs")) {
 			const TSharedPtr<FJsonObject> EvaluateGraphExposedInputs = NodeProperties->GetObjectField("EvaluateGraphExposedInputs");
+
+			bool bBoundFunction = EvaluateGraphExposedInputs->GetStringField("BoundFunction") != "None";
 			
-			if (EvaluateGraphExposedInputs->HasField("CopyRecords")) {
+			if (EvaluateGraphExposedInputs->HasField("CopyRecords") || bBoundFunction) {
 				const TArray<TSharedPtr<FJsonValue>> CopyRecords = EvaluateGraphExposedInputs->GetArrayField("CopyRecords");
 
-				if (CopyRecords.Num() > 0 || EvaluateGraphExposedInputs->GetStringField("BoundFunction") != "None") {
-					Node->NodeComment = NodeExport.Name.ToString();
-					Node->bCommentBubbleVisible = true;
-
+				if (CopyRecords.Num() > 0) {
 					for (const TSharedPtr<FJsonValue> CopyRecordAsValue : CopyRecords) {
 						const TSharedPtr<FJsonObject> CopyRecordAsObject = CopyRecordAsValue->AsObject();
 
 						if (!CopyRecordAsObject->HasField("DestProperty")) continue;
+						if (CopyRecordAsObject->HasField("BoundFunction") && CopyRecordAsObject->GetStringField("BoundFunction") != TEXT("None")) {
+							bBoundFunction = true;
+
+							continue;
+						}
 
 						FString SourcePropertyName = CopyRecordAsObject->GetStringField("SourcePropertyName");
 
@@ -367,10 +371,43 @@ void IAnimationBlueprintImporter::HandleNodeDeserialization(FUObjectExportContai
 						PropertyBinding.PinType.PinCategory = FName(PinCategory);
 						PropertyBinding.bIsBound = true;
 						PropertyBinding.PropertyPath.Append({ SourcePropertyName });
+
+						TSharedPtr<FJsonObject> SourcePropertyObject = GetExportMatchingWith(SourcePropertyName, "Name", AllJsonObjects);
+						if (PinCategory == "struct" && SourcePropertyObject.IsValid() && SourcePropertyObject->HasField("Struct")) {
+							TSharedPtr<FJsonObject> StructObject = SourcePropertyObject->GetObjectField("Struct");
+
+							TObjectPtr<UObject> LoadedObject;
+							LoadObject<UObject>(&StructObject, LoadedObject);
+
+							PropertyBinding.PinType.PinSubCategoryObject = LoadedObject.Get();
+						}
+
+						if (CopyRecordAsObject->HasField("SourceSubPropertyName") && CopyRecordAsObject->GetStringField("SourceSubPropertyName") != "None") {
+							FString SourceSubPropertyName = CopyRecordAsObject->GetStringField("SourceSubPropertyName");
+							PropertyBinding.PathAsText = FText::FromString(SourcePropertyName + "." + SourceSubPropertyName);
+
+							PropertyBinding.PropertyPath.Append({ SourceSubPropertyName });
+
+							if (CopyRecordAsObject->GetObjectField("CachedSourceStructSubProperty")) {
+								TSharedPtr<FJsonObject> StructObject = CopyRecordAsObject->GetObjectField("CachedSourceStructSubProperty");
+								
+								TObjectPtr<UObject> LoadedObject;
+								LoadObject<UObject>(&StructObject, LoadedObject);
+
+								UStructProperty* StructProperty = LoadStructProperty(StructObject);
+
+								if (StructProperty) {
+									PropertyBinding.PinType.PinSubCategoryObject = LoadStructProperty(StructObject)->Struct;
+								}
+							}
+						}
 						
 						Node->PropertyBindings.Add(PinNameAsName, PropertyBinding);
 					}
 				}
+
+				Node->NodeComment = NodeExport.Name.ToString();
+				Node->bCommentBubbleVisible = bBoundFunction;
 			}
 		}
 		
