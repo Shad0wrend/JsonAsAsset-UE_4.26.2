@@ -331,6 +331,45 @@ void IAnimationBlueprintImporter::HandleNodeDeserialization(FUObjectExportContai
 				if (CopyRecords.Num() > 0 || EvaluateGraphExposedInputs->GetStringField("BoundFunction") != "None") {
 					Node->NodeComment = NodeExport.Name.ToString();
 					Node->bCommentBubbleVisible = true;
+
+					for (const TSharedPtr<FJsonValue> CopyRecordAsValue : CopyRecords) {
+						const TSharedPtr<FJsonObject> CopyRecordAsObject = CopyRecordAsValue->AsObject();
+
+						if (!CopyRecordAsObject->HasField("DestProperty")) continue;
+
+						FString SourcePropertyName = CopyRecordAsObject->GetStringField("SourcePropertyName");
+
+						/*
+						 * Take the property's name from the object name:
+						 *
+						 * FloatProperty'AnimNode_SkeletalControlBase:Alpha' ->
+						 * :Alpha' ->
+						 * Alpha
+						 */
+						const TSharedPtr<FJsonObject> DestProperty = CopyRecordAsObject->GetObjectField("DestProperty");
+						FString PinName = DestProperty->GetStringField(TEXT("ObjectName")); {
+							PinName.Split(TEXT(":"), nullptr, &PinName);
+							PinName = PinName.Replace(TEXT("'"), TEXT(""));
+						}
+
+						FString PinCategory = DestProperty->GetStringField(TEXT("ObjectName")); {
+							PinCategory.Split(TEXT("'"), &PinCategory, nullptr);
+							PinCategory.Split(TEXT("Property"), &PinCategory, nullptr);
+							PinCategory = PinCategory.ToLower();
+						}
+
+						FName PinNameAsName(PinName);
+
+						/* Setup Property Binding */
+						FAnimGraphNodePropertyBinding PropertyBinding;
+						PropertyBinding.PropertyName = PinNameAsName;
+						PropertyBinding.PathAsText = FText::FromString(SourcePropertyName);
+						PropertyBinding.PinType.PinCategory = FName(PinCategory);
+						PropertyBinding.bIsBound = true;
+						PropertyBinding.PropertyPath.Append({ SourcePropertyName });
+						
+						Node->PropertyBindings.Add(PinNameAsName, PropertyBinding);
+					}
 				}
 			}
 		}
