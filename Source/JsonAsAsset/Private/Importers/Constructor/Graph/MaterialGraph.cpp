@@ -104,7 +104,7 @@ void IMaterialGraph::PropagateExpressions(FUObjectExportContainer& Container) {
 			FUObjectExport SubGraphExport = Container.Find(SubGraphExpressionName);
 
 #if ENGINE_UE5
-			UMaterialExpression* SubGraphExpression = SubGraphExport.Expression;
+			UMaterialExpression* SubGraphExpression = SubGraphExport.Get<UMaterialExpression>();
 
 			/* SubgraphExpression is only on Unreal Engine 5 */
 			Expression->SubgraphExpression = SubGraphExpression;

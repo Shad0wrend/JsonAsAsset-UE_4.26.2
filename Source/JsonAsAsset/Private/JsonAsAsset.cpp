@@ -8,6 +8,7 @@
 
 #if ENGINE_UE5
 #include "Interfaces/IMainFrameModule.h"
+#include "Logging/MessageLog.h"
 #else
 /* ReSharper disable once CppUnusedIncludeDirective */
 #include "MainFrame/Public/Interfaces/IMainFrameModule.h"
@@ -77,7 +78,7 @@ void FJsonAsAssetModule::PluginButtonClicked() {
 
 	/* Launch Local Fetch if not opened already */
 	if (Settings->bEnableLocalFetch) {
-		TSharedPtr<SNotificationItem> NotificationItem = LocalFetchNotificationPtr.Pin();
+		const TSharedPtr<SNotificationItem> NotificationItem = LocalFetchNotificationPtr.Pin();
 
 		if (NotificationItem.IsValid()) {
 			NotificationItem->SetFadeOutDuration(0.001);
@@ -85,10 +86,10 @@ void FJsonAsAssetModule::PluginButtonClicked() {
 			LocalFetchNotificationPtr.Reset();
 		}
 
-		bool bIsLocalHost = Settings->LocalFetchUrl.StartsWith("http://localhost");
+		const bool bIsLocalHost = Settings->LocalFetchUrl.StartsWith("http://localhost");
 
 		if (bIsLocalHost && !IsProcessRunning("LocalFetch.exe")) {
-			bool bLocalFetchLaunched = LocalFetchModule::LaunchLocalFetch();
+			const bool bLocalFetchLaunched = LocalFetchModule::LaunchLocalFetch();
 
 			if (!bLocalFetchLaunched) {
 				FNotificationInfo Info(LOCTEXT("JsonAsAssetNotificationTitle", "Local Fetch API Required"));
@@ -430,13 +431,14 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 		);
 	}
 
-	MenuBuilder.AddMenuEntry(
+	/* I have to think about this again before adding to production */
+	/*MenuBuilder.AddMenuEntry(
 		FText::FromString("Import Folder of JSON Files"),
 		FText::FromString(""),
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.BspMode"),
 
 		FUIAction(
-			FExecuteAction::CreateLambda([this]() {
+			FExecuteAction::CreateLambda([this] {
 				const FString SelectedFolder = OpenFolderDialog(TEXT("Select Folder Containing JSON Files"), TEXT(""));
 
 				if (SelectedFolder.IsEmpty()) {
@@ -456,7 +458,7 @@ TSharedRef<SWidget> FJsonAsAssetModule::CreateToolbarDropdown() {
 			})
 		),
 		NAME_None
-	);
+	);*/
 
 	MenuBuilder.EndSection();
 
