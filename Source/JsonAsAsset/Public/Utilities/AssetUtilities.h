@@ -20,7 +20,7 @@ public:
 	template <class T = UObject>
 	static bool ConstructAsset(const FString& Path, const FString& Type, TObjectPtr<T>& OutObject, bool& bSuccess);
 	
-	static bool Construct_TypeTexture(const FString& Path, const FString& RealPath, UTexture*& OutTexture);
+	static bool Construct_TypeTexture(const FString& Path, const FString& FetchPath, UTexture*& OutTexture);
 
 	static TSharedPtr<FJsonObject> API_RequestExports(const FString& Path, const FString& FetchPath = "/api/export?raw=true&path=");
 };

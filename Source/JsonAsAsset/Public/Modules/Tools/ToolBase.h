@@ -5,7 +5,5 @@
 #include "CoreMinimal.h"
 
 struct FToolBase {
-	static void Execute()
-	{
-	};
+	static void Execute() { };
 };

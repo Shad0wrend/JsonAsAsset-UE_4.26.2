@@ -48,7 +48,7 @@ bool IUserDefinedStructImporter::Import() {
         TArray<TSharedPtr<FJsonValue>> ObjectMetaData = CookedStructMetaData->GetObjectField(TEXT("StructMetaData"))->GetObjectField(TEXT("ObjectMetaData"))->GetArrayField(TEXT("ObjectMetaData"));
 
         for (const TSharedPtr<FJsonValue> ObjectMetadataValue : ObjectMetaData) {
-            TSharedPtr<FJsonObject> ObjectMetadataObject = ObjectMetadataValue->AsObject();
+            const TSharedPtr<FJsonObject> ObjectMetadataObject = ObjectMetadataValue->AsObject();
 
             FString MetadataKey = ObjectMetadataObject->GetStringField(TEXT("Key"));
             FString MetadataValue = ObjectMetadataObject->GetStringField(TEXT("Value"));
@@ -137,14 +137,14 @@ void IUserDefinedStructImporter::ImportPropertyIntoStruct(UUserDefinedStruct* Us
     if (CookedStructMetaData.IsValid() && CookedStructMetaData->HasField(TEXT("StructMetaData"))) {
         TArray<TSharedPtr<FJsonValue>> PropertiesMetaData = CookedStructMetaData->GetObjectField(TEXT("StructMetaData"))->GetArrayField(TEXT("PropertiesMetaData"));
         
-        for (TSharedPtr<FJsonValue> Value : PropertiesMetaData) {
+        for (const TSharedPtr<FJsonValue> Value : PropertiesMetaData) {
             const TSharedPtr<FJsonObject> PropertiesMetadataJsonObject = Value->AsObject();
 
             /* Find a matching key */
             if (PropertiesMetadataJsonObject->GetStringField(TEXT("Key")) == Name) {
                 TArray<TSharedPtr<FJsonValue>> FieldMetaData = PropertiesMetadataJsonObject->GetObjectField("Value")->GetArrayField("FieldMetaData");
 
-                for (TSharedPtr<FJsonValue> FieldValue : FieldMetaData) {
+                for (const TSharedPtr<FJsonValue> FieldValue : FieldMetaData) {
                     const TSharedPtr<FJsonObject> FieldObject = FieldValue->AsObject();
 
                     FString MetadataKey = FieldObject->GetStringField(TEXT("Key"));
@@ -247,5 +247,6 @@ UObject* IUserDefinedStructImporter::LoadObjectFromJsonReference(const TSharedPt
 
     TObjectPtr<UObject> LoadedObject;
     LoadObject<UObject>(&ReferenceObject, LoadedObject);
+    
     return LoadedObject;
 }

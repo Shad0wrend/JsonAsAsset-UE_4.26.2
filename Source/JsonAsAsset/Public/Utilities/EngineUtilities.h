@@ -9,7 +9,6 @@
 #include "Utilities/Serializers/ObjectUtilities.h"
 #include "Settings/JsonAsAssetSettings.h"
 #include "Interfaces/IMainFrameModule.h"
-#include "Interfaces/IPluginManager.h"
 #include "IContentBrowserSingleton.h"
 #include "Windows/WindowsHWrapper.h"
 #include "Interfaces/IHttpRequest.h"
@@ -362,6 +361,24 @@ inline TArray<FString> OpenFileDialog(const FString& Title, const FString& Type)
 	}
 
 	return ReturnValue;
+}
+
+inline FString OpenFolderDialog(const FString& Title, const FString& DefaultPath) {
+	FString OutFolder;
+	const void* ParentWindowHandle = nullptr;
+
+	const IMainFrameModule& MainFrameModule = IMainFrameModule::Get();
+	const TSharedPtr<SWindow> MainWindow = MainFrameModule.GetParentWindow();
+	if (MainWindow.IsValid() && MainWindow->GetNativeWindow().IsValid()) {
+		ParentWindowHandle = MainWindow->GetNativeWindow()->GetOSWindowHandle();
+	}
+
+	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+	if (DesktopPlatform) {
+		DesktopPlatform->OpenDirectoryDialog(ParentWindowHandle, Title, DefaultPath, OutFolder);
+	}
+
+	return OutFolder;
 }
 
 inline TArray<FString> OpenFolderDialog(const FString& Title) {
@@ -762,7 +779,7 @@ inline FTransform GetTransformFromJson(const TSharedPtr<FJsonObject>& JsonObject
 	return OutTransform;
 }
 
-#if ENGINE_UE4
+#if ENGINE_UE4 && (!UE4_27_BELOW)
 inline UStructProperty* LoadStructProperty(const TSharedPtr<FJsonObject>& JsonObject) {
 #else
 inline FStructProperty* LoadStructProperty(const TSharedPtr<FJsonObject>& JsonObject) {
@@ -797,7 +814,7 @@ inline FStructProperty* LoadStructProperty(const TSharedPtr<FJsonObject>& JsonOb
         return nullptr;
     }
 
-#if ENGINE_UE4
+#if ENGINE_UE4 && (!UE4_27_BELOW)
     UStructProperty* StructProp = FindFProperty<UStructProperty>(StructDef, *PropertyName);
 #else
     FStructProperty* StructProp = FindFProperty<FStructProperty>(StructDef, *PropertyName);

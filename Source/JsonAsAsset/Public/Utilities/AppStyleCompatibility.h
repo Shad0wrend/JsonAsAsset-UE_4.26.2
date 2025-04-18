@@ -2,6 +2,11 @@
 
 #pragma once
 
+/*
+ * This file is used to allow the same code used on UE5 to be used on UE4,
+ * it contains structures and classes to replicate missing classes/structs.
+ */
+
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION == 26 && ENGINE_PATCH_VERSION == 0
 	#define UE4_26_0 1
 #else
@@ -69,11 +74,6 @@
 #if ENGINE_UE5 || ((ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 26) && !(ENGINE_MINOR_VERSION == 26 && ENGINE_PATCH_VERSION == 0))
 #include "AssetRegistry/AssetRegistryModule.h"
 #endif
-
-/*
- * This file is used to allow the same code used on UE5 to be used on UE4,
- * it contains structures and classes to replicate missing classes/structs.
- */
 
 #if ENGINE_UE5
 #include "Styling/AppStyle.h"

@@ -27,7 +27,7 @@ bool IAnimationBlueprintImporter::Import() {
 		GShowAnimationBlueprintImporterWarning = false;
 	}
 	
-	UAnimBlueprint* AnimBlueprint = GetSelectedAsset<UAnimBlueprint>();
+	AnimBlueprint = GetSelectedAsset<UAnimBlueprint>();
 	if (!AnimBlueprint) return false;
 
 	const TSharedPtr<FJsonObject> RootAnimNodeDefaults = GetExportStartingWith("Default__", "Name", AllJsonObjects);
@@ -39,6 +39,13 @@ bool IAnimationBlueprintImporter::Import() {
 	/* Newer Unreal Engine versions use CopyRecords and SerializedSparseClassData */
 	if (RootAnimNodeDefaults->HasField("SerializedSparseClassData")) {
 		SerializedSparseClassData = RootAnimNodeDefaults->GetObjectField("SerializedSparseClassData");
+	}
+
+	/* Array of sync group names cached to use at later points of importing */
+	if (AssetData->HasField("SyncGroupNames")) {
+		for (const TSharedPtr<FJsonValue> SyncGroupNameValue : AssetData->GetArrayField("SyncGroupNames")) {
+			SyncGroupNames.Add(SyncGroupNameValue->AsString());
+		}
 	}
 
 	/* Filter AnimNodeProperties ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -153,7 +160,7 @@ void IAnimationBlueprintImporter::CreateGraph(const TSharedPtr<FJsonObject>& Ani
 			}
 
 			StateMachine->EditorStateMachineGraph = EditorStateMachineGraph;
-			CreateStateMachineGraph(EditorStateMachineGraph, StateMachineObject, GetObjectSerializer(), RootAnimNodeContainer, ReversedNodesKeys);
+			CreateStateMachineGraph(EditorStateMachineGraph, StateMachineObject, GetObjectSerializer(), RootAnimNodeContainer, ReversedNodesKeys, this, AnimBlueprint);
 
 			/* Add nodes to graph */
 			if (!StateMachineObject->HasField(TEXT("States"))) continue;
@@ -209,6 +216,112 @@ void IAnimationBlueprintImporter::CreateGraph(const TSharedPtr<FJsonObject>& Ani
 				}
 			}
 		}
+	}
+}
+
+void inline LinkPoseInputPin(const FString& PinName, UAnimGraphNode_Base* Node, UAnimGraphNode_Base* TargetNode, UEdGraph* AnimGraph) {
+	UEdGraphPin* InputPin = Node->FindPin(PinName, EGPD_Input);
+	UEdGraphPin* OutputPin = GetFirstOutputPin(TargetNode);
+	
+	if (InputPin && OutputPin) {
+		InputPin->MakeLinkTo(OutputPin);
+		InputPin->DefaultValue.Reset();
+		
+		Node->Modify();
+		TargetNode->Modify();
+		AnimGraph->Modify();
+	}
+}
+
+void IAnimationBlueprintImporter::UpdateBlendListByEnumVisibleEntries(FUObjectExport NodeExport, FUObjectExportContainer& Container, UEdGraph* AnimGraph) {
+	TSharedPtr<FJsonObject> NodeJsonObject = NodeExport.JsonObject;
+	UAnimGraphNode_BlendListByEnum* BlendListByEnum = Cast<UAnimGraphNode_BlendListByEnum>(NodeExport.Object);
+	
+    if (!BlendListByEnum || !NodeJsonObject) {
+        return;
+    }
+
+	/* Get the BoundEnum set before in the BlendListByEnum node */
+    const UEnum* BoundEnum = BlendListByEnum->GetEnum();
+    if (!BoundEnum) {
+        return;
+    }
+
+	TArray<TSharedPtr<FJsonValue>> EnumToPoseIndexArray = NodeJsonObject->GetArrayField(TEXT("EnumToPoseIndex"));
+
+	/* Create VisibleEnumEntries array using the enum */
+	TArray<FName> VisibleEnumEntries;
+
+    for (int32 i = 0; i < EnumToPoseIndexArray.Num(); i++) {
+        const int32 Value = static_cast<int32>(EnumToPoseIndexArray[i]->AsNumber());
+        
+        if (Value != 0) {
+            if (BoundEnum->NumEnums() > i) {
+                FString EnumEntryName = BoundEnum->GetNameByIndex(i).ToString();
+                if (EnumEntryName.Contains("::")) {
+                    EnumEntryName.Split("::", nullptr, &EnumEntryName);
+                }
+
+                VisibleEnumEntries.Add(FName(*EnumEntryName));
+            }
+        }
+    }
+	
+    if (const FArrayProperty* VisEnumArrayProp = FindFProperty<FArrayProperty>(BlendListByEnum->GetClass(), TEXT("VisibleEnumEntries"))) {
+        const void* ArrayPtr = VisEnumArrayProp->ContainerPtrToValuePtr<void>(BlendListByEnum);
+        FScriptArrayHelper ArrayHelper(VisEnumArrayProp, ArrayPtr);
+    	
+        ArrayHelper.Resize(0);
+    	
+        const FNameProperty* NameProp = CastField<FNameProperty>(VisEnumArrayProp->Inner);
+        if (!NameProp) {
+            return;
+        }
+    	
+        for (const FName& Entry : VisibleEnumEntries) {
+            const int32 NewIdx = ArrayHelper.AddValue();
+            void* ElemPtr = ArrayHelper.GetRawPtr(NewIdx);
+        	
+            NameProp->SetPropertyValue(ElemPtr, Entry);
+        }
+    }
+
+	BlendListByEnum->ReconstructNode();
+
+	TArray<TSharedPtr<FJsonValue>> BlendPoseArray = NodeJsonObject->GetArrayField(TEXT("BlendPose"));
+
+	int BlendPoseIndex = 0;
+	if (BlendPoseArray.IsValidIndex(0)) {
+		FString LinkID = BlendPoseArray[0]->AsObject()->GetStringField(TEXT("LinkID"));
+		const FString IndexedPinName = FString::Printf(TEXT("BlendPose_%d"), 0);
+
+		FUObjectExport TargetNodeExport = Container.Find(LinkID);
+		UAnimGraphNode_Base* TargetNode = Cast<UAnimGraphNode_Base>(TargetNodeExport.Object);
+
+		LinkPoseInputPin(IndexedPinName, BlendListByEnum, TargetNode, AnimGraph);
+
+		BlendPoseIndex++;
+	}
+
+	/* Map poses corresponding to the bound enum */
+	for (int32 EnumIndex = 0; EnumIndex < BoundEnum->NumEnums() - 1; ++EnumIndex) {
+		if (EnumIndex < EnumToPoseIndexArray.Num()) {
+			const int PoseIndex = EnumToPoseIndexArray[EnumIndex]->AsNumber();
+
+			if (PoseIndex == 0) continue;
+
+			if (PoseIndex < BlendPoseArray.Num()) {
+				FString LinkID = BlendPoseArray[PoseIndex]->AsObject()->GetStringField(TEXT("LinkID"));
+                const FString IndexedPinName = FString::Printf(TEXT("BlendPose_%d"), BlendPoseIndex);
+
+				FUObjectExport TargetNodeExport = Container.Find(LinkID);
+				UAnimGraphNode_Base* TargetNode = Cast<UAnimGraphNode_Base>(TargetNodeExport.Object);
+
+				LinkPoseInputPin(IndexedPinName, BlendListByEnum, TargetNode, AnimGraph);
+			}
+		}
+
+		BlendPoseIndex++;
 	}
 }
 
@@ -309,6 +422,22 @@ void IAnimationBlueprintImporter::HandleNodeDeserialization(FUObjectExportContai
 		UAnimGraphNode_Base* Node = Cast<UAnimGraphNode_Base>(NodeExport.Object);
 		TSharedPtr<FJsonObject> NodeProperties = NodeExport.JsonObject;
 
+		/* Post-processing modifications ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+		if (NodeProperties->HasField(TEXT("GroupRole"))) {
+			const int GroupIndexInteger = NodeProperties->GetIntegerField(TEXT("GroupIndex"));
+
+			/* -1 is no group role */
+			if (GroupIndexInteger != -1) {
+				TSharedPtr<FJsonObject> SyncGroup = MakeShared<FJsonObject>();
+				FString SyncGroupName = SyncGroupNames[GroupIndexInteger];
+			
+				SyncGroup->SetStringField("GroupName", SyncGroupName);
+				SyncGroup->SetStringField("GroupRole", NodeProperties->GetStringField(TEXT("GroupRole")));
+
+				NodeProperties->SetObjectField(TEXT("SyncGroup"), SyncGroup);
+			}
+		}
+		
 		GetObjectSerializer()->DeserializeObjectProperties(NodeProperties, Node);
 
 		/* Specific needs for certain nodes ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -337,106 +466,7 @@ void IAnimationBlueprintImporter::HandleNodeDeserialization(FUObjectExportContai
 			}
 		}
 
-		/* Let the user know that this node has nodes plugged into it */
-		if (NodeProperties->HasField("EvaluateGraphExposedInputs")) {
-			const TSharedPtr<FJsonObject> EvaluateGraphExposedInputs = NodeProperties->GetObjectField("EvaluateGraphExposedInputs");
-
-			bool bBoundFunction = EvaluateGraphExposedInputs->GetStringField("BoundFunction") != "None";
-			
-			if (EvaluateGraphExposedInputs->HasField("CopyRecords") || bBoundFunction) {
-				const TArray<TSharedPtr<FJsonValue>> CopyRecords = EvaluateGraphExposedInputs->GetArrayField("CopyRecords");
-
-				if (CopyRecords.Num() > 0) {
-					for (const TSharedPtr<FJsonValue> CopyRecordAsValue : CopyRecords) {
-						const TSharedPtr<FJsonObject> CopyRecordAsObject = CopyRecordAsValue->AsObject();
-
-						if (!CopyRecordAsObject->HasField("DestProperty")) continue;
-						if (CopyRecordAsObject->HasField("BoundFunction") && CopyRecordAsObject->GetStringField("BoundFunction") != TEXT("None")) {
-							bBoundFunction = true;
-
-							continue;
-						}
-
-						FString SourcePropertyName = CopyRecordAsObject->GetStringField("SourcePropertyName");
-
-						/*
-						 * Take the property's name from the object name:
-						 *
-						 * FloatProperty'AnimNode_SkeletalControlBase:Alpha' ->
-						 * :Alpha' ->
-						 * Alpha
-						 */
-						const TSharedPtr<FJsonObject> DestProperty = CopyRecordAsObject->GetObjectField("DestProperty");
-						FString PinName = DestProperty->GetStringField(TEXT("ObjectName")); {
-							PinName.Split(TEXT(":"), nullptr, &PinName);
-							PinName = PinName.Replace(TEXT("'"), TEXT(""));
-						}
-
-						FString PinCategory = DestProperty->GetStringField(TEXT("ObjectName")); {
-							PinCategory.Split(TEXT("'"), &PinCategory, nullptr);
-							PinCategory.Split(TEXT("Property"), &PinCategory, nullptr);
-							PinCategory = PinCategory.ToLower();
-						}
-
-						FName PinNameAsName(PinName);
-
-						/* Setup Property Binding */
-						FAnimGraphNodePropertyBinding PropertyBinding;
-						PropertyBinding.PropertyName = PinNameAsName;
-						PropertyBinding.PathAsText = FText::FromString(SourcePropertyName);
-						PropertyBinding.PinType.PinCategory = FName(PinCategory);
-						PropertyBinding.bIsBound = true;
-						PropertyBinding.PropertyPath.Append({ SourcePropertyName });
-
-						TSharedPtr<FJsonObject> SourcePropertyObject = GetExportMatchingWith(SourcePropertyName, "Name", AllJsonObjects);
-						if (PinCategory == "struct" && SourcePropertyObject.IsValid() && SourcePropertyObject->HasField("Struct")) {
-							TSharedPtr<FJsonObject> StructObject = SourcePropertyObject->GetObjectField("Struct");
-
-							TObjectPtr<UObject> LoadedObject;
-							LoadObject<UObject>(&StructObject, LoadedObject);
-
-							PropertyBinding.PinType.PinSubCategoryObject = LoadedObject.Get();
-						}
-
-						if (CopyRecordAsObject->HasField("SourceSubPropertyName") && CopyRecordAsObject->GetStringField("SourceSubPropertyName") != "None") {
-							FString SourceSubPropertyName = CopyRecordAsObject->GetStringField("SourceSubPropertyName");
-							PropertyBinding.PathAsText = FText::FromString(SourcePropertyName + "." + SourceSubPropertyName);
-
-							PropertyBinding.PropertyPath.Append({ SourceSubPropertyName });
-
-							if (CopyRecordAsObject->GetObjectField("CachedSourceStructSubProperty")) {
-								TSharedPtr<FJsonObject> StructObject = CopyRecordAsObject->GetObjectField("CachedSourceStructSubProperty");
-								
-								TObjectPtr<UObject> LoadedObject;
-								LoadObject<UObject>(&StructObject, LoadedObject);
-
-								auto StructProperty = LoadStructProperty(StructObject);
-
-								if (StructProperty) {
-									PropertyBinding.PinType.PinSubCategoryObject = StructProperty->Struct;
-								}
-							}
-						}
-						
-						Node->PropertyBindings.Add(PinNameAsName, PropertyBinding);
-
-						if (PinName == "ActiveEnumValue") {
-							if (UAnimGraphNode_BlendListByEnum* BlendListByEnum = Cast<UAnimGraphNode_BlendListByEnum>(Node)) {
-								/*TSharedPtr<FJsonObject> StructObject = CopyRecordAsObject->GetObjectField("CachedSourceProperty");
-
-								TObjectPtr<UObject> LoadedObject;
-								LoadObject<UObject>(&StructObject, LoadedObject);
-
-								UStructProperty* StructProperty = LoadStructProperty(StructObject);*/
-							}
-						}
-					}
-				}
-
-				Node->NodeComment = NodeExport.Name.ToString();
-				Node->bCommentBubbleVisible = bBoundFunction;
-			}
-		}
+		HandlePropertyBinding(NodeExport, AllJsonObjects, Node, this, AnimBlueprint);
 
 		const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 		if (Settings->AssetSettings.AnimationBlueprintImportSettings.bShowAllNodeKeysAsComment) {
@@ -449,79 +479,94 @@ void IAnimationBlueprintImporter::HandleNodeDeserialization(FUObjectExportContai
 	}
 }
 
-void IAnimationBlueprintImporter::LinkPoseInputPin(const FString& PinName, UAnimGraphNode_Base* Node, UAnimGraphNode_Base* TargetNode, UEdGraph* AnimGraph) {
-	UEdGraphPin* InputPin = Node->FindPin(PinName, EGPD_Input);
-	UEdGraphPin* OutputPin = GetFirstOutputPin(TargetNode);
-	
-	if (InputPin && OutputPin) {
-		InputPin->MakeLinkTo(OutputPin);
-		InputPin->DefaultValue.Reset();
-		
-		Node->Modify();
-		TargetNode->Modify();
-		AnimGraph->Modify();
-	}
-}
-
 void IAnimationBlueprintImporter::ConnectAnimGraphNodes(FUObjectExportContainer& Container, UEdGraph* AnimGraph) {
-	for (const FUObjectExport Export : Container.Exports) {
-		UAnimGraphNode_Base* Node = Cast<UAnimGraphNode_Base>(Export.Object);
-		const TSharedPtr<FJsonObject> Json = Export.JsonObject;
+    for (const FUObjectExport Export : Container.Exports) {
+        UAnimGraphNode_Base* Node = Cast<UAnimGraphNode_Base>(Export.Object);
+        const TSharedPtr<FJsonObject> Json = Export.JsonObject;
 
-		for (const auto& Pair : Json->Values) {
-			const FString& Key = Pair.Key;
-			const TSharedPtr<FJsonValue>& Value = Pair.Value;
+        if (UAnimGraphNode_BlendListByEnum* BlendNode = Cast<UAnimGraphNode_BlendListByEnum>(Node)) {
+            UpdateBlendListByEnumVisibleEntries(Export, Container, AnimGraph);
+        	continue;
+        }
+    	
+        for (const auto& Pair : Json->Values) {
+            const FString& Key = Pair.Key;
+            const TSharedPtr<FJsonValue>& Value = Pair.Value;
+            
+            if (Value->Type == EJson::Array) {
+                const TArray<TSharedPtr<FJsonValue>>& JsonArray = Value->AsArray();
+                
+                for (int32 Index = 0; Index < JsonArray.Num(); ++Index) {
+                    const TSharedPtr<FJsonValue>& Elem = JsonArray[Index];
+                    
+                    if (!Elem.IsValid() || !Elem->AsObject().IsValid()) {
+                        continue;
+                    }
+                    
+                    const TSharedPtr<FJsonObject>& Obj = Elem->AsObject();
+                    if (!Obj->HasField("LinkID")) {
+                        continue;
+                    }
+                    
+                    const FString LinkID = Obj->GetStringField("LinkID");
+                    UAnimGraphNode_Base* TargetNode = Cast<UAnimGraphNode_Base>(Container.Find(LinkID).Object);
+                    
+                    if (!TargetNode) {
+                        continue;
+                    }
+                    
+                    const FStructProperty* NodeProp = GetNodeStructProperty(Node);
+                    if (!NodeProp) {
+                        continue;
+                    }
+                    
+                    for (TFieldIterator<FProperty> It(NodeProp->Struct); It; ++It) {
+                        FProperty* Property = *It;
+                        
+                        if (Property->GetName() != Pair.Key) {
+                            continue;
+                        }
+                        
+                        if (const FArrayProperty* ArrayProp = CastField<FArrayProperty>(Property)) {
+                            const FStructProperty* InnerStruct = CastField<FStructProperty>(ArrayProp->Inner);
+                            
+                            if (!InnerStruct || !InnerStruct->Struct->IsChildOf(FPoseLinkBase::StaticStruct())) {
+                                continue;
+                            }
+                            
+                            const FString IndexedPinName = FString::Printf(TEXT("%s_%d"), *Pair.Key, Index);
+                            LinkPoseInputPin(IndexedPinName, Node, TargetNode, AnimGraph);
+                        }
+                    }
+                }
+            }
+            
+            if (Value->Type == EJson::Object && Value->AsObject()->HasTypedField<EJson::String>("LinkID")) {
+                const FString LinkID = Value->AsObject()->GetStringField("LinkID");
+                UAnimGraphNode_Base* TargetNode = Cast<UAnimGraphNode_Base>(Container.Find(LinkID).Object);
+                
+                if (!TargetNode) {
+                    continue;
+                }
+                
+                const FStructProperty* NodeProp = GetNodeStructProperty(Node);
 
-			if (Value->Type == EJson::Array) {
-				const TArray<TSharedPtr<FJsonValue>>& JsonArray = Value->AsArray();
-				
-				for (int32 Index = 0; Index < JsonArray.Num(); ++Index) {
-					const TSharedPtr<FJsonValue>& Elem = JsonArray[Index];
-					
-					if (!Elem.IsValid() || !Elem->AsObject().IsValid()) continue;
-					
-					const TSharedPtr<FJsonObject>& Obj = Elem->AsObject();
-					if (!Obj->HasField("LinkID")) continue;
-
-					const FString LinkID = Obj->GetStringField("LinkID");
-					UAnimGraphNode_Base* TargetNode = Cast<UAnimGraphNode_Base>(Container.Find(LinkID).Object);
-					if (!TargetNode) continue;
-
-					const FStructProperty* NodeProp = GetNodeStructProperty(Node);
-					if (!NodeProp) continue;
-
-					for (TFieldIterator<FProperty> It(NodeProp->Struct); It; ++It) {
-						FProperty* Property = *It;
-						if (Property->GetName() != Pair.Key) continue;
-
-						if (const FArrayProperty* ArrayProp = CastField<FArrayProperty>(Property)) {
-							const FStructProperty* InnerStruct = CastField<FStructProperty>(ArrayProp->Inner);
-							if (!InnerStruct || !InnerStruct->Struct->IsChildOf(FPoseLinkBase::StaticStruct())) continue;
-
-							FString IndexedPinName = FString::Printf(TEXT("%s_%d"), *Pair.Key, Index);
-							LinkPoseInputPin(IndexedPinName, Node, TargetNode, AnimGraph);
-						}
-					}
-				}
-			}
-
-			if (Value->Type == EJson::Object && Value->AsObject()->HasTypedField<EJson::String>("LinkID")) {
-				const FString LinkID = Value->AsObject()->GetStringField("LinkID");
-				UAnimGraphNode_Base* TargetNode = Cast<UAnimGraphNode_Base>(Container.Find(LinkID).Object);
-				if (!TargetNode) continue;
-
-				const FStructProperty* NodeProp = GetNodeStructProperty(Node);
-				if (!NodeProp) continue;
-
-				for (TFieldIterator<FProperty> It(NodeProp->Struct); It; ++It) {
-					const FProperty* Property = *It;
-					if (Property->GetName() != Key) continue;
-
-					LinkPoseInputPin(Key, Node, TargetNode, AnimGraph);
-				}
-			}
-		}
-	}
+                if (!NodeProp) {
+                    continue;
+                }
+                
+                for (TFieldIterator<FProperty> It(NodeProp->Struct); It; ++It) {
+                    const FProperty* Property = *It;
+                    
+                    if (Property->GetName() != Pair.Key) {
+                        continue;
+                    }
+                    
+                    LinkPoseInputPin(Key, Node, TargetNode, AnimGraph);
+                }
+            }
+        }
+    }
 }
 
 /* In newer versions of Unreal Engine, EvaluateGraphExposedInputs was moved to the main AnimBlueprintGeneratedClass class */

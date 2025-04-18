@@ -25,7 +25,7 @@ bool IMaterialImporter::Import() {
 #endif
 
 	/* Define material data from the JSON */
-	FMaterialExpressionNodeExportContainer ExpressionContainer;
+	FUObjectExportContainer ExpressionContainer;
 	TSharedPtr<FJsonObject> Props = FindMaterialData(Material, JsonObject->GetStringField(TEXT("Type")), Material->GetName(), ExpressionContainer);
 
 	/* Map out each expression for easier access */
@@ -75,7 +75,7 @@ bool IMaterialImporter::Import() {
 				FName InputExpressionName = GetExpressionName(InputObject);
 
 				if (ExpressionContainer.Contains(InputExpressionName)) {
-					FExpressionInput Input = PopulateExpressionInput(InputObject, ExpressionContainer.GetExpressionByName(InputExpressionName));
+					FExpressionInput Input = PopulateExpressionInput(InputObject, ExpressionContainer.Find<UMaterialExpression>(InputExpressionName));
 					EditorOnlyData->CustomizedUVs[i] = *reinterpret_cast<FVector2MaterialInput*>(&Input);
 				}
 				i++;

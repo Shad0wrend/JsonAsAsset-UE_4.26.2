@@ -19,7 +19,7 @@ bool IMaterialFunctionImporter::Import() {
 	if (!OnAssetCreation(MaterialFunction)) return false;
 
 	/* Define editor only data from the JSON */
-	FMaterialExpressionNodeExportContainer ExpressionContainer;
+	FUObjectExportContainer ExpressionContainer;
 
 	const TSharedPtr<FJsonObject> Props = FindMaterialData(MaterialFunction, JsonObject->GetStringField(TEXT("Type")), MaterialFunction->GetName(), ExpressionContainer);
 

@@ -14,14 +14,14 @@ public:
 };
 
 USTRUCT()
-struct FAesKey
+struct FLocalFetchAES
 {
 	GENERATED_BODY()
 public:
-	FAesKey() {
+	FLocalFetchAES() {
 	}
 
-	FAesKey(FString NewGUID, FString NewKey) {
+	FLocalFetchAES(FString NewGUID, FString NewKey) {
 		Value = NewKey;
 		Guid = NewGUID;
 	}

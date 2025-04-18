@@ -16,7 +16,7 @@
 #include "Materials/MaterialExpressionTextureBase.h"
 #endif
 
-TSharedPtr<FJsonObject> IMaterialGraph::FindMaterialData(UObject* Parent, const FString& Type, const FString& Outer, FMaterialExpressionNodeExportContainer& Container) {
+TSharedPtr<FJsonObject> IMaterialGraph::FindMaterialData(UObject* Parent, const FString& Type, const FString& Outer, FUObjectExportContainer& Container) {
 	TSharedPtr<FJsonObject> EditorOnlyData;
 
 	/* Filter array if needed */
@@ -39,11 +39,12 @@ TSharedPtr<FJsonObject> IMaterialGraph::FindMaterialData(UObject* Parent, const 
 		}
 
 		/* Add to the list of expressions */
-		Container.Expressions.Add(FMaterialExpressionNodeExport(
+		Container.Exports.Add(FUObjectExport(
 			ExportName,
 			FName(ExportType),
 			FName(Outer),
 			Object,
+			nullptr,
 			Parent
 		));
 	}
@@ -51,15 +52,15 @@ TSharedPtr<FJsonObject> IMaterialGraph::FindMaterialData(UObject* Parent, const 
 	return EditorOnlyData->GetObjectField(TEXT("Properties"));
 }
 
-void IMaterialGraph::ConstructExpressions(FMaterialExpressionNodeExportContainer& Container) {
+void IMaterialGraph::ConstructExpressions(FUObjectExportContainer& Container) {
 	/* Go through each expression, and create the expression */
-	for (FMaterialExpressionNodeExport& Export : Container.Expressions) {
+	for (FUObjectExport& Export : Container.Exports) {
 		/* Invalid Json Object */
 		if (!Export.JsonObject.IsValid()) {
 			continue;
 		}
 
-		UMaterialExpression* Expression = Export.Expression;
+		UObject* Expression = Export.Object;
 
 		if (Expression == nullptr) {
 			Expression = CreateEmptyExpression(Export, Container);
@@ -70,12 +71,12 @@ void IMaterialGraph::ConstructExpressions(FMaterialExpressionNodeExportContainer
 			continue;
 		}
 
-		Export.Expression = Expression;
+		Export.Object = Expression;
 	}
 }
 
-void IMaterialGraph::PropagateExpressions(FMaterialExpressionNodeExportContainer& Container) {
-	for (FMaterialExpressionNodeExport Export : Container.Expressions) {
+void IMaterialGraph::PropagateExpressions(FUObjectExportContainer& Container) {
+	for (FUObjectExport Export : Container.Exports) {
 		/* Get variables from the export data */
 		FName Type = Export.Type;
 		
@@ -86,7 +87,7 @@ void IMaterialGraph::PropagateExpressions(FMaterialExpressionNodeExportContainer
 		TSharedPtr<FJsonObject> Properties = Export.GetProperties();
 
 		/* Created Expression */
-		UMaterialExpression* Expression = Export.Expression;
+		UMaterialExpression* Expression = Export.Get<UMaterialExpression>();
 
 		/* Skip null expressions */
 		if (Expression == nullptr) {
@@ -100,11 +101,11 @@ void IMaterialGraph::PropagateExpressions(FMaterialExpressionNodeExportContainer
 			TSharedPtr<FJsonObject> SubGraphExpressionObject = Properties->GetObjectField(TEXT("SubgraphExpression"));
 
 			FName SubGraphExpressionName = GetExportNameOfSubobject(SubGraphExpressionObject->GetStringField(TEXT("ObjectName")));
-
-			FMaterialExpressionNodeExport SubGraphExport = Container.Find(SubGraphExpressionName);
-			UMaterialExpression* SubGraphExpression = SubGraphExport.Expression;
+			FUObjectExport SubGraphExport = Container.Find(SubGraphExpressionName);
 
 #if ENGINE_UE5
+			UMaterialExpression* SubGraphExpression = SubGraphExport.Expression;
+
 			/* SubgraphExpression is only on Unreal Engine 5 */
 			Expression->SubgraphExpression = SubGraphExpression;
 #else
@@ -139,7 +140,7 @@ void IMaterialGraph::PropagateExpressions(FMaterialExpressionNodeExportContainer
 					FName InputExpressionName = GetExpressionName(InputObject);
 					
 					if (Container.Contains(InputExpressionName)) {
-						FExpressionInput Input = PopulateExpressionInput(InputObject, Container.GetExpressionByName(InputExpressionName));
+						FExpressionInput Input = PopulateExpressionInput(InputObject, Container.Find<UMaterialExpression>(InputExpressionName));
 						QualitySwitch->Inputs[i] = Input;
 					}
 					i++;
@@ -157,7 +158,7 @@ void IMaterialGraph::PropagateExpressions(FMaterialExpressionNodeExportContainer
 					FName InputExpressionName = GetExpressionName(InputObject);
 					
 					if (Container.Contains(InputExpressionName)) {
-						FExpressionInput Input = PopulateExpressionInput(InputObject, Container.GetExpressionByName(InputExpressionName));
+						FExpressionInput Input = PopulateExpressionInput(InputObject, Container.Find<UMaterialExpression>(InputExpressionName));
 						ShadingPathSwitch->Inputs[i] = Input;
 					}
 					i++;
@@ -175,7 +176,7 @@ void IMaterialGraph::PropagateExpressions(FMaterialExpressionNodeExportContainer
 					FName InputExpressionName = GetExpressionName(InputObject);
 					
 					if (Container.Contains(InputExpressionName)) {
-						FExpressionInput Input = PopulateExpressionInput(InputObject, Container.GetExpressionByName(InputExpressionName));
+						FExpressionInput Input = PopulateExpressionInput(InputObject, Container.Find<UMaterialExpression>(InputExpressionName));
 						FeatureLevelSwitch->Inputs[i] = Input;
 					}
 					i++;
@@ -245,7 +246,7 @@ void IMaterialGraph::AddExpressionToParent(UObject* Parent, UMaterialExpression*
 	}
 }
 
-UMaterialExpression* IMaterialGraph::CreateEmptyExpression(FMaterialExpressionNodeExport& Export, FMaterialExpressionNodeExportContainer& Container) {
+UMaterialExpression* IMaterialGraph::CreateEmptyExpression(FUObjectExport& Export, FUObjectExportContainer& Container) {
 	const FName Type = Export.Type;
 	const FName Name = Export.Name;
 	
@@ -256,7 +257,7 @@ UMaterialExpression* IMaterialGraph::CreateEmptyExpression(FMaterialExpressionNo
 
 	if (!Class) {
 #if ENGINE_UE5
-		TArray<FString> Redirects = TArray{
+		TArray<FString> Redirects = TArray {
 			FLinkerLoad::FindNewPathNameForClass("/Script/InterchangeImport." + Type.ToString(), false),
 			FLinkerLoad::FindNewPathNameForClass("/Script/Landscape." + Type.ToString(), false)
 		};
@@ -298,7 +299,7 @@ UMaterialExpression* IMaterialGraph::CreateEmptyExpression(FMaterialExpressionNo
 }
 
 /* ReSharper disable once CppMemberFunctionMayBeConst */
-UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeExport& Export, FMaterialExpressionNodeExportContainer& Container) {
+UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FUObjectExport& Export, FUObjectExportContainer& Container) {
 	/* Get variables from the export data */
 	const FName Name = Export.Name;
 	FName Type = Export.Type;
@@ -321,7 +322,7 @@ UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeE
 		SubgraphFunctionPath = SubgraphFunctionPath + "/";
 		
 		UPackage* SubgraphLocalOutermostPkg;
-		UPackage* SubgraphLocalPackage = FAssetUtilities::CreateAssetPackage(SubgraphFunctionName, SubgraphFunctionPath, SubgraphLocalOutermostPkg);
+		FAssetUtilities::CreateAssetPackage(SubgraphFunctionName, SubgraphFunctionPath, SubgraphLocalOutermostPkg);
 
 		UMaterialFunctionFactoryNew* SubgraphMaterialFunctionFactory = NewObject<UMaterialFunctionFactoryNew>();
 		UMaterialFunction* SubgraphMaterialFunction = Cast<UMaterialFunction>(SubgraphMaterialFunctionFactory->FactoryCreateNew(UMaterialFunction::StaticClass(), SubgraphLocalOutermostPkg, *SubgraphFunctionName, RF_Standalone | RF_Public, nullptr, GWarn));
@@ -330,12 +331,13 @@ UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeE
 
 		SubgraphFunctions.Add(Name, SubgraphMaterialFunction);
 
-		FMaterialExpressionNodeExport FunctionCall = FMaterialExpressionNodeExport(
+		FUObjectExport FunctionCall = FUObjectExport(
 			FName(*("MaterialExpressionMaterialFunctionCall_" + Name.ToString().Replace(TEXT("MaterialExpression"), TEXT("")))),
 			FName("MaterialExpressionMaterialFunctionCall"),
 			FName(""),
 			Export.JsonObject,
-			Parent
+			Parent,
+			nullptr
 		);
 
 		UMaterialExpressionMaterialFunctionCall* MaterialExpression = Cast<UMaterialExpressionMaterialFunctionCall>(CreateEmptyExpression(FunctionCall, Container));
@@ -350,17 +352,18 @@ UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeE
 			const FName InputExpressionName = GetExpressionName(Properties.Get(), "InputExpressions");
 					
 			if (Container.Contains(InputExpressionName)) {
-				FMaterialExpressionNodeExport PinBaseExport = Container.Find(InputExpressionName);
+				FUObjectExport PinBaseExport = Container.Find(InputExpressionName);
 
 				for (auto Value : PinBaseExport.GetProperties()->GetArrayField(TEXT("ReroutePins"))) {
 					auto ReroutePinObject = Value->AsObject();
 
-					FMaterialExpressionNodeExport FunctionOutput = FMaterialExpressionNodeExport(
+					FUObjectExport FunctionOutput = FUObjectExport(
 						FName(*("MaterialExpressionFunctionInput_" + InputExpressionName.ToString().Replace(TEXT("MaterialExpression"), TEXT(""))) + ReroutePinObject->GetStringField(TEXT("Name")).Replace(TEXT(" "), TEXT(""))),
 						FName("MaterialExpressionFunctionInput"),
 						FName(""),
 						Export.JsonObject,
-						SubgraphMaterialFunction
+						SubgraphMaterialFunction,
+						nullptr
 					);
 				
 					UMaterialExpressionFunctionInput* FunctionInputExpression = Cast<UMaterialExpressionFunctionInput>(CreateEmptyExpression(FunctionOutput, Container));
@@ -386,17 +389,18 @@ UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeE
 			const FName InputExpressionName = GetExpressionName(Properties.Get(), "OutputExpressions");
 					
 			if (Container.Contains(InputExpressionName)) {
-				FMaterialExpressionNodeExport PinBaseExport = Container.Find(InputExpressionName);
+				FUObjectExport PinBaseExport = Container.Find(InputExpressionName);
 
 				for (auto Value : PinBaseExport.GetProperties()->GetArrayField(TEXT("ReroutePins"))) {
 					auto ReroutePinObject = Value->AsObject();
 
-					FMaterialExpressionNodeExport FunctionOutput = FMaterialExpressionNodeExport(
+					FUObjectExport FunctionOutput = FUObjectExport(
 						FName(*("MaterialExpressionFunctionOutput_" + InputExpressionName.ToString().Replace(TEXT("MaterialExpression"), TEXT(""))) + ReroutePinObject->GetStringField(TEXT("Name")).Replace(TEXT(" "), TEXT(""))),
 						FName("MaterialExpressionFunctionOutput"),
 						FName(""),
 						Export.JsonObject,
-						SubgraphMaterialFunction
+						SubgraphMaterialFunction,
+						nullptr
 					);
 				
 					UMaterialExpressionFunctionOutput* FunctionOutputExpression = Cast<UMaterialExpressionFunctionOutput>(CreateEmptyExpression(FunctionOutput, Container));
@@ -419,19 +423,18 @@ UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeE
 					InputExpression.ExpressionInputId = ID;
 
 					const FName RerouteExpressionName = GetExpressionName(ReroutePinObject.Get());
-					FMaterialExpressionNodeExport RerouteInputExport = Container.Find(RerouteExpressionName);
+					FUObjectExport RerouteInputExport = Container.Find(RerouteExpressionName);
 
 					TSharedPtr<FJsonObject> ExpressionReroute = RerouteInputExport.JsonObject->GetObjectField(TEXT("Properties"))->GetObjectField(TEXT("Input"));
 					const FName NewExpressionName = GetExpressionName(ExpressionReroute.Get());
-					FMaterialExpressionNodeExport NewExpressionExport = Container.Find(NewExpressionName);
+					FUObjectExport NewExpressionExport = Container.Find(NewExpressionName);
 
-					if (!NewExpressionExport.Expression)
-					{
-						NewExpressionExport.Expression = CreateEmptyExpression(NewExpressionExport, Container);
+					if (!NewExpressionExport.Object) {
+						NewExpressionExport.Object = CreateEmptyExpression(NewExpressionExport, Container);
 					}
 
 					InputExpression.ExpressionInputId = ID;
-					FExpressionInput Input = PopulateExpressionInput(ExpressionReroute.Get(), NewExpressionExport.Expression);
+					FExpressionInput Input = PopulateExpressionInput(ExpressionReroute.Get(), NewExpressionExport.Get<UMaterialExpression>());
 
 					InputExpression.Input = Input;
 					MaterialExpression->FunctionInputs.Add(InputExpression);
@@ -479,12 +482,12 @@ UMaterialExpression* IMaterialGraph::OnMissingNodeClass(FMaterialExpressionNodeE
 }
 
 void IMaterialGraph::SpawnMaterialDataMissingNotification() const {
-	FNotificationInfo Info = FNotificationInfo(FText::FromString("Material Data Missing (" + FileName + ")"));
+	FNotificationInfo Info = FNotificationInfo(FText::FromString("No Material Data (" + FileName + ")"));
 	Info.ExpireDuration = 7.0f;
 	Info.bUseLargeFont = true;
 	Info.bUseSuccessFailIcons = true;
 	Info.WidthOverride = FOptionalSize(350);
-	SetNotificationSubText(Info, FText::FromString(FString("Please use the correct FModel provided in the JsonAsAsset server.")));
+	SetNotificationSubText(Info, FText::FromString(FString("Your game most likely does not have material data, please see the requirements for material data on the GitHub.")));
 
 	const TSharedPtr<SNotificationItem> NotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
 	NotificationPtr->SetCompletionState(SNotificationItem::CS_Fail);

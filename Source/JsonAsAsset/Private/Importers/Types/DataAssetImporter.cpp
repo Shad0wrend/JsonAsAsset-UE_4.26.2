@@ -8,7 +8,6 @@ bool IDataAssetImporter::Import() {
 	DataAsset->MarkPackageDirty();
 
 	UObjectSerializer* ObjectSerializer = GetObjectSerializer();
-	ObjectSerializer->SetPackageForDeserialization(Package);
 	ObjectSerializer->SetExportForDeserialization(JsonObject);
 	ObjectSerializer->ParentAsset = DataAsset;
 

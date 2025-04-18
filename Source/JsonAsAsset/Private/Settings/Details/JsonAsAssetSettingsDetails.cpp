@@ -30,7 +30,7 @@ void FJsonAsAssetSettingsDetails::CustomizeDetails(IDetailLayoutBuilder& DetailB
 	DetailBuilder.GetObjectsBeingCustomized(ObjectsBeingCustomized);
 
 	/* Reference to settings */
-	TWeakObjectPtr<UJsonAsAssetSettings> Settings = Cast<UJsonAsAssetSettings>(ObjectsBeingCustomized[0].Get());
+	const TWeakObjectPtr<UJsonAsAssetSettings> Settings = Cast<UJsonAsAssetSettings>(ObjectsBeingCustomized[0].Get());
 
 	EditConfiguration(Settings, DetailBuilder);
 
@@ -101,7 +101,7 @@ void FJsonAsAssetSettingsDetails::EditConfiguration(TWeakObjectPtr<UJsonAsAssetS
                                         const TSharedPtr<FJsonObject> KeyObject = KeyValue->AsObject();
 
                                         if (KeyObject.IsValid()) {
-                                            FAesKey NewKey;
+                                            FLocalFetchAES NewKey;
                                             NewKey.Guid = KeyObject->GetStringField(TEXT("guid"));
                                             NewKey.Value = KeyObject->GetStringField(TEXT("key"));
                                             PluginSettings->DynamicKeys.Add(NewKey);
@@ -173,7 +173,7 @@ void FJsonAsAssetSettingsDetails::EditEncryption(TWeakObjectPtr<UJsonAsAssetSett
 					FString GUID = Object->GetStringField(TEXT("guid"));
 					FString Key = Object->GetStringField(TEXT("key"));
 
-					PluginSettings->DynamicKeys.Add(FAesKey(GUID, Key));
+					PluginSettings->DynamicKeys.Add(FLocalFetchAES(GUID, Key));
 				}
 			}
 

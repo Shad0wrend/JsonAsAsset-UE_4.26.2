@@ -2,7 +2,7 @@
 
 using UnrealBuildTool;
 
-/* NOTE: Please make sure to put UE5 only modules in the if statement below, we want UE4 and UE5 compatibility */
+/* NOTE: Please make sure to put UE5 only modules in the #if statement below, we want UE4 and UE5 compatibility */
 public class JsonAsAsset : ModuleRules
 {
 	public JsonAsAsset(ReadOnlyTargetRules Target) : base(Target)

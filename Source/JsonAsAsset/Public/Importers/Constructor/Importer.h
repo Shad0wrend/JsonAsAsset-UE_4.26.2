@@ -2,13 +2,12 @@
 
 #pragma once
 
-#include "../../Utilities/Serializers/PropertyUtilities.h"
-#include "../../Utilities/Serializers/ObjectUtilities.h"
 #include "Utilities/AppStyleCompatibility.h"
 #include "Utilities/EngineUtilities.h"
 #include "Utilities/JsonUtilities.h"
 #include "Dom/JsonObject.h"
 #include "CoreMinimal.h"
+#include "Utilities/Serializers/SerializerContainer.h"
 
 /* AssetType/Category ~ Defined in CPP */
 extern TMap<FString, TArray<FString>> ImporterTemplatedTypes;
@@ -16,6 +15,7 @@ extern TMap<FString, TArray<FString>> ImporterTemplatedTypes;
 inline TArray<FString> BlacklistedLocalFetchTypes = {
     "AnimSequence",
     "AnimMontage",
+    "AnimBlueprintGeneratedClass"
 };
 
 FORCEINLINE uint32 GetTypeHash(const TArray<FString>& Array) {
@@ -40,12 +40,10 @@ namespace { \
 }
 
 /* Global handler for converting JSON to assets */
-class JSONASASSET_API IImporter {
+class JSONASASSET_API IImporter : public USerializerContainer {
 public:
     /* Constructors ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-    IImporter()
-        : Package(nullptr), OutermostPkg(nullptr), AssetClass(nullptr), ParentObject(nullptr),
-          PropertySerializer(nullptr), GObjectSerializer(nullptr) {}
+    IImporter() : AssetClass(nullptr), ParentObject(nullptr) {}
 
     /* Importer Constructor */
     IImporter(const FString& FileName, const FString& FilePath, 
@@ -55,7 +53,7 @@ public:
     virtual ~IImporter() {}
 
     /* Easy way to find importers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-    using ImporterFactoryDelegate = TFunction<IImporter*(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& Exports, UClass* AssetClass)>;
+    using FImporterFactoryDelegate = TFunction<IImporter*(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& Exports, UClass* AssetClass)>;
 
     template <typename T>
     static IImporter* CreateImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& Exports, UClass* AssetClass) {
@@ -65,9 +63,9 @@ public:
     /* Registration info for an importer */
     struct FImporterRegistrationInfo {
         FString Category;
-        ImporterFactoryDelegate Factory;
+        FImporterFactoryDelegate Factory;
 
-        FImporterRegistrationInfo(const FString& InCategory, const ImporterFactoryDelegate& InFactory)
+        FImporterRegistrationInfo(const FString& InCategory, const FImporterFactoryDelegate& InFactory)
             : Category(InCategory)
             , Factory(InFactory)
         {
@@ -82,7 +80,7 @@ public:
         return Registry;
     }
 
-    static ImporterFactoryDelegate* FindFactoryForAssetType(const FString& AssetType) {
+    static FImporterFactoryDelegate* FindFactoryForAssetType(const FString& AssetType) {
         for (auto& Pair : GetFactoryRegistry()) {
             if (Pair.Key.Contains(AssetType)) {
                 return &Pair.Value.Factory;
@@ -91,15 +89,15 @@ public:
         
         return nullptr;
     }
-    
+
+public:
+    TArray<TSharedPtr<FJsonValue>> AllJsonObjects;
+
 protected:
     /* Class variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-    TArray<TSharedPtr<FJsonValue>> AllJsonObjects;
     TSharedPtr<FJsonObject> JsonObject;
     FString FileName;
     FString FilePath;
-    UPackage* Package;
-    UPackage* OutermostPkg;
 
     TSharedPtr<FJsonObject> AssetData;
     UClass* AssetClass;
@@ -125,7 +123,7 @@ public:
         return true;
     }
     
-    static bool CanImport(const FString& ImporterType, bool IsLocalFetch = false, const UClass* Class = nullptr) {
+    static bool CanImport(const FString& ImporterType, const bool IsLocalFetch = false, const UClass* Class = nullptr) {
         /* Blacklists for Local Fetch importing */
         if (IsLocalFetch) {
             if (!CanImportWithLocalFetch(ImporterType)) {
@@ -202,19 +200,13 @@ protected:
 
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Object Serializer and Property Serializer ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 public:
-    FORCEINLINE UObjectSerializer* GetObjectSerializer() const { return GObjectSerializer; }
-
     /* Function to check if an asset needs to be imported. Once imported, the asset will be set and returned. */
     template <class T = UObject>
     static TObjectPtr<T> DownloadWrapper(TObjectPtr<T> InObject, FString Type, FString Name, FString Path);
 
 protected:
-    UPropertySerializer* PropertySerializer;
-    UObjectSerializer* GObjectSerializer;
-
     void DeserializeExports(UObject* ParentAsset) const {
         UObjectSerializer* ObjectSerializer = GetObjectSerializer();
-        ObjectSerializer->SetPackageForDeserialization(Package);
         ObjectSerializer->SetExportForDeserialization(JsonObject);
         ObjectSerializer->ParentAsset = ParentAsset;
         

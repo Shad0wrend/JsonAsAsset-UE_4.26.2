@@ -4,12 +4,14 @@
 
 #include "Importers/Constructor/Importer.h"
 
+class UAnimGraphNode_BlendListByEnum;
 class UAnimGraphNode_Base;
 
 class IAnimationBlueprintImporter final : public IImporter {
 public:
 	IAnimationBlueprintImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass):
-		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass) {
+		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass), AnimBlueprint(nullptr)
+	{
 	}
 
 	virtual bool Import() override;
@@ -33,13 +35,13 @@ private:
 	void HandleNodeDeserialization(FUObjectExportContainer& Container);
 
 	/* Links Animation Graph Nodes together using a container */
-	static void ConnectAnimGraphNodes(FUObjectExportContainer& Container, UEdGraph* AnimGraph);
+	void ConnectAnimGraphNodes(FUObjectExportContainer& Container, UEdGraph* AnimGraph);
 
-	/* Links two nodes together using a PinName */
-	static void LinkPoseInputPin(const FString& PinName, UAnimGraphNode_Base* Node, UAnimGraphNode_Base* TargetNode, UEdGraph* AnimGraph);
-
+	void UpdateBlendListByEnumVisibleEntries(FUObjectExport NodeExport, FUObjectExportContainer& Container, UEdGraph* AnimGraph);
 protected:
 	/* Global Cached data to reuse */
+	UAnimBlueprint* AnimBlueprint;
+	
 	TArray<FString> NodesKeys;
 	TArray<FString> ReversedNodesKeys;
 	
@@ -50,6 +52,8 @@ protected:
 
 	/* UE5 Copy Record Cache Data */
 	TSharedPtr<FJsonObject> SerializedSparseClassData;
+
+	TArray<FString> SyncGroupNames;
 };
 
 REGISTER_IMPORTER(IAnimationBlueprintImporter, (TArray<FString>{ 

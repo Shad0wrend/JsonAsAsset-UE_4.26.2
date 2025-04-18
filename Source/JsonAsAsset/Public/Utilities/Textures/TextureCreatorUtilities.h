@@ -7,8 +7,7 @@
 
 struct FTextureCreatorUtilities {
 public:
-	FTextureCreatorUtilities(const FString& FileName, const FString& FilePath, UPackage* Package, 
-			  UPackage* OutermostPkg)
+	FTextureCreatorUtilities(const FString& FileName, const FString& FilePath, UPackage* Package, UPackage* OutermostPkg)
 		: FileName(FileName), FilePath(FilePath), Package(Package), OutermostPkg(OutermostPkg)
 	{
 		PropertySerializer = NewObject<UPropertySerializer>();

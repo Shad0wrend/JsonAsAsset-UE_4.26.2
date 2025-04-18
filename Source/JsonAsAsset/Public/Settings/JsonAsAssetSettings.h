@@ -44,7 +44,7 @@ public:
 		: bShowAllNodeKeysAsComment(false)
 	{}
 
-	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Encryption", AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Config, AdvancedDisplay)
 	bool bShowAllNodeKeysAsComment;
 };
 
@@ -86,7 +86,7 @@ struct FAssetSettings
 public:
 	/* Constructor to initialize default values */
 	FAssetSettings()
-		: bSavePackagesOnImport(false), bEnableAssetTools(false)
+		: bSavePackagesOnImport(false)
 	{
 		MaterialImportSettings = FJMaterialImportSettings();
 		SoundImportSettings = FJSoundImportSettings();
@@ -108,9 +108,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings", meta = (DisplayName = "Save Assets On Import"))
 	bool bSavePackagesOnImport;
-
-	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings", meta = (DisplayName = "Enable Asset Tools (experimental)"))
-	bool bEnableAssetTools;
 
 	/* Unreal Engine Game's Project Name (Set by Local Fetch) */
 	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings")
@@ -158,7 +155,7 @@ public:
 	 * Unreal Engine version of your game
 	 */
 	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Configuration", meta=(EditCondition="bEnableLocalFetch", DisplayName="Unreal Engine"))
-	TEnumAsByte<ECUE4ParseVersion> UnrealVersion;
+	TEnumAsByte<ECUE4ParseVersion> UnrealVersion = GAME_UE5_LATEST;
 
 	/**
 	 * Specifies the file path to your mappings file
@@ -183,7 +180,7 @@ public:
 	 * Note: These keys are optional for most Unreal Engine games. Override them only if your build uses encryption.
 	 */
 	UPROPERTY(EditAnywhere, Config, Category = "Local Fetch - Encryption", meta=(EditCondition="bEnableLocalFetch", DisplayName="Dynamic Keys"))
-	TArray<FAesKey> DynamicKeys;
+	TArray<FLocalFetchAES> DynamicKeys;
 	
 	/**
 	 * Local Fetch URL

@@ -11,8 +11,8 @@
 #include "Settings/JsonAsAssetSettings.h"
 
 void ISoundGraph::ConstructNodes(USoundCue* SoundCue, TArray<TSharedPtr<FJsonValue>> JsonArray, TMap<FString, USoundNode*>& OutNodes) {
-	for (TSharedPtr<FJsonValue> JsonValue : JsonArray) {
-		TSharedPtr<FJsonObject> CurrentNodeObject = JsonValue->AsObject();
+	for (const TSharedPtr<FJsonValue> JsonValue : JsonArray) {
+		const TSharedPtr<FJsonObject> CurrentNodeObject = JsonValue->AsObject();
 
 		if (!CurrentNodeObject->HasField(TEXT("Type"))) {
 			continue;
@@ -30,7 +30,7 @@ void ISoundGraph::ConstructNodes(USoundCue* SoundCue, TArray<TSharedPtr<FJsonVal
 	}
 }
 
-USoundNode* ISoundGraph::CreateEmptyNode(FName Name, FName Type, USoundCue* SoundCue) {
+USoundNode* ISoundGraph::CreateEmptyNode(FName Name, const FName Type, USoundCue* SoundCue) {
 	UClass* Class = FindObject<UClass>(ANY_PACKAGE, *Type.ToString());
 
 	/* TODO: Construct the sound node manually to have the exact same object name */
@@ -208,6 +208,5 @@ void ISoundGraph::OnDownloadSoundWave(FHttpRequestPtr Request, const FHttpRespon
 		Node->SetSoundWave(ImportedWave);
 	} else {
 		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(FString::Format(TEXT("Failed To Download Audio {0}!"), { SavePath })));
-		return;
 	}
 }

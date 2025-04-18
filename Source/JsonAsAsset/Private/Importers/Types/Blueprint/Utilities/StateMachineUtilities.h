@@ -138,7 +138,9 @@ inline void CreateStateMachineGraph(
 	const TSharedPtr<FJsonObject>& StateMachineJsonObject,
 	UObjectSerializer* ObjectSerializer,
 	FUObjectExportContainer RootContainer,
-	TArray<FString> ReversedNodesKeys
+	TArray<FString> ReversedNodesKeys,
+	IImporter* Importer,
+	UAnimBlueprint* AnimBlueprint
 ) {
 	if (!StateMachineGraph || !StateMachineJsonObject.IsValid()) {
 		return;
@@ -158,6 +160,7 @@ inline void CreateStateMachineGraph(
 		const TSharedPtr<FJsonObject> StateObject = States[i]->AsObject();
 		const FString StateName = StateObject->GetStringField("StateName");
 		const bool bIsAConduit = StateObject->GetBoolField("bIsAConduit");
+		const bool bAlwaysResetOnEntry = StateObject->GetBoolField("bAlwaysResetOnEntry");
 
 		UAnimStateNodeBase* Node;
 		UEdGraph* BoundGraph = nullptr;
@@ -188,6 +191,8 @@ inline void CreateStateMachineGraph(
 				BoundGraph = NewObject<UAnimationStateGraph>(StateNode, UAnimationStateGraph::StaticClass(), *StateName, RF_Transactional);
 				StateNode->BoundGraph = BoundGraph;
 			}
+
+			StateNode->bAlwaysResetOnEntry = bAlwaysResetOnEntry;
 
 			Node = StateNode;
 		}
@@ -283,7 +288,9 @@ inline void CreateStateMachineGraph(
 			FString DelegateExportName = ReversedNodesKeys[CanTakeDelegateIndex];
 			
 			/* Use if needed */
-			/* const FUObjectExport DelegateExport = RootContainer.Find(DelegateExportName); */
+			const FUObjectExport DelegateExport = RootContainer.Find(DelegateExportName);
+
+			HandlePropertyBinding(DelegateExport, Importer->AllJsonObjects, TransitionResult, Importer, AnimBlueprint);
 
 			TransitionResult->NodeComment = DelegateExportName;
 			TransitionResult->bCommentBubbleVisible = true;

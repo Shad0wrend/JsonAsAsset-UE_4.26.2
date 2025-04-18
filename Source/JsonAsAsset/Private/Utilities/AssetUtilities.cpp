@@ -11,8 +11,6 @@
 #include "Engine/SubsurfaceProfile.h"
 #include "Materials/MaterialParameterCollection.h"
 #include "Interfaces/IPluginManager.h"
-#include "Widgets/Notifications/SNotificationList.h"
-#include "Framework/Notifications/NotificationManager.h"
 #include "Settings/JsonAsAssetSettings.h"
 #include "Dom/JsonObject.h"
 
@@ -23,7 +21,6 @@
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Utilities/RemoteUtilities.h"
-#include "PluginUtils.h"
 
 /* CreateAssetPackage Implementations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 UPackage* FAssetUtilities::CreateAssetPackage(const FString& FullPath) {
@@ -41,48 +38,57 @@ UPackage* FAssetUtilities::CreateAssetPackage(const FString& FullPath) {
 UPackage* FAssetUtilities::CreateAssetPackage(const FString& Name, const FString& OutputPath, UPackage*& OutOutermostPkg) {
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 	
-	FString ModifiablePath;
-
+	FString ModifiablePath = OutputPath;
+	
 	/* References Automatically Formatted */
-	if (!OutputPath.StartsWith("/Game/") && !OutputPath.StartsWith("/Plugins/") && OutputPath.Contains("/Content/")) {
-		OutputPath.Split(*(Settings->ExportDirectory.Path + "/"), nullptr, &ModifiablePath, ESearchCase::IgnoreCase, ESearchDir::FromStart);
-		ModifiablePath.Split("/", nullptr, &ModifiablePath, ESearchCase::IgnoreCase, ESearchDir::FromStart);
-		ModifiablePath.Split("/", &ModifiablePath, nullptr, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
-		/* Ex: RestPath: Plugins/Folder/BaseTextures */
-		/* Ex: RestPath: Content/SecondaryFolder */
-		bool bIsPlugin = ModifiablePath.StartsWith("Plugins");
-
-		/* Plugins/Folder/BaseTextures -> Folder/BaseTextures */
-		if (bIsPlugin) {
-			FString PluginName = ModifiablePath;
-			FString RemainingPath;
-			/* PluginName = TestName */
-			/* RemainingPath = SetupAssets/Materials */
-			ModifiablePath.Split("/Content/", &PluginName, &RemainingPath, ESearchCase::IgnoreCase, ESearchDir::FromStart);
-			PluginName.Split("/", nullptr, &PluginName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
-
-			/* /PluginName/Materials */
-			ModifiablePath = PluginName + "/" + RemainingPath;
-		}
-		/* Content/SecondaryFolder -> Game/SecondaryFolder */
-		else {
-			ModifiablePath = ModifiablePath.Replace(TEXT("Content"), TEXT("Game"));
+	if (!ModifiablePath.StartsWith("/Game/") && !ModifiablePath.StartsWith("/Plugins/") && ModifiablePath.Contains("/Content/")) {
+		if (!Settings->AssetSettings.GameName.IsEmpty()) {
+			ModifiablePath = ModifiablePath.Replace(*(Settings->AssetSettings.GameName + "/Content"), TEXT("/Game"));
+			ModifiablePath.Split(*(Settings->ExportDirectory.Path + "/"), nullptr, &ModifiablePath, ESearchCase::IgnoreCase, ESearchDir::FromStart);
+			ModifiablePath.Split("/", &ModifiablePath, nullptr, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+			ModifiablePath += "/";
 		}
 
-		ModifiablePath = "/" + ModifiablePath + "/";
+		if (!ModifiablePath.StartsWith("/Game/") && !ModifiablePath.StartsWith("/Plugins/") && ModifiablePath.Contains("/Content/")) {
+			ModifiablePath.Split(*(Settings->ExportDirectory.Path + "/"), nullptr, &ModifiablePath, ESearchCase::IgnoreCase, ESearchDir::FromStart);
+			ModifiablePath.Split("/", nullptr, &ModifiablePath, ESearchCase::IgnoreCase, ESearchDir::FromStart);
+			ModifiablePath.Split("/", &ModifiablePath, nullptr, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+			/* Ex: RestPath: Plugins/Folder/BaseTextures */
+			/* Ex: RestPath: Content/SecondaryFolder */
+			const bool bIsPlugin = ModifiablePath.StartsWith("Plugins");
 
-		/* Check if plugin exists */
-		if (bIsPlugin) {
-			FString PluginName;
-			ModifiablePath.Split("/", nullptr, &PluginName, ESearchCase::IgnoreCase, ESearchDir::FromStart);
-			PluginName.Split("/", &PluginName, nullptr, ESearchCase::IgnoreCase, ESearchDir::FromStart);
+			/* Plugins/Folder/BaseTextures -> Folder/BaseTextures */
+			if (bIsPlugin) {
+				FString PluginName = ModifiablePath;
+				FString RemainingPath;
+				/* PluginName = TestName */
+				/* RemainingPath = SetupAssets/Materials */
+				ModifiablePath.Split("/Content/", &PluginName, &RemainingPath, ESearchCase::IgnoreCase, ESearchDir::FromStart);
+				PluginName.Split("/", nullptr, &PluginName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
 
-			if (IPluginManager::Get().FindPlugin(PluginName) == nullptr)
-				CreatePlugin(PluginName);
+				/* /PluginName/Materials */
+				ModifiablePath = PluginName + "/" + RemainingPath;
+			}
+			/* Content/SecondaryFolder -> Game/SecondaryFolder */
+			else {
+				ModifiablePath = ModifiablePath.Replace(TEXT("Content"), TEXT("Game"));
+			}
+
+			ModifiablePath = "/" + ModifiablePath + "/";
+
+			/* Check if plugin exists */
+			if (bIsPlugin) {
+				FString PluginName;
+				ModifiablePath.Split("/", nullptr, &PluginName, ESearchCase::IgnoreCase, ESearchDir::FromStart);
+				PluginName.Split("/", &PluginName, nullptr, ESearchCase::IgnoreCase, ESearchDir::FromStart);
+
+				if (IPluginManager::Get().FindPlugin(PluginName) == nullptr)
+					CreatePlugin(PluginName);
+			}
 		}
 	} else {
 		FString RootName; {
-			OutputPath.Split("/", nullptr, &RootName, ESearchCase::IgnoreCase, ESearchDir::FromStart);
+			ModifiablePath.Split("/", nullptr, &RootName, ESearchCase::IgnoreCase, ESearchDir::FromStart);
 			RootName.Split("/", &RootName, nullptr, ESearchCase::IgnoreCase, ESearchDir::FromStart);
 		}
 
@@ -90,7 +96,6 @@ UPackage* FAssetUtilities::CreateAssetPackage(const FString& Name, const FString
 			CreatePlugin(RootName);
 		}
 
-		ModifiablePath = OutputPath;
 		ModifiablePath.Split("/", &ModifiablePath, nullptr, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
 
 		ModifiablePath = ModifiablePath + "/";
@@ -197,12 +202,12 @@ bool FAssetUtilities::ConstructAsset(const FString& Path, const FString& Type, T
 	return false;
 }
 
-bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& RealPath, UTexture*& OutTexture) {
+bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& FetchPath, UTexture*& OutTexture) {
 	if (Path.IsEmpty()) {
 		return false;
 	}
 
-	TSharedPtr<FJsonObject> JsonObject = API_RequestExports(RealPath);
+	TSharedPtr<FJsonObject> JsonObject = API_RequestExports(FetchPath);
 	if (JsonObject == nullptr) {
 		return false;
 	}
@@ -227,7 +232,7 @@ bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& 
 		const TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = HttpModule->CreateRequest();
 #endif
 
-		HttpRequest->SetURL(Settings->LocalFetchUrl + "/api/export?path=" + RealPath);
+		HttpRequest->SetURL(Settings->LocalFetchUrl + "/api/export?path=" + FetchPath);
 		HttpRequest->SetHeader("content-type", "application/octet-stream");
 		HttpRequest->SetVerb(TEXT("GET"));
 

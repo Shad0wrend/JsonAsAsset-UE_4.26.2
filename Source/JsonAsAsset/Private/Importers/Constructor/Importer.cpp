@@ -37,14 +37,10 @@ IImporter::IImporter(const FString& FileName, const FString& FilePath,
 		  const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, 
 		  UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects,
 		  UClass* AssetClass)
-	: AllJsonObjects(AllJsonObjects), JsonObject(JsonObject), FileName(FileName),
-	  FilePath(FilePath), Package(Package), OutermostPkg(OutermostPkg), AssetClass(AssetClass),
+	: USerializerContainer(Package, OutermostPkg), AllJsonObjects(AllJsonObjects), JsonObject(JsonObject),
+	  FileName(FileName), FilePath(FilePath), AssetClass(AssetClass),
 	  ParentObject(nullptr)
 {
-	PropertySerializer = NewObject<UPropertySerializer>();
-	GObjectSerializer = NewObject<UObjectSerializer>();
-	GObjectSerializer->SetPropertySerializer(PropertySerializer);
-	
 	/* Create Properties field if it doesn't exist */
 	if (!JsonObject->HasField(TEXT("Properties"))) {
 		JsonObject->SetObjectField(TEXT("Properties"), TSharedPtr<FJsonObject>());
@@ -167,7 +163,7 @@ bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FSt
 		IImporter* Importer = nullptr;
 		
 		/* Try to find the importer using a factory delegate */
-		if (const ImporterFactoryDelegate* Factory = FindFactoryForAssetType(Type)) {
+		if (const FImporterFactoryDelegate* Factory = FindFactoryForAssetType(Type)) {
 			Importer = (*Factory)(Name, File, DataObject, LocalPackage, LocalOutermostPkg, Exports, Class);
 		}
 
