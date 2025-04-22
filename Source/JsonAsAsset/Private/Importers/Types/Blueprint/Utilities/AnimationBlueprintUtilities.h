@@ -245,9 +245,11 @@ inline void HandlePropertyBinding(FUObjectExport NodeExport, const TArray<TShare
 							}
 						}
 					}
-					
-					Node->PropertyBindings.Add(PinNameAsName, PropertyBinding);
 
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION < 3
+					Node->PropertyBindings.Add(PinNameAsName, PropertyBinding);
+#endif
+					
 					if (PinName == "ActiveEnumValue" && Node != nullptr) {
 						if (UAnimGraphNode_BlendListByEnum* BlendListByEnum = Cast<UAnimGraphNode_BlendListByEnum>(Node)) {
 							FProperty* Prop = AnimClass->FindPropertyByName(*SourcePropertyName);
