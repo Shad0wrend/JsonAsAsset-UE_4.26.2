@@ -190,7 +190,7 @@ void FJsonAsAssetModule::StartupModule() {
     /* Check for export directory in settings */
     Settings = GetMutableDefault<UJsonAsAssetSettings>();
 	
-	if (IsSetup(Settings)) {
+	if (!IsSetup(Settings)) {
 	    const FText TitleText = LOCTEXT("JsonAsAssetNotificationTitle", "Setup JsonAsAsset Settings");
 	    const FText MessageText = LOCTEXT("JsonAsAssetNotificationText",
 	        "JsonAsAsset requires a proper setup to run properly.\n\nOpen the documentation for JsonAsAsset for more information."
