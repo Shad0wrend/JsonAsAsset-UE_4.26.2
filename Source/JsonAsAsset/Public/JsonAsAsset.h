@@ -25,6 +25,9 @@ public:
     FJsonAsAssetVersioning Versioning;
     void CheckForUpdates();
 
+    static bool IsSetup(const UJsonAsAssetSettings* SettingsReference, TArray<FString>& Params);
+    static bool IsSetup(const UJsonAsAssetSettings* SettingsReference);
+
 private:
     void RegisterMenus();
 

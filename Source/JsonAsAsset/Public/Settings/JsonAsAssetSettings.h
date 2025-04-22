@@ -44,7 +44,7 @@ public:
 		: bShowAllNodeKeysAsComment(false)
 	{}
 
-	UPROPERTY(EditAnywhere, Config, AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Config, AdvancedDisplay, Category = "Animation Blueprint Settings")
 	bool bShowAllNodeKeysAsComment;
 };
 
@@ -65,7 +65,7 @@ public:
 	 * Use Case:
 	 * This option is useful when you need to re-import textures that have been updated in a newer version of your Local Fetch build.
 	 */
-	UPROPERTY(EditAnywhere, Config, AdvancedDisplay)
+	UPROPERTY(EditAnywhere, Config, AdvancedDisplay, Category = "Texture Import Settings")
 	bool bDownloadExistingTextures;
 };
 

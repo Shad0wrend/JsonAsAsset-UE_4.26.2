@@ -7,10 +7,15 @@
 /* Structures, Enumerations, used for Local Fetch */
 #include "LocalFetchModule.generated.h"
 
+class UJsonAsAssetSettings;
+
 class LocalFetchModule {
 public:
 	static bool LaunchLocalFetch();
 	static void CloseLocalFetch();
+
+	static bool IsSetup(const UJsonAsAssetSettings* Settings, TArray<FString>& Params);
+	static bool IsSetup(const UJsonAsAssetSettings* Settings);
 };
 
 USTRUCT()

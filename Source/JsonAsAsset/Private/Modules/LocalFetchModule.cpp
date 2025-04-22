@@ -6,11 +6,7 @@
 #include "Settings/JsonAsAssetSettings.h"
 #include "Windows/WindowsHWrapper.h"
 #include "Utilities/Compatibility.h"
-#include <TlHelp32.h>
-
-#if ENGINE_UE4
 #include "Utilities/EngineUtilities.h"
-#endif
 
 #ifdef _MSC_VER
 #undef GetObject
@@ -41,4 +37,21 @@ bool LocalFetchModule::LaunchLocalFetch() {
 
 void LocalFetchModule::CloseLocalFetch() {
 	CloseApplicationByProcessName("LocalFetch.exe");
+}
+
+bool LocalFetchModule::IsSetup(const UJsonAsAssetSettings* Settings, TArray<FString>& Params) {
+	if (Settings->MappingFilePath.FilePath.IsEmpty()) {
+		Params.Add("Mappings file is missing");
+	}
+
+	if (Settings->ArchiveDirectory.Path.IsEmpty()) {
+		Params.Add("Archive directory is missing");
+	}
+
+	return !(Settings->MappingFilePath.FilePath.IsEmpty() || Settings->ArchiveDirectory.Path.IsEmpty());
+}
+
+bool LocalFetchModule::IsSetup(const UJsonAsAssetSettings* Settings) {
+	TArray<FString> Params;
+	return IsSetup(Settings, Params);
 }
