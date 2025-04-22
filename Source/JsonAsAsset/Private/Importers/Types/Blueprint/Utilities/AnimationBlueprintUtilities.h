@@ -246,7 +246,7 @@ inline void HandlePropertyBinding(FUObjectExport NodeExport, const TArray<TShare
 						}
 					}
 
-#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION < 3
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION < 3 || ENGINE_UE4
 					Node->PropertyBindings.Add(PinNameAsName, PropertyBinding);
 #endif
 					
