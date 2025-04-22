@@ -34,7 +34,7 @@ static const TMap<FString, EPinContainerType> ContainerTypeMap = {
 bool IUserDefinedStructImporter::Import() {
     UUserDefinedStruct* UserDefinedStruct = FStructureEditorUtils::CreateUserDefinedStruct(Package, *FileName, RF_Standalone | RF_Public | RF_Transactional);
 
-    DefaultProperties = AssetData->GetObjectField("DefaultProperties");
+    DefaultProperties = AssetData->GetObjectField(TEXT("DefaultProperties"));
     GetObjectSerializer()->DeserializeObjectProperties(KeepPropertiesShared(AssetData,
     {
         "Guid",
@@ -142,7 +142,7 @@ void IUserDefinedStructImporter::ImportPropertyIntoStruct(UUserDefinedStruct* Us
 
             /* Find a matching key */
             if (PropertiesMetadataJsonObject->GetStringField(TEXT("Key")) == Name) {
-                TArray<TSharedPtr<FJsonValue>> FieldMetaData = PropertiesMetadataJsonObject->GetObjectField("Value")->GetArrayField("FieldMetaData");
+                TArray<TSharedPtr<FJsonValue>> FieldMetaData = PropertiesMetadataJsonObject->GetObjectField(TEXT("Value"))->GetArrayField(TEXT("FieldMetaData"));
 
                 for (const TSharedPtr<FJsonValue> FieldValue : FieldMetaData) {
                     const TSharedPtr<FJsonObject> FieldObject = FieldValue->AsObject();

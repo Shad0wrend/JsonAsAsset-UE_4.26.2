@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Utilities/AppStyleCompatibility.h"
+#include "Utilities/Compatibility.h"
 #include "Utilities/EngineUtilities.h"
 #include "Utilities/JsonUtilities.h"
 #include "Dom/JsonObject.h"
@@ -15,6 +15,10 @@ extern TMap<FString, TArray<FString>> ImporterTemplatedTypes;
 inline TArray<FString> BlacklistedLocalFetchTypes = {
     "AnimSequence",
     "AnimMontage",
+    "AnimBlueprintGeneratedClass"
+};
+
+inline const TArray<FString> ExperimentalAssetTypes = {
     "AnimBlueprintGeneratedClass"
 };
 
@@ -50,7 +54,7 @@ public:
               const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, 
               UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects = {}, UClass* AssetClass = nullptr);
 
-    virtual ~IImporter() {}
+    virtual ~IImporter() override {}
 
     /* Easy way to find importers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     using FImporterFactoryDelegate = TFunction<IImporter*(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& Exports, UClass* AssetClass)>;
@@ -81,7 +85,13 @@ public:
     }
 
     static FImporterFactoryDelegate* FindFactoryForAssetType(const FString& AssetType) {
+        const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
+
         for (auto& Pair : GetFactoryRegistry()) {
+            if (!Settings->bEnableExperiments) {
+                if (ExperimentalAssetTypes.Contains(AssetType)) return nullptr;
+            }
+            
             if (Pair.Key.Contains(AssetType)) {
                 return &Pair.Value.Factory;
             }
@@ -117,6 +127,14 @@ public:
     /* Accepted Types ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     static bool CanImportWithLocalFetch(const FString& ImporterType) {
         if (BlacklistedLocalFetchTypes.Contains(ImporterType)) {
+            return false;
+        }
+
+        return true;
+    }
+    
+    static bool IsAssetTypeExperimental(const FString& ImporterType) {
+        if (ExperimentalAssetTypes.Contains(ImporterType)) {
             return false;
         }
 

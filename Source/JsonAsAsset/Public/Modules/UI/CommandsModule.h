@@ -7,16 +7,14 @@
 
 #define LOCTEXT_NAMESPACE "FJsonAsAssetModule"
 
-class FJsonAsAssetCommands : public TCommands<FJsonAsAssetCommands>
-{
+class FJsonAsAssetCommands : public TCommands<FJsonAsAssetCommands> {
 public:
 	FJsonAsAssetCommands()
-		: TCommands(TEXT("JsonAsAsset"), NSLOCTEXT("Contexts", "JsonAsAsset", "JsonAsAsset Plugin"), NAME_None, FJsonAsAssetStyle::GetStyleSetName()) {
+		: TCommands(TEXT("JsonAsAsset"), NSLOCTEXT("Contexts", "JsonAsAsset", "JsonAsAsset"), NAME_None, FJsonAsAssetStyle::GetStyleSetName()) {
 	}
 
 	/* TCommands<> interface */
-	virtual void RegisterCommands() override
-	{
+	virtual void RegisterCommands() override {
 		UI_COMMAND(PluginAction, "JsonAsAsset", "Choose a JSON file to Convert", EUserInterfaceActionType::Button, FInputGesture());
 	};
 

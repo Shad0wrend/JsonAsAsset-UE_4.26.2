@@ -12,7 +12,10 @@ class FJsonAsAssetSettingsDetails final : public IDetailCustomization {
 public:
 	static TSharedRef<IDetailCustomization> MakeInstance();
 
+	static void InitializeAESKeys(UJsonAsAssetSettings* PluginSettings);
+	static void InitializeMappings(const UJsonAsAssetSettings* PluginSettings);
+
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
-	void EditConfiguration(TWeakObjectPtr<UJsonAsAssetSettings> Settings, IDetailLayoutBuilder& DetailBuilder);
+	void EditConfiguration(IDetailLayoutBuilder& DetailBuilder);
 	void EditEncryption(TWeakObjectPtr<UJsonAsAssetSettings> Settings, IDetailLayoutBuilder& DetailBuilder);
 };

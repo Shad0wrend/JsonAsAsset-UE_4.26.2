@@ -219,7 +219,7 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 	else if (const FStructProperty* StructProperty = CastField<const FStructProperty>(Property)) {
 		if (StructProperty->Struct == FGameplayTag::StaticStruct()) {
 			FGameplayTag* GameplayTagStr = static_cast<FGameplayTag*>(OutValue);
-			FGameplayTag NewTag = FGameplayTag::RequestGameplayTag(FName(*NewJsonValue->AsObject()->GetStringField("TagName")), false);
+			FGameplayTag NewTag = FGameplayTag::RequestGameplayTag(FName(*NewJsonValue->AsObject()->GetStringField(TEXT("TagName"))), false);
 			*GameplayTagStr = NewTag;
 			return;
 		}

@@ -207,7 +207,7 @@ bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& 
 		return false;
 	}
 
-	TSharedPtr<FJsonObject> JsonObject = API_RequestExports(FetchPath);
+	const TSharedPtr<FJsonObject> JsonObject = API_RequestExports(FetchPath);
 	if (JsonObject == nullptr) {
 		return false;
 	}
@@ -218,8 +218,9 @@ bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& 
 	}
 
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
-	TSharedPtr<FJsonObject> JsonExport = Response[0]->AsObject();
-	FString Type = JsonExport->GetStringField(TEXT("Type"));
+	const TSharedPtr<FJsonObject> JsonExport = Response[0]->AsObject();
+	const FString Type = JsonExport->GetStringField(TEXT("Type"));
+	
 	UTexture* Texture = nullptr;
 	TArray<uint8> Data = TArray<uint8>();
 
@@ -263,7 +264,7 @@ bool FAssetUtilities::Construct_TypeTexture(const FString& Path, const FString& 
 	UPackage* OutermostPkg = Package->GetOutermost();
 	Package->FullyLoad();
 
-	FTextureCreatorUtilities TextureCreator = FTextureCreatorUtilities(AssetName, Path, Package, OutermostPkg);
+	const FTextureCreatorUtilities TextureCreator = FTextureCreatorUtilities(AssetName, Path, Package, OutermostPkg);
 
 	if (Type == "Texture2D") {
 		TextureCreator.CreateTexture2D(Texture, Data, JsonExport);

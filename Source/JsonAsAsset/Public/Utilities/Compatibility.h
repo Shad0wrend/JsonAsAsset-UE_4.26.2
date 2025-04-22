@@ -7,6 +7,11 @@
  * it contains structures and classes to replicate missing classes/structs.
  */
 
+/* Compiles an experimental version of JsonAsAsset */
+#ifndef JSONASASSET_EXPERIMENTAL
+#define JSONASASSET_EXPERIMENTAL 0
+#endif
+
 #if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION == 26 && ENGINE_PATCH_VERSION == 0
 	#define UE4_26_0 1
 #else
@@ -81,6 +86,7 @@ using FAppStyle = FAppStyle;
 #else
 
 #include "EditorStyleSet.h"
+
 class FAppStyle {
 public:
 	static const ISlateStyle& Get() {
@@ -91,7 +97,7 @@ public:
 		return FEditorStyle::GetStyleSetName();
 	}
 
-	static const FSlateBrush* GetBrush(FName PropertyName) {
+	static const FSlateBrush* GetBrush(const FName PropertyName) {
 		return FEditorStyle::GetBrush(PropertyName);
 	}
 };
@@ -103,6 +109,7 @@ private:
 
 public:
 	TObjectPtr() {}
+	// ReSharper disable once CppNonExplicitConvertingConstructor
 	TObjectPtr(TObjectType* InObject) : WeakPtr(InObject) {}
 
 	TObjectType* Get() const { return WeakPtr.Get(); }
@@ -117,6 +124,7 @@ public:
 	TObjectPtr(TObjectType* InObject, bool bRawPointer) : WeakPtr(InObject) {}
 
 	/* Implicit conversion to raw pointer */
+	// ReSharper disable once CppNonExplicitConversionOperator
 	operator TObjectType*() const { return Get(); }
 
 	/* Overload address-of operator */

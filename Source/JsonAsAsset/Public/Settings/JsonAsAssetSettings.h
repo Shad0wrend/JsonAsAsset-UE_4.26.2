@@ -94,23 +94,23 @@ public:
 		AnimationBlueprintImportSettings = FJAnimationBlueprintImportSettings();
 	}
 
-	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings")
+	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
 	FJTextureImportSettings TextureImportSettings;
 	
-	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings")
+	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
 	FJMaterialImportSettings MaterialImportSettings;
 
-	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings")
+	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
 	FJSoundImportSettings SoundImportSettings;
 
-	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings")
+	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
 	FJAnimationBlueprintImportSettings AnimationBlueprintImportSettings;
 
-	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings", meta = (DisplayName = "Save Assets On Import"))
+	UPROPERTY(EditAnywhere, Config, Category = AssetSettings, meta = (DisplayName = "Save Assets On Import"))
 	bool bSavePackagesOnImport;
 
 	/* Unreal Engine Game's Project Name (Set by Local Fetch) */
-	UPROPERTY(EditAnywhere, Config, Category = "Asset Settings")
+	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
 	FString GameName;
 };
 
@@ -130,11 +130,15 @@ public:
 	 * Specifies the directory path for exported assets.
 	 * (e.g., Output/Exports)
 	 */
-	UPROPERTY(EditAnywhere, Config, Category = "Configuration")
+	UPROPERTY(EditAnywhere, Config, Category = Configuration)
 	FDirectoryPath ExportDirectory;
 	
-	UPROPERTY(EditAnywhere, Config, Category = "Configuration")
+	UPROPERTY(EditAnywhere, Config, Category = Configuration)
 	FAssetSettings AssetSettings;
+
+	/* Enables experimental/developing features of JsonAsAsset. Features may not work as intended. */
+	UPROPERTY(EditAnywhere, Config, Category = Configuration, AdvancedDisplay)
+	bool bEnableExperiments;
 
 	/**
 	 * Retrieves assets from a locally hosted API and imports them directly into your project.

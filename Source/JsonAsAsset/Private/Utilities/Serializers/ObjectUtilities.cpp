@@ -1,7 +1,7 @@
 /* Copyright JsonAsAsset Contributors 2024-2025 */
 
 #include "Utilities/Serializers/ObjectUtilities.h"
-#include "Utilities/AppStyleCompatibility.h"
+#include "Utilities/Compatibility.h"
 
 #if ENGINE_UE5
 #include "AnimGraphNode_Base.h"
@@ -72,7 +72,7 @@ void UObjectSerializer::DeserializeExports(TArray<TSharedPtr<FJsonValue>> InExpo
 
 		FString ClassName = ExportObject->GetStringField(TEXT("Class"));
 
-		if (ExportObject->HasField("Template")) {
+		if (ExportObject->HasField(TEXT("Template"))) {
 			const TSharedPtr<FJsonObject> TemplateObject = ExportObject->GetObjectField(TEXT("Template"));
 			ClassName = ReadPathFromObject(&TemplateObject).Replace(TEXT("Default__"), TEXT(""));
 		}

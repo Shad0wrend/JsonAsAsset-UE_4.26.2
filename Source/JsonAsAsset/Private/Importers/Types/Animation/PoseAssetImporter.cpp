@@ -29,14 +29,14 @@ bool IPoseAssetImporter::Import() {
 void IPoseAssetImporter::ReverseCookLocalSpacePose(USkeleton* Skeleton) const {
 	/* If PoseContainer or Tracks don't exist, no need to perform any operations */
 	if (
-		!AssetData->HasField("PoseContainer") ||
-		!AssetData->GetObjectField("PoseContainer")->HasField("Tracks")
+		!AssetData->HasField(TEXT("PoseContainer")) ||
+		!AssetData->GetObjectField(TEXT("PoseContainer"))->HasField(TEXT("Tracks"))
 	) {
 		return;
 	}
 	
 	const TSharedPtr<FJsonObject> PoseContainer = AssetData->GetObjectField(TEXT("PoseContainer"));
-	const TArray<TSharedPtr<FJsonValue>> TracksJson = PoseContainer->GetArrayField("Tracks");
+	const TArray<TSharedPtr<FJsonValue>> TracksJson = PoseContainer->GetArrayField(TEXT("Tracks"));
 	const TArray<TSharedPtr<FJsonValue>> PosesJson = PoseContainer->GetArrayField(TEXT("Poses"));
 
 	const int32 NumTracks = TracksJson.Num();

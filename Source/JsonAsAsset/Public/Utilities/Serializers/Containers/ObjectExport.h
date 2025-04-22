@@ -7,8 +7,7 @@
 
 /* A structure to hold data for a UObject export. */
 struct FUObjectExport {
-	FUObjectExport(): Object(nullptr), Parent(nullptr), Position(-1) {
-	};
+	FUObjectExport(): Object(nullptr), Parent(nullptr), Position(-1) { };
 
 	FName Name;
 	FName Type;

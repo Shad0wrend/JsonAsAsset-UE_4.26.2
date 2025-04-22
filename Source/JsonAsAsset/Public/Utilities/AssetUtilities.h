@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "AppStyleCompatibility.h"
+#include "Compatibility.h"
 
 class JSONASASSET_API FAssetUtilities {
 public:

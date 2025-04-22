@@ -32,12 +32,12 @@ inline FVector ObjectToVector(const FJsonObject* Object) {
 }
 
 #if ENGINE_UE5
-inline FVector3f ObjectToVector3f(const FJsonObject* Object) {
+inline FVector3f ObjectToVector3F(const FJsonObject* Object) {
 	return FVector3f(Object->GetNumberField(TEXT("X")), Object->GetNumberField(TEXT("Y")), Object->GetNumberField(TEXT("Z")));
 }
 #else
 
-inline FVector ObjectToVector3f(const FJsonObject* Object) {
+inline FVector ObjectToVector3F(const FJsonObject* Object) {
 	return FVector(Object->GetNumberField(TEXT("X")), Object->GetNumberField(TEXT("Y")), Object->GetNumberField(TEXT("Z")));
 }
 #endif
@@ -51,6 +51,7 @@ inline FLinearColor ObjectToLinearColor(const FJsonObject* Object) {
 }
 
 inline FRichCurveKey ObjectToRichCurveKey(const TSharedPtr<FJsonObject>& Object) {
-	FString InterpMode = Object->GetStringField(TEXT("InterpMode"));
+	const FString InterpMode = Object->GetStringField(TEXT("InterpMode"));
+	
 	return FRichCurveKey(Object->GetNumberField(TEXT("Time")), Object->GetNumberField(TEXT("Value")), Object->GetNumberField(TEXT("ArriveTangent")), Object->GetNumberField(TEXT("LeaveTangent")), static_cast<ERichCurveInterpMode>(StaticEnum<ERichCurveInterpMode>()->GetValueByNameString(InterpMode)));
 }

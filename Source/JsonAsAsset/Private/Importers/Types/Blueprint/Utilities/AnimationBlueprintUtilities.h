@@ -156,26 +156,26 @@ inline void HandlePropertyBinding(FUObjectExport NodeExport, const TArray<TShare
 	const TSharedPtr<FJsonObject> NodeProperties = NodeExport.JsonObject;
 	
 	/* Let the user know that this node has nodes plugged into it */
-	if (NodeProperties->HasField("EvaluateGraphExposedInputs")) {
-		const TSharedPtr<FJsonObject> EvaluateGraphExposedInputs = NodeProperties->GetObjectField("EvaluateGraphExposedInputs");
+	if (NodeProperties->HasField(TEXT("EvaluateGraphExposedInputs"))) {
+		const TSharedPtr<FJsonObject> EvaluateGraphExposedInputs = NodeProperties->GetObjectField(TEXT("EvaluateGraphExposedInputs"));
 
-		bool bBoundFunction = EvaluateGraphExposedInputs->GetStringField("BoundFunction") != "None";
+		bool bBoundFunction = EvaluateGraphExposedInputs->GetStringField(TEXT("BoundFunction")) != "None";
 		
-		if (EvaluateGraphExposedInputs->HasField("CopyRecords") || bBoundFunction) {
-			const TArray<TSharedPtr<FJsonValue>> CopyRecords = EvaluateGraphExposedInputs->GetArrayField("CopyRecords");
+		if (EvaluateGraphExposedInputs->HasField(TEXT("CopyRecords")) || bBoundFunction) {
+			const TArray<TSharedPtr<FJsonValue>> CopyRecords = EvaluateGraphExposedInputs->GetArrayField(TEXT("CopyRecords"));
 
 			if (CopyRecords.Num() > 0) {
 				for (const TSharedPtr<FJsonValue> CopyRecordAsValue : CopyRecords) {
 					const TSharedPtr<FJsonObject> CopyRecordAsObject = CopyRecordAsValue->AsObject();
 
-					if (!CopyRecordAsObject->HasField("DestProperty")) continue;
-					if (CopyRecordAsObject->HasField("BoundFunction") && CopyRecordAsObject->GetStringField("BoundFunction") != TEXT("None")) {
+					if (!CopyRecordAsObject->HasField(TEXT("DestProperty"))) continue;
+					if (CopyRecordAsObject->HasField(TEXT("BoundFunction")) && CopyRecordAsObject->GetStringField(TEXT("BoundFunction")) != TEXT("None")) {
 						bBoundFunction = true;
 
 						continue;
 					}
 
-					FString SourcePropertyName = CopyRecordAsObject->GetStringField("SourcePropertyName");
+					FString SourcePropertyName = CopyRecordAsObject->GetStringField(TEXT("SourcePropertyName"));
 
 					/*
 					 * Take the property's name from the object name:
@@ -184,7 +184,7 @@ inline void HandlePropertyBinding(FUObjectExport NodeExport, const TArray<TShare
 					 * :Alpha' ->
 					 * Alpha
 					 */
-					const TSharedPtr<FJsonObject> DestProperty = CopyRecordAsObject->GetObjectField("DestProperty");
+					const TSharedPtr<FJsonObject> DestProperty = CopyRecordAsObject->GetObjectField(TEXT("DestProperty"));
 					FString PinName = DestProperty->GetStringField(TEXT("ObjectName")); {
 						PinName.Split(TEXT(":"), nullptr, &PinName);
 						PinName = PinName.Replace(TEXT("'"), TEXT(""));
@@ -209,8 +209,8 @@ inline void HandlePropertyBinding(FUObjectExport NodeExport, const TArray<TShare
 					PropertyBinding.PropertyPath.Append({ SourcePropertyName });
 
 					TSharedPtr<FJsonObject> SourcePropertyObject = GetExportMatchingWith(SourcePropertyName, "Name", AllJsonObjects);
-					if (PinCategory == "struct" && SourcePropertyObject.IsValid() && SourcePropertyObject->HasField("Struct")) {
-						TSharedPtr<FJsonObject> StructObject = SourcePropertyObject->GetObjectField("Struct");
+					if (PinCategory == "struct" && SourcePropertyObject.IsValid() && SourcePropertyObject->HasField(TEXT("Struct"))) {
+						TSharedPtr<FJsonObject> StructObject = SourcePropertyObject->GetObjectField(TEXT("Struct"));
 
 						TObjectPtr<UObject> LoadedObject;
 						Importer->LoadObject<UObject>(&StructObject, LoadedObject);
@@ -226,14 +226,14 @@ inline void HandlePropertyBinding(FUObjectExport NodeExport, const TArray<TShare
 						}
 					}
 
-					if (CopyRecordAsObject->HasField("SourceSubPropertyName") && CopyRecordAsObject->GetStringField("SourceSubPropertyName") != "None") {
-						FString SourceSubPropertyName = CopyRecordAsObject->GetStringField("SourceSubPropertyName");
+					if (CopyRecordAsObject->HasField(TEXT("SourceSubPropertyName")) && CopyRecordAsObject->GetStringField(TEXT("SourceSubPropertyName")) != "None") {
+						FString SourceSubPropertyName = CopyRecordAsObject->GetStringField(TEXT("SourceSubPropertyName"));
 						PropertyBinding.PathAsText = FText::FromString(SourcePropertyName + "." + SourceSubPropertyName);
 
 						PropertyBinding.PropertyPath.Append({ SourceSubPropertyName });
 
-						if (CopyRecordAsObject->GetObjectField("CachedSourceStructSubProperty")) {
-							TSharedPtr<FJsonObject> StructObject = CopyRecordAsObject->GetObjectField("CachedSourceStructSubProperty");
+						if (CopyRecordAsObject->GetObjectField(TEXT("CachedSourceStructSubProperty"))) {
+							TSharedPtr<FJsonObject> StructObject = CopyRecordAsObject->GetObjectField(TEXT("CachedSourceStructSubProperty"));
 							
 							TObjectPtr<UObject> LoadedObject;
 							Importer->LoadObject<UObject>(&StructObject, LoadedObject);

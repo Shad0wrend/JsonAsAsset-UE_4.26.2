@@ -1,5 +1,5 @@
-﻿using System.IO;
-using UnrealBuildTool;
+﻿using UnrealBuildTool;
+using System.IO;
 
 public class Detex : ModuleRules
 {

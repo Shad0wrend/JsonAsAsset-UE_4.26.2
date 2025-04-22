@@ -15,6 +15,7 @@
 #include "DesktopPlatformModule.h"
 #include "ContentBrowserModule.h"
 #include "IDesktopPlatform.h"
+#include "RemoteUtilities.h"
 #include "AssetUtilities.h"
 #include "PluginUtils.h"
 #include "HttpModule.h"
@@ -111,7 +112,7 @@ inline TSharedPtr<FJsonObject> FindExport(const TSharedPtr<FJsonObject>& Export,
 
 inline void SpawnPrompt(const FString& Title, const FString& Text) {
 	FText DialogTitle = FText::FromString(Title);
-	FText DialogMessage = FText::FromString(Text);
+	const FText DialogMessage = FText::FromString(Text);
 
 	FMessageDialog::Open(EAppMsgType::Ok, DialogMessage);
 }
@@ -130,7 +131,7 @@ inline TArray<FAssetData> GetAssetsInSelectedFolder() {
 	TArray<FAssetData> AssetDataList;
 
 	/* Get the Content Browser Module */
-	FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
+	const FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
 
 	TArray<FString> SelectedFolders;
 	ContentBrowserModule.Get().GetSelectedPathViewFolders(SelectedFolders);
@@ -140,7 +141,7 @@ inline TArray<FAssetData> GetAssetsInSelectedFolder() {
 		return AssetDataList; 
 	}
 
-	FString CurrentFolder = SelectedFolders[0];
+	const FString CurrentFolder = SelectedFolders[0];
 
 	/* Check if the folder is the root folder, and show a prompt if */
 	if (CurrentFolder == "/Game") {
@@ -161,7 +162,7 @@ inline TArray<FAssetData> GetAssetsInSelectedFolder() {
 	}
 
 	/* Get the Asset Registry Module */
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	const FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	AssetRegistryModule.Get().SearchAllAssets(true);
 
 	/* Get all assets in the folder and its subfolders */
@@ -211,30 +212,29 @@ inline bool IsProcessRunning(const FString& ProcessName) {
 
 	/* Convert FString to WCHAR */
 	const TCHAR* ProcessNameChar = *ProcessName;
-	const WCHAR* ProcessNameWChar = (const WCHAR*)ProcessNameChar;
 
-	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (hSnapshot != INVALID_HANDLE_VALUE) {
+	const HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (Snapshot != INVALID_HANDLE_VALUE) {
 		PROCESSENTRY32 ProcessEntry;
 		ProcessEntry.dwSize = sizeof(ProcessEntry);
 
-		if (Process32First(hSnapshot, &ProcessEntry)) {
+		if (Process32First(Snapshot, &ProcessEntry)) {
 			do {
-				if (_wcsicmp(ProcessEntry.szExeFile, ProcessNameWChar) == 0) {
+				if (_wcsicmp(ProcessEntry.szExeFile, ProcessNameChar) == 0) {
 					bIsRunning = true;
 					break;
 				}
-			} while (Process32Next(hSnapshot, &ProcessEntry));
+			} while (Process32Next(Snapshot, &ProcessEntry));
 		}
 
-		CloseHandle(hSnapshot);
+		CloseHandle(Snapshot);
 	}
 
 	return bIsRunning;
 }
 
-inline TSharedPtr<FJsonObject> GetExport(const FString& Type, TArray<TSharedPtr<FJsonValue>> AllJsonObjects, bool bGetProperties = false) {
-	for (TSharedPtr<FJsonValue> Value : AllJsonObjects) {
+inline TSharedPtr<FJsonObject> GetExport(const FString& Type, TArray<TSharedPtr<FJsonValue>> AllJsonObjects, const bool bGetProperties = false) {
+	for (const TSharedPtr<FJsonValue> Value : AllJsonObjects) {
 		const TSharedPtr<FJsonObject> ValueObject = Value->AsObject();
 
 		if (ValueObject->GetStringField(TEXT("Type")) == Type) {
@@ -329,13 +329,47 @@ inline bool DeserializeJSON(const FString& FilePath, TArray<TSharedPtr<FJsonValu
 	return false;
 }
 
+inline bool DeserializeArrayJSON(const FString& String, TArray<TSharedPtr<FJsonValue>>& JsonParsed) {
+	FString Content = FString(TEXT("{\"data\": "));
+	Content.Append(String);
+	Content.Append(FString("}"));
+
+	const TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(Content);
+
+	TSharedPtr<FJsonObject> JsonObject;
+	if (FJsonSerializer::Deserialize(JsonReader, JsonObject)) {
+		JsonParsed = JsonObject->GetArrayField(TEXT("data"));
+	
+		return true;
+	}
+
+	return false;
+}
+
+inline bool DeserializeJSONObject(const FString& String, TSharedPtr<FJsonObject>& JsonParsed) {
+	FString Content = FString(TEXT("{\"data\": "));
+	Content.Append(String);
+	Content.Append(FString("}"));
+
+	const TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(Content);
+
+	TSharedPtr<FJsonObject> JsonObject;
+	if (FJsonSerializer::Deserialize(JsonReader, JsonObject)) {
+		JsonParsed = JsonObject->GetObjectField(TEXT("data"));
+	
+		return true;
+	}
+
+	return false;
+}
+
 inline TArray<FString> OpenFileDialog(const FString& Title, const FString& Type) {
 	TArray<FString> ReturnValue;
 
 	/* Window Handler for Windows */
-	void* ParentWindowHandle = nullptr;
-	IMainFrameModule& MainFrameModule = IMainFrameModule::Get();
-	TSharedPtr<SWindow> MainWindow = MainFrameModule.GetParentWindow();
+	const void* ParentWindowHandle = nullptr;
+	const IMainFrameModule& MainFrameModule = IMainFrameModule::Get();
+	const TSharedPtr<SWindow> MainWindow = MainFrameModule.GetParentWindow();
 
 	if (MainWindow.IsValid() && MainWindow->GetNativeWindow().IsValid()) {
 		ParentWindowHandle = MainWindow->GetNativeWindow()->GetOSWindowHandle();
@@ -356,7 +390,8 @@ inline TArray<FString> OpenFileDialog(const FString& Title, const FString& Type)
 
 	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
 	if (DesktopPlatform) {
-		uint32 SelectionFlag = 1;
+		constexpr uint32 SelectionFlag = 1;
+		
 		DesktopPlatform->OpenFileDialog(ParentWindowHandle, Title, DefaultPath, FString(""), Type, SelectionFlag, ReturnValue);
 	}
 
@@ -385,10 +420,10 @@ inline TArray<FString> OpenFolderDialog(const FString& Title) {
 	TArray<FString> ReturnValue;
 
 	/* Window Handler for Windows */
-	void* ParentWindowHandle = nullptr;
+	const void* ParentWindowHandle = nullptr;
 
-	IMainFrameModule& MainFrameModule = IMainFrameModule::Get();
-	TSharedPtr<SWindow> MainWindow = MainFrameModule.GetParentWindow();
+	const IMainFrameModule& MainFrameModule = IMainFrameModule::Get();
+	const TSharedPtr<SWindow> MainWindow = MainFrameModule.GetParentWindow();
 
 	if (MainWindow.IsValid() && MainWindow->GetNativeWindow().IsValid()) {
 		ParentWindowHandle = MainWindow->GetNativeWindow()->GetOSWindowHandle();
@@ -591,8 +626,8 @@ static void CreatePlugin(FString PluginName) {
 	Info.bUseSuccessFailIcons = false;
 	Info.WidthOverride = FOptionalSize(350);
 	SetNotificationSubText(Info, FText::FromString(FString("Created successfully")));
-	
-	TSharedPtr<SNotificationItem> NotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
+
+	const TSharedPtr<SNotificationItem> NotificationPtr = FSlateNotificationManager::Get().AddNotification(Info);
 	NotificationPtr->SetCompletionState(SNotificationItem::CS_Success);
 #endif
 #undef LOCTEXT_NAMESPACE
@@ -658,7 +693,7 @@ inline TArray<TSharedPtr<FJsonValue>> GetExportsStartingWith(const FString& Star
 	return FilteredObjects;
 }
 
-inline TSharedPtr<FJsonObject> GetExportStartingWith(const FString& Start, const FString& Property, TArray<TSharedPtr<FJsonValue>> AllJsonObjects, bool bExportProperties = false) {
+inline TSharedPtr<FJsonObject> GetExportStartingWith(const FString& Start, const FString& Property, TArray<TSharedPtr<FJsonValue>> AllJsonObjects, const bool bExportProperties = false) {
 	for (const TSharedPtr<FJsonValue>& JsonObjectValue : AllJsonObjects) {
 		if (JsonObjectValue->Type == EJson::Object) {
 			TSharedPtr<FJsonObject> JsonObject = JsonObjectValue->AsObject();
@@ -682,7 +717,7 @@ inline TSharedPtr<FJsonObject> GetExportStartingWith(const FString& Start, const
 	return TSharedPtr<FJsonObject>();
 }
 
-inline TSharedPtr<FJsonObject> GetExportMatchingWith(const FString& Match, const FString& Property, TArray<TSharedPtr<FJsonValue>> AllJsonObjects, bool bExportProperties = false) {
+inline TSharedPtr<FJsonObject> GetExportMatchingWith(const FString& Match, const FString& Property, TArray<TSharedPtr<FJsonValue>> AllJsonObjects, const bool bExportProperties = false) {
 	for (const TSharedPtr<FJsonValue>& JsonObjectValue : AllJsonObjects) {
 		if (JsonObjectValue->Type == EJson::Object) {
 			TSharedPtr<FJsonObject> JsonObject = JsonObjectValue->AsObject();
@@ -749,30 +784,36 @@ inline FTransform GetTransformFromJson(const TSharedPtr<FJsonObject>& JsonObject
 	}
 
 	if (JsonObject->HasField(TEXT("Rotation"))) {
-		const TSharedPtr<FJsonObject> RotObj = JsonObject->GetObjectField(TEXT("Rotation"));
+		const TSharedPtr<FJsonObject> QuatObject = JsonObject->GetObjectField(TEXT("Rotation"));
+		
 		FQuat Quat;
-		Quat.X = RotObj->GetNumberField(TEXT("X"));
-		Quat.Y = RotObj->GetNumberField(TEXT("Y"));
-		Quat.Z = RotObj->GetNumberField(TEXT("Z"));
-		Quat.W = RotObj->GetNumberField(TEXT("W"));
+		Quat.X = QuatObject->GetNumberField(TEXT("X"));
+		Quat.Y = QuatObject->GetNumberField(TEXT("Y"));
+		Quat.Z = QuatObject->GetNumberField(TEXT("Z"));
+		Quat.W = QuatObject->GetNumberField(TEXT("W"));
+		
 		OutTransform.SetRotation(Quat);
 	}
 
 	if (JsonObject->HasField(TEXT("Translation"))) {
-		const TSharedPtr<FJsonObject> TransObj = JsonObject->GetObjectField(TEXT("Translation"));
-		FVector Trans;
-		Trans.X = TransObj->GetNumberField(TEXT("X"));
-		Trans.Y = TransObj->GetNumberField(TEXT("Y"));
-		Trans.Z = TransObj->GetNumberField(TEXT("Z"));
-		OutTransform.SetTranslation(Trans);
+		const TSharedPtr<FJsonObject> TranslationObject = JsonObject->GetObjectField(TEXT("Translation"));
+		FVector Translation;
+		
+		Translation.X = TranslationObject->GetNumberField(TEXT("X"));
+		Translation.Y = TranslationObject->GetNumberField(TEXT("Y"));
+		Translation.Z = TranslationObject->GetNumberField(TEXT("Z"));
+		
+		OutTransform.SetTranslation(Translation);
 	}
 
 	if (JsonObject->HasField(TEXT("Scale3D"))) {
 		const TSharedPtr<FJsonObject> ScaleObj = JsonObject->GetObjectField(TEXT("Scale3D"));
 		FVector Scale;
+		
 		Scale.X = ScaleObj->GetNumberField(TEXT("X"));
 		Scale.Y = ScaleObj->GetNumberField(TEXT("Y"));
 		Scale.Z = ScaleObj->GetNumberField(TEXT("Z"));
+		
 		OutTransform.SetScale3D(Scale);
 	}
 
@@ -825,3 +866,68 @@ inline FStructProperty* LoadStructProperty(const TSharedPtr<FJsonObject>& JsonOb
 
 	return StructProp;
 }
+
+inline void CloseApplicationByProcessName(const FString& ProcessName) {
+	DWORD ProcessID = 0;
+
+	const HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+	if (Snapshot != INVALID_HANDLE_VALUE) {
+		PROCESSENTRY32 ProcessEntry;
+		ProcessEntry.dwSize = sizeof(PROCESSENTRY32);
+
+		if (Process32First(Snapshot, &ProcessEntry)) {
+			do {
+				if (FCString::Stricmp(ProcessEntry.szExeFile, ProcessName.GetCharArray().GetData()) == 0) {
+					ProcessID = ProcessEntry.th32ProcessID;
+					break;
+				}
+			} while (Process32Next(Snapshot, &ProcessEntry));
+		}
+		
+		CloseHandle(Snapshot);
+	}
+
+	if (ProcessID != 0) {
+		const HANDLE Process = OpenProcess(PROCESS_TERMINATE, false, ProcessID);
+		
+		if (Process != nullptr) {
+			TerminateProcess(Process, 0);
+			CloseHandle(Process);
+		}
+	}
+}
+
+inline TSharedPtr<FJsonObject> RequestObjectURL(const FString& URL) {
+	FHttpModule* HttpModule = &FHttpModule::Get();
+
+	const auto Request = HttpModule->CreateRequest();
+			
+	Request->SetURL(URL);
+	Request->SetVerb(TEXT("GET"));
+
+	const auto Response = FRemoteUtilities::ExecuteRequestSync(Request);
+	if (!Response.IsValid()) return TSharedPtr<FJsonObject>();
+
+	TSharedPtr<FJsonObject> DeserializedJSON;
+
+	if (!DeserializeJSONObject(Response->GetContentAsString(), DeserializedJSON)) return TSharedPtr<FJsonObject>();
+	return DeserializedJSON;
+};
+
+inline TArray<TSharedPtr<FJsonValue>> RequestArrayURL(const FString& URL) {
+	FHttpModule* HttpModule = &FHttpModule::Get();
+
+	const auto Request = HttpModule->CreateRequest();
+			
+	Request->SetURL(URL);
+	Request->SetVerb(TEXT("GET"));
+
+	const auto Response = FRemoteUtilities::ExecuteRequestSync(Request);
+	if (!Response.IsValid()) return TArray<TSharedPtr<FJsonValue>>();
+
+	TArray<TSharedPtr<FJsonValue>> DeserializedJSON;
+
+	if (!DeserializeArrayJSON(Response->GetContentAsString(), DeserializedJSON)) return TArray<TSharedPtr<FJsonValue>>();
+	return DeserializedJSON;
+};

@@ -21,9 +21,7 @@ bool ReadAnimationData(const TSharedPtr<FJsonObject>& Properties, const TArray<T
 	TArray<TSharedPtr<FJsonValue>> FloatCurves;
 	TArray<TSharedPtr<FJsonValue>> Notifies;
 
-	if (!AnimSequenceBase)
-	{
-		UE_LOG(LogJson, Error, TEXT("Could not get valid AnimSequenceBase"));
+	if (!AnimSequenceBase) {
 		return false;
 	}
 
@@ -88,8 +86,7 @@ bool ReadAnimationData(const TSharedPtr<FJsonObject>& Properties, const TArray<T
 		FloatCurves = JsonObject->GetObjectField(TEXT("CompressedCurveData"))->GetArrayField(TEXT("FloatCurves"));
 
 	/* Import the curves */
-	for (TSharedPtr<FJsonValue> FloatCurveObject : FloatCurves)
-	{
+	for (const TSharedPtr<FJsonValue> FloatCurveObject : FloatCurves) {
 		/* Curve Display Name */
 		FString DisplayName = "";
 		if (FloatCurveObject->AsObject()->HasField(TEXT("Name"))) {
@@ -177,7 +174,7 @@ bool ReadAnimationData(const TSharedPtr<FJsonObject>& Properties, const TArray<T
 		/* Keys of the track */
 		TArray<TSharedPtr<FJsonValue>> Keys = FloatCurveObject->AsObject()->GetObjectField(TEXT("FloatCurve"))->GetArrayField(TEXT("Keys"));
 
-		for (TSharedPtr<FJsonValue> JsonKey : Keys) {
+		for (TSharedPtr<FJsonValue> const JsonKey : Keys) {
 			TSharedPtr<FJsonObject> Key = JsonKey->AsObject();
 
 			FRichCurveKey RichKey = ObjectToRichCurveKey(Key);
@@ -200,7 +197,7 @@ bool ReadAnimationData(const TSharedPtr<FJsonObject>& Properties, const TArray<T
 			{
 				if (Track.Name == NewTrackName)
 				{
-					int32 LastIndex = Track.FloatCurve.Keys.Num() - 1;
+					const int32 LastIndex = Track.FloatCurve.Keys.Num() - 1;
 					Track.FloatCurve.Keys[LastIndex].ArriveTangent = RichKey.ArriveTangent;
 					Track.FloatCurve.Keys[LastIndex].LeaveTangent = RichKey.LeaveTangent;
 					Track.FloatCurve.Keys[LastIndex].InterpMode = RichKey.InterpMode;

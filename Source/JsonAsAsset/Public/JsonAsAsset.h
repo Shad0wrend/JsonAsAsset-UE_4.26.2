@@ -6,7 +6,7 @@
 #include "Interfaces/IPluginManager.h"
 #include "Modules/Versioning.h"
 #include "Utilities/Serializers/PropertyUtilities.h"
-#include "Utilities/AppStyleCompatibility.h"
+#include "Utilities/Compatibility.h"
 
 #if ENGINE_UE4
 #include "Modules/ModuleInterface.h"

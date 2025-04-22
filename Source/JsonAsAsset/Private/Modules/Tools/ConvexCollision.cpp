@@ -68,7 +68,7 @@ void FToolConvexCollision::Execute() {
 
 				ObjectSerializer->DeserializeExports(Exports);
 
-				for (FUObjectExport UObjectExport : ObjectSerializer->GetPropertySerializer()->ExportsContainer.Exports) {
+				for (const FUObjectExport UObjectExport : ObjectSerializer->GetPropertySerializer()->ExportsContainer.Exports) {
 					if (UStaticMeshSocket* Socket = Cast<UStaticMeshSocket>(UObjectExport.Object)) {
 						StaticMesh->AddSocket(Socket);
 					}
@@ -87,7 +87,7 @@ void FToolConvexCollision::Execute() {
 			BodySetup->AggGeom.EmptyElements();
 			BodySetup->CollisionTraceFlag = CTF_UseDefault;
 
-			UObjectSerializer* ObjectSerializer = CreateObjectSerializer();
+			const UObjectSerializer* ObjectSerializer = CreateObjectSerializer();
 			ObjectSerializer->DeserializeObjectProperties(Properties, BodySetup);
 
 			BodySetup->PostEditChange();

@@ -4,7 +4,7 @@
 #include "Modules/UI/StyleModule.h"
 
 #include "Interfaces/IPluginManager.h"
-#include "Utilities/AppStyleCompatibility.h"
+#include "Utilities/Compatibility.h"
 
 #if ENGINE_UE5
 #include "Styling/StyleColors.h"

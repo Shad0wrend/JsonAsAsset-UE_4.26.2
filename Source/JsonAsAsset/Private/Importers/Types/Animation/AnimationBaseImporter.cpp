@@ -15,7 +15,7 @@
 #endif
 
 bool IAnimationBaseImporter::Import() {
-	FString AssetName = JsonObject->GetStringField(TEXT("Name"));
+	const FString AssetName = JsonObject->GetStringField(TEXT("Name"));
 
 	TArray<TSharedPtr<FJsonValue>> FloatCurves;
 	TArray<TSharedPtr<FJsonValue>> Notifies;
@@ -95,7 +95,7 @@ bool IAnimationBaseImporter::Import() {
 		FloatCurves = JsonObject->GetObjectField(TEXT("CompressedCurveData"))->GetArrayField(TEXT("FloatCurves"));
 
 	/* Import the curves */
-	for (TSharedPtr<FJsonValue> FloatCurveObject : FloatCurves) {
+	for (const TSharedPtr<FJsonValue> FloatCurveObject : FloatCurves) {
 		/* Curve Display Name */
 		FString DisplayName = "";
 		if (FloatCurveObject->AsObject()->HasField(TEXT("Name"))) {
@@ -183,7 +183,7 @@ bool IAnimationBaseImporter::Import() {
 		/* Keys of the track */
 		TArray<TSharedPtr<FJsonValue>> Keys = FloatCurveObject->AsObject()->GetObjectField(TEXT("FloatCurve"))->GetArrayField(TEXT("Keys"));
 
-		for (TSharedPtr<FJsonValue> JsonKey : Keys) {
+		for (const TSharedPtr<FJsonValue> JsonKey : Keys) {
 			TSharedPtr<FJsonObject> Key = JsonKey->AsObject();
 
 			FRichCurveKey RichKey = ObjectToRichCurveKey(Key);
@@ -206,7 +206,7 @@ bool IAnimationBaseImporter::Import() {
 
 			for (FFloatCurve& Track : Tracks.FloatCurves) {
 				if (Track.Name == NewTrackName) {
-					int32 LastIndex = Track.FloatCurve.Keys.Num() - 1;
+					const int32 LastIndex = Track.FloatCurve.Keys.Num() - 1;
 					Track.FloatCurve.Keys[LastIndex].ArriveTangent = RichKey.ArriveTangent;
 					Track.FloatCurve.Keys[LastIndex].LeaveTangent = RichKey.LeaveTangent;
 					Track.FloatCurve.Keys[LastIndex].InterpMode = RichKey.InterpMode;

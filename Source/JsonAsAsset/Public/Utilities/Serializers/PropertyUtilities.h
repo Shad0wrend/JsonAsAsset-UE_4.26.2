@@ -21,11 +21,8 @@ public:
 	FString ObjectPath;
 	FString SuperStructName;
 
-	bool operator==(const FFailedPropertyInfo& Other) const
-	{
-		return ClassName == Other.ClassName &&
-			   SuperStructName == Other.SuperStructName &&
-			   ObjectPath == Other.ObjectPath;
+	bool operator==(const FFailedPropertyInfo& Other) const {
+		return ClassName == Other.ClassName && SuperStructName == Other.SuperStructName && ObjectPath == Other.ObjectPath;
 	}
 };
 
@@ -41,18 +38,17 @@ class JSONASASSET_API UPropertySerializer : public UObject
 
 	UPROPERTY()
 	TArray<UStruct*> PinnedStructs;
+	
 	TArray<FProperty*> BlacklistedProperties;
-
 	TSharedPtr<FStructSerializer> FallbackStructSerializer;
 	TMap<UScriptStruct*, TSharedPtr<FStructSerializer>> StructSerializers;
 public:
 	UPropertySerializer();
 
 	FUObjectExportContainer ExportsContainer;
-
 	TArray<FString> BlacklistedPropertyNames;
-	
 	TArray<FFailedPropertyInfo> FailedProperties;
+	
 	void ClearCachedData();
 
 	/** Disables property serialization entirely */
@@ -64,7 +60,6 @@ public:
 
 	void DeserializePropertyValue(FProperty* Property, const TSharedRef<FJsonValue>& Value, void* OutValue);
 	void DeserializeStruct(UScriptStruct* Struct, const TSharedRef<FJsonObject>& Value, void* OutValue) const;
-
 private:
 	FStructSerializer* GetStructSerializer(const UScriptStruct* Struct) const;
 };

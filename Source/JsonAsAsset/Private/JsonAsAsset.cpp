@@ -20,8 +20,6 @@
 #include "LevelEditor.h"
 #endif
 
-#include "PhysicsEngine/BodySetup.h"
-
 #include "Settings/JsonAsAssetSettings.h"
 #include "Widgets/Notifications/SNotificationList.h"
 #include "Framework/Notifications/NotificationManager.h"
@@ -44,7 +42,7 @@
 
 #include "Modules/UI/CommandsModule.h"
 #include "Modules/UI/StyleModule.h"
-#include "Utilities/AppStyleCompatibility.h"
+#include "Utilities/Compatibility.h"
 #include "Utilities/RemoteUtilities.h"
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -771,6 +769,22 @@ void FJsonAsAssetModule::SupportedAssetsDropdown(FMenuBuilder& InnerMenuBuilder,
 			CategoriesAndTypes[Pair.Value.Category].Append(Pair.Key);
 		}
 		else {
+			const UJsonAsAssetSettings* SettingsReferenced = GetDefault<UJsonAsAssetSettings>();
+
+			if (!SettingsReferenced->bEnableExperiments) {
+				bool bIsExperimentalAssetType = false;
+
+				for (FString ExperimentalAssetType : ExperimentalAssetTypes) {
+					if (Pair.Key.Contains(ExperimentalAssetType)) {
+						bIsExperimentalAssetType = true;
+					}
+				}
+
+				if (bIsExperimentalAssetType) {
+					continue;
+				}
+			}
+
 			CategoriesAndTypes.Add(Pair.Value.Category, Pair.Key);
 		}
 	}

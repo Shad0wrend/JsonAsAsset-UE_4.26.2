@@ -23,14 +23,14 @@ private:
 		FLinearColor TextColor;
 		FMargin Margin;
 
-		FLineDefinition(const FText& InText)
+		explicit FLineDefinition(const FText& InText)
 			: Text(InText),
 			FontSize(9),
 			TextColor(FLinearColor(0.5f, 0.5f, 0.5f)),
 			Margin(FMargin(6.f, 0.f, 0.f, 0.f)) {
 		}
 
-		FLineDefinition(const FText& InText, int32 InFontSize, const FLinearColor& InTextColor, const FMargin& InMargin)
+		FLineDefinition(const FText& InText, const int32 InFontSize, const FLinearColor& InTextColor, const FMargin& InMargin)
 			: Text(InText),
 			FontSize(InFontSize),
 			TextColor(InTextColor),

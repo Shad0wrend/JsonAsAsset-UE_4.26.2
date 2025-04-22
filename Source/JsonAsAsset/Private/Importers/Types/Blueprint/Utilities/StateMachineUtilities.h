@@ -150,7 +150,7 @@ inline void CreateStateMachineGraph(
 	StateMachineGraph->Modify();
 
 	/* Creating States ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	const TArray<TSharedPtr<FJsonValue>>& States = StateMachineJsonObject->GetArrayField("States");
+	const TArray<TSharedPtr<FJsonValue>>& States = StateMachineJsonObject->GetArrayField(TEXT("States"));
 	
 	/* Store state nodes in a container */
 	FUObjectExportContainer Container;
@@ -158,9 +158,12 @@ inline void CreateStateMachineGraph(
 	/* Create each state */
 	for (int32 i = 0; i < States.Num(); ++i) {
 		const TSharedPtr<FJsonObject> StateObject = States[i]->AsObject();
-		const FString StateName = StateObject->GetStringField("StateName");
-		const bool bIsAConduit = StateObject->GetBoolField("bIsAConduit");
-		const bool bAlwaysResetOnEntry = StateObject->GetBoolField("bAlwaysResetOnEntry");
+		const FString StateName = StateObject->GetStringField(TEXT("StateName"));
+		
+		const bool bAlwaysResetOnEntry = StateObject->GetBoolField(TEXT("bAlwaysResetOnEntry"));
+
+		const bool bIsAConduit = StateObject->GetBoolField(TEXT("bIsAConduit"));
+		const int EntryRuleNodeIndex = StateObject->GetIntegerField(TEXT("EntryRuleNodeIndex"));
 
 		UAnimStateNodeBase* Node;
 		UEdGraph* BoundGraph = nullptr;
@@ -179,6 +182,17 @@ inline void CreateStateMachineGraph(
 			}
 
 			Node = ConduitNode;
+
+			if (EntryRuleNodeIndex != -1) {
+				FString DelegateExportName = ReversedNodesKeys[EntryRuleNodeIndex];
+				const FUObjectExport DelegateExport = RootContainer.Find(DelegateExportName);
+
+				UAnimationTransitionGraph* TransGraph = CastChecked<UAnimationTransitionGraph>(BoundGraph);
+				UAnimGraphNode_TransitionResult* ResultNode = TransGraph->GetResultNode();
+				
+				ResultNode->NodeComment = DelegateExportName;
+				ResultNode->bCommentBubbleVisible = true;
+			}
 		} else {
 			UAnimStateNode* StateNode = FEdGraphSchemaAction_NewStateNode::SpawnNodeFromTemplate<UAnimStateNode>(
 				StateMachineGraph,
@@ -212,14 +226,14 @@ inline void CreateStateMachineGraph(
 	}
 
 	/* Creating Transitions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	const TArray<TSharedPtr<FJsonValue>>& Transitions = StateMachineJsonObject->GetArrayField("Transitions");
+	const TArray<TSharedPtr<FJsonValue>>& Transitions = StateMachineJsonObject->GetArrayField(TEXT("Transitions"));
 	
 	for (int32 TransitionIndex = 0; TransitionIndex < Transitions.Num(); ++TransitionIndex) {
 	    const TSharedPtr<FJsonObject>& TransitionObject = Transitions[TransitionIndex]->AsObject();
 
 		/* Get State Nodes from Container */
-	    const int32 PreviousStateIndex = TransitionObject->GetIntegerField("PreviousState");
-	    const int32 NextStateIndex = TransitionObject->GetIntegerField("NextState");
+	    const int32 PreviousStateIndex = TransitionObject->GetIntegerField(TEXT("PreviousState"));
+	    const int32 NextStateIndex = TransitionObject->GetIntegerField(TEXT("NextState"));
 
 		const FUObjectExport PreviousStateExport = Container.Exports[PreviousStateIndex];
 		const FUObjectExport NextStateExport = Container.Exports[NextStateIndex];
@@ -258,14 +272,14 @@ inline void CreateStateMachineGraph(
 		/* Set TransitionNode data */
 		TSharedPtr<FJsonObject> TransitionStateObject;
 
-		if (PreviousStateObject->HasField("Transitions")) {
-			const TArray<TSharedPtr<FJsonValue>> StateTransitions = PreviousStateObject->GetArrayField("Transitions");
+		if (PreviousStateObject->HasField(TEXT("Transitions"))) {
+			const TArray<TSharedPtr<FJsonValue>> StateTransitions = PreviousStateObject->GetArrayField(TEXT("Transitions"));
 
 			for (const TSharedPtr<FJsonValue>& StateTransValue : StateTransitions) {
 				const TSharedPtr<FJsonObject> StateTransitionObject = StateTransValue->AsObject();
 				
 				if (StateTransitionObject.IsValid()) {
-					const int32 StateTransitionIndex = StateTransitionObject->GetIntegerField("TransitionIndex");
+					const int32 StateTransitionIndex = StateTransitionObject->GetIntegerField(TEXT("TransitionIndex"));
                 	
 					if (TransitionIndex == StateTransitionIndex) {
 						TransitionStateObject = StateTransitionObject;
@@ -313,11 +327,11 @@ inline void CreateStateMachineGraph(
 	if (!StateMachineGraph->EntryNode) return;
 
 	/* What state is this state machine plugged into first */
-	const int InitialState = StateMachineJsonObject->GetIntegerField("InitialState");
+	const int InitialState = StateMachineJsonObject->GetIntegerField(TEXT("InitialState"));
 	if (!States.IsValidIndex(InitialState)) return;
 
 	const TSharedPtr<FJsonObject> InitialStateObject = States[InitialState]->AsObject();
-	const FString InitialStateName = InitialStateObject->GetStringField("StateName");
+	const FString InitialStateName = InitialStateObject->GetStringField(TEXT("StateName"));
 
 	/* Find Initial State using the StateNodesMap */
 	UAnimStateNodeBase* InitialStateNode = Cast<UAnimStateNodeBase>(Container.Find(InitialStateName).Object);
