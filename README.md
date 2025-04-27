@@ -9,6 +9,8 @@
 [![Unreal Engine 4.26.2 Supported)](https://img.shields.io/badge/4.26.2-black?logo=unrealengine&style=for-the-badge&labelColor=grey)](#install)
 [![Unreal Engine 4.26.0 Supported)](https://img.shields.io/badge/4.26.0-black?logo=unrealengine&style=for-the-badge&labelColor=grey)](#install)
 
+> Source builds will need to be compiled differently, Engine builds from the Epic Games Launcher are supported.
+
 ### Description:
 
 A user friendly plugin for [Unreal Engine](https://www.unrealengine.com/en-US) that reads [JSON](https://www.json.org/json-en.html) files extracted from [FModel](https://fmodel.app), and regenerates assets as they were from the game's files.
