@@ -176,7 +176,7 @@ inline void HandlePropertyBinding(FUObjectExport NodeExport, const TArray<TShare
 					}
 
 					FString SourcePropertyName = CopyRecordAsObject->GetStringField(TEXT("SourcePropertyName"));
-
+					
 					/*
 					 * Take the property's name from the object name:
 					 *
@@ -195,6 +195,9 @@ inline void HandlePropertyBinding(FUObjectExport NodeExport, const TArray<TShare
 						PinCategory.Split(TEXT("Property"), &PinCategory, nullptr);
 						PinCategory = PinCategory.ToLower();
 					}
+
+					/* Cannot be compiled */
+					if (PinName.Equals(TEXT("BlendTime")) || PinName.Equals(TEXT("BlendWeights"))) continue;
 
 					FName PinNameAsName(PinName);
 
@@ -246,7 +249,7 @@ inline void HandlePropertyBinding(FUObjectExport NodeExport, const TArray<TShare
 						}
 					}
 
-#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION < 3 || ENGINE_UE4
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION < 3) || ENGINE_UE4
 					Node->PropertyBindings.Add(PinNameAsName, PropertyBinding);
 #endif
 					

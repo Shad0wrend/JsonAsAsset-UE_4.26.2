@@ -33,12 +33,12 @@
 #define LOCTEXT_NAMESPACE "IImporter"
 
 /* Importer Constructor */
-IImporter::IImporter(const FString& FileName, const FString& FilePath, 
+IImporter::IImporter(const FString& AssetName, const FString& FilePath, 
 		  const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, 
 		  UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects,
 		  UClass* AssetClass)
 	: USerializerContainer(Package, OutermostPkg), AllJsonObjects(AllJsonObjects), JsonObject(JsonObject),
-	  FileName(FileName), FilePath(FilePath), AssetClass(AssetClass),
+	  AssetName(AssetName), FilePath(FilePath), AssetClass(AssetClass),
 	  ParentObject(nullptr)
 {
 	/* Create Properties field if it doesn't exist */
@@ -144,6 +144,11 @@ bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FSt
 
 		FString Type = DataObject->GetStringField(TEXT("Type"));
 		FString Name = DataObject->GetStringField(TEXT("Name"));
+
+		/* BlueprintGeneratedClass is postfixed with _C */
+		if (Type.Contains("BlueprintGeneratedClass")) {
+			Name.Split("_C", &Name, nullptr, ESearchCase::CaseSensitive, ESearchDir::FromEnd);
+		}
 
 		UClass* Class = FindObject<UClass>(ANY_PACKAGE, *Type);
 
@@ -380,9 +385,9 @@ void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectP
 	
 	/* Material Expression case */
 	if (!LoadedObject && ObjectName.Contains("MaterialExpression")) {
-		FString AssetName;
-		ObjectPath.Split("/", nullptr, &AssetName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
-		LoadedObject = Cast<T>(StaticLoadObject(T::StaticClass(), nullptr, *(ObjectPath + "." + AssetName + ":" + ObjectName)));
+		FString SplitObjectName;
+		ObjectPath.Split("/", nullptr, &SplitObjectName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+		LoadedObject = Cast<T>(StaticLoadObject(T::StaticClass(), nullptr, *(ObjectPath + "." + SplitObjectName + ":" + ObjectName)));
 	}
 
 	Object = LoadedObject;

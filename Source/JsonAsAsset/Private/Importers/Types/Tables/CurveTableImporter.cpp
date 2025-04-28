@@ -9,7 +9,7 @@ void CCurveTableDerived::ChangeTableMode(ECurveTableMode Mode) {
 
 bool ICurveTableImporter::Import() {
 	TSharedPtr<FJsonObject> RowData = AssetData->GetObjectField(TEXT("Rows"));
-	UCurveTable* CurveTable = NewObject<UCurveTable>(Package, UCurveTable::StaticClass(), *FileName, RF_Public | RF_Standalone);
+	UCurveTable* CurveTable = NewObject<UCurveTable>(Package, UCurveTable::StaticClass(), *AssetName, RF_Public | RF_Standalone);
 	CCurveTableDerived* DerivedCurveTable = Cast<CCurveTableDerived>(CurveTable);
 
 	/* Used to determine curve type */

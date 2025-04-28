@@ -9,14 +9,16 @@ class UAnimGraphNode_Base;
 
 class IAnimationBlueprintImporter final : public IImporter {
 public:
-	IAnimationBlueprintImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass):
-		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass), AnimBlueprint(nullptr)
+	IAnimationBlueprintImporter(const FString& AssetName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass):
+		IImporter(AssetName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass), AnimBlueprint(nullptr)
 	{
 	}
 
 	virtual bool Import() override;
 
 private:
+	UAnimBlueprint* CreateAnimBlueprint(UClass* ParentClass) const;
+	
 	void ProcessEvaluateGraphExposedInputs(const TSharedPtr<FJsonObject>& AnimNodeProperties) const;
 
 	/* Finds an Animation Graph in an Animation Blueprint */
@@ -35,9 +37,9 @@ private:
 	void HandleNodeDeserialization(FUObjectExportContainer& Container);
 
 	/* Links Animation Graph Nodes together using a container */
-	void ConnectAnimGraphNodes(FUObjectExportContainer& Container, UEdGraph* AnimGraph);
+	static void ConnectAnimGraphNodes(FUObjectExportContainer& Container, UEdGraph* AnimGraph);
 
-	void UpdateBlendListByEnumVisibleEntries(FUObjectExport NodeExport, FUObjectExportContainer& Container, UEdGraph* AnimGraph);
+	static void UpdateBlendListByEnumVisibleEntries(FUObjectExport NodeExport, FUObjectExportContainer& Container, UEdGraph* AnimGraph);
 protected:
 	/* Global Cached data to reuse */
 	UAnimBlueprint* AnimBlueprint;

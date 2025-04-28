@@ -7,7 +7,7 @@
 
 bool IUserDefinedEnumImporter::Import() {
 	/* Create the UserDefinedEnum */
-	UUserDefinedEnum* UserDefinedEnum = NewObject<UUserDefinedEnum>(Package, *FileName, RF_Public | RF_Standalone);
+	UUserDefinedEnum* UserDefinedEnum = NewObject<UUserDefinedEnum>(Package, *AssetName, RF_Public | RF_Standalone);
 	
 	UserDefinedEnum->SetMetaData(TEXT("BlueprintType"), TEXT("true"));
 	UserDefinedEnum->Modify();

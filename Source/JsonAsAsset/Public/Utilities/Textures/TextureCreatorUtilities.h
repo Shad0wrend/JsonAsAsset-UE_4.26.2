@@ -7,8 +7,8 @@
 
 struct FTextureCreatorUtilities {
 public:
-	FTextureCreatorUtilities(const FString& FileName, const FString& FilePath, UPackage* Package, UPackage* OutermostPkg)
-		: FileName(FileName), FilePath(FilePath), Package(Package), OutermostPkg(OutermostPkg)
+	FTextureCreatorUtilities(const FString& AssetName, const FString& FilePath, UPackage* Package, UPackage* OutermostPkg)
+		: AssetName(AssetName), FilePath(FilePath), Package(Package), OutermostPkg(OutermostPkg)
 	{
 		PropertySerializer = NewObject<UPropertySerializer>();
 		GObjectSerializer = NewObject<UObjectSerializer>();
@@ -29,7 +29,7 @@ private:
 	static void GetDecompressedTextureData(uint8* Data, uint8*& OutData, const int SizeX, const int SizeY, const int SizeZ, const int TotalSize, const EPixelFormat Format);
 
 protected:
-	FString FileName;
+	FString AssetName;
 	FString FilePath;
 	UPackage* Package;
 	UPackage* OutermostPkg;

@@ -4,7 +4,7 @@
 #include "Engine/DataAsset.h"
 
 bool IDataAssetImporter::Import() {
-	UDataAsset* DataAsset = NewObject<UDataAsset>(Package, AssetClass, FName(FileName), RF_Public | RF_Standalone);
+	UDataAsset* DataAsset = NewObject<UDataAsset>(Package, AssetClass, FName(AssetName), RF_Public | RF_Standalone);
 	DataAsset->MarkPackageDirty();
 
 	UObjectSerializer* ObjectSerializer = GetObjectSerializer();

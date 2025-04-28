@@ -32,7 +32,7 @@ static const TMap<FString, EPinContainerType> ContainerTypeMap = {
 };
 
 bool IUserDefinedStructImporter::Import() {
-    UUserDefinedStruct* UserDefinedStruct = FStructureEditorUtils::CreateUserDefinedStruct(Package, *FileName, RF_Standalone | RF_Public | RF_Transactional);
+    UUserDefinedStruct* UserDefinedStruct = FStructureEditorUtils::CreateUserDefinedStruct(Package, *AssetName, RF_Standalone | RF_Public | RF_Transactional);
 
     DefaultProperties = AssetData->GetObjectField(TEXT("DefaultProperties"));
     GetObjectSerializer()->DeserializeObjectProperties(KeepPropertiesShared(AssetData,

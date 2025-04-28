@@ -13,7 +13,7 @@ bool IPhysicsAssetImporter::Import() {
 		return false;
 	}
 
-	UPhysicsAsset* PhysicsAsset = NewObject<UPhysicsAsset>(Package, UPhysicsAsset::StaticClass(), *FileName, RF_Public | RF_Standalone);
+	UPhysicsAsset* PhysicsAsset = NewObject<UPhysicsAsset>(Package, UPhysicsAsset::StaticClass(), *AssetName, RF_Public | RF_Standalone);
 
 	TMap<FName, FExportData> Exports = CreateExports();
 	

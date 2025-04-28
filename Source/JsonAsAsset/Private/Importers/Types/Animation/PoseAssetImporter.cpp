@@ -4,7 +4,7 @@
 #include "Animation/PoseAsset.h"
 
 bool IPoseAssetImporter::Import() {
-	UPoseAsset* PoseAsset = NewObject<UPoseAsset>(OutermostPkg, UPoseAsset::StaticClass(), *FileName, RF_Standalone | RF_Public);
+	UPoseAsset* PoseAsset = NewObject<UPoseAsset>(OutermostPkg, UPoseAsset::StaticClass(), *AssetName, RF_Standalone | RF_Public);
 
 	/* Set Skeleton, so we can use it in the uncooking process */
 	GetObjectSerializer()->DeserializeObjectProperties(KeepPropertiesShared(AssetData,

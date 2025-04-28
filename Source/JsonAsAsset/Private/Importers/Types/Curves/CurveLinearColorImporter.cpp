@@ -8,7 +8,7 @@ bool ICurveLinearColorImporter::Import() {
 	TArray<TSharedPtr<FJsonValue>> FloatCurves = AssetData->GetArrayField(TEXT("FloatCurves"));
 
 	UCurveLinearColorFactory* CurveFactory = NewObject<UCurveLinearColorFactory>();
-	UCurveLinearColor* LinearCurveAsset = Cast<UCurveLinearColor>(CurveFactory->FactoryCreateNew(UCurveLinearColor::StaticClass(), OutermostPkg, *FileName, RF_Standalone | RF_Public, nullptr, GWarn));
+	UCurveLinearColor* LinearCurveAsset = Cast<UCurveLinearColor>(CurveFactory->FactoryCreateNew(UCurveLinearColor::StaticClass(), OutermostPkg, *AssetName, RF_Standalone | RF_Public, nullptr, GWarn));
 
 	/* For each container, get keys */
 	for (int i = 0; i < FloatCurves.Num(); i++) {

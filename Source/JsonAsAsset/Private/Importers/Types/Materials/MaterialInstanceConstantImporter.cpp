@@ -7,7 +7,7 @@
 #include "MaterialShared.h"
 
 bool IMaterialInstanceConstantImporter::Import() {
-	UMaterialInstanceConstant* MaterialInstanceConstant = NewObject<UMaterialInstanceConstant>(Package, UMaterialInstanceConstant::StaticClass(), *FileName, RF_Public | RF_Standalone);
+	UMaterialInstanceConstant* MaterialInstanceConstant = NewObject<UMaterialInstanceConstant>(Package, UMaterialInstanceConstant::StaticClass(), *AssetName, RF_Public | RF_Standalone);
 
 	GetObjectSerializer()->DeserializeObjectProperties(RemovePropertiesShared(AssetData,
 	{
@@ -119,11 +119,15 @@ bool IMaterialInstanceConstantImporter::Import() {
 }
 
 void IMaterialInstanceConstantImporter::ReadStaticParameters(const TSharedPtr<FJsonObject>& StaticParameters, TArray<TSharedPtr<FJsonValue>>& StaticSwitchParameters, TArray<TSharedPtr<FJsonValue>>& StaticComponentMaskParameters) {
-	for (TSharedPtr<FJsonValue> Parameter : StaticParameters->GetArrayField(TEXT("StaticSwitchParameters"))) {
-		StaticSwitchParameters.Add(TSharedPtr<FJsonValue>(Parameter));
+	if (StaticParameters->HasField("StaticSwitchParameters")) {
+		for (TSharedPtr<FJsonValue> Parameter : StaticParameters->GetArrayField(TEXT("StaticSwitchParameters"))) {
+			StaticSwitchParameters.Add(TSharedPtr<FJsonValue>(Parameter));
+		}
 	}
 
-	for (TSharedPtr<FJsonValue> Parameter : StaticParameters->GetArrayField(TEXT("StaticComponentMaskParameters"))) {
-		StaticComponentMaskParameters.Add(TSharedPtr<FJsonValue>(Parameter));
+	if (StaticParameters->HasField("StaticComponentMaskParameters")) {
+		for (TSharedPtr<FJsonValue> Parameter : StaticParameters->GetArrayField(TEXT("StaticComponentMaskParameters"))) {
+			StaticComponentMaskParameters.Add(TSharedPtr<FJsonValue>(Parameter));
+		}
 	}
 }

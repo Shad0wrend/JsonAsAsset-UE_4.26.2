@@ -15,15 +15,15 @@
 #endif
 
 bool IAnimationBaseImporter::Import() {
-	const FString AssetName = JsonObject->GetStringField(TEXT("Name"));
+	const FString JsonName = JsonObject->GetStringField(TEXT("Name"));
 
 	TArray<TSharedPtr<FJsonValue>> FloatCurves;
 	TArray<TSharedPtr<FJsonValue>> Notifies;
 
-	UAnimSequenceBase* AnimSequenceBase = GetSelectedAsset<UAnimSequenceBase>(true, AssetName);
+	UAnimSequenceBase* AnimSequenceBase = GetSelectedAsset<UAnimSequenceBase>(true, JsonName);
 
 	if (!AnimSequenceBase && AssetClass->IsChildOf<UAnimMontage>()) {
-		AnimSequenceBase = NewObject<UAnimMontage>(Package, AssetClass, *FileName, RF_Public | RF_Standalone);
+		AnimSequenceBase = NewObject<UAnimMontage>(Package, AssetClass, *JsonName, RF_Public | RF_Standalone);
 	}
 
 	if (!AnimSequenceBase) {

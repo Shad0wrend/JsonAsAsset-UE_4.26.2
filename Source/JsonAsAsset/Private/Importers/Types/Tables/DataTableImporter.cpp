@@ -3,7 +3,7 @@
 #include "Importers/Types/Tables/DataTableImporter.h"
 
 bool IDataTableImporter::Import() {
-	UDataTable* DataTable = NewObject<UDataTable>(Package, UDataTable::StaticClass(), *FileName, RF_Public | RF_Standalone);
+	UDataTable* DataTable = NewObject<UDataTable>(Package, UDataTable::StaticClass(), *AssetName, RF_Public | RF_Standalone);
 	
 	/* ScriptClass for the Data Table */
 	FString TableStruct; {
