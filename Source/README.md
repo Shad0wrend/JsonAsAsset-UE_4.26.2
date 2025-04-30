@@ -17,3 +17,8 @@ JsonAsAsset's settings are in [`Public/Settings/JsonAsAssetSettings.h`](https://
 
 ##### General Information
 This plugin's importing feature uses data based off [CUE4Parse](https://github.com/FabianFG/CUE4Parse)'s JSON export format.
+
+##### Cloning JsonAsAsset
+```
+git clone https://github.com/JsonAsAsset/JsonAsAsset --recursive
+```
