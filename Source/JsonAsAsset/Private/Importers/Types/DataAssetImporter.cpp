@@ -5,10 +5,10 @@
 
 bool IDataAssetImporter::Import() {
 	UDataAsset* DataAsset = NewObject<UDataAsset>(Package, AssetClass, FName(AssetName), RF_Public | RF_Standalone);
-	DataAsset->MarkPackageDirty();
+	auto _ = DataAsset->MarkPackageDirty();
 
 	UObjectSerializer* ObjectSerializer = GetObjectSerializer();
-	ObjectSerializer->SetExportForDeserialization(JsonObject);
+	ObjectSerializer->SetExportForDeserialization(JsonObject, DataAsset);
 	ObjectSerializer->ParentAsset = DataAsset;
 
 	ObjectSerializer->DeserializeExports(AllJsonObjects);

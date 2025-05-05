@@ -196,7 +196,8 @@ public:
     static bool ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FString File, bool bHideNotifications = false);
 
 public:
-    TArray<TSharedPtr<FJsonValue>> GetObjectsWithTypeStartingWith(const FString& StartsWithStr);
+    TArray<TSharedPtr<FJsonValue>> GetObjectsWithPropertyNameStartingWith(const FString& StartsWithStr, const FString& PropertyName);
+    TArray<TSharedPtr<FJsonValue>> FilterObjectsWithoutMatchingPropertyName(const FString& StartsWithStr, const FString& PropertyName);
 
     UObject* ParentObject;
     
@@ -225,7 +226,7 @@ public:
 protected:
     void DeserializeExports(UObject* ParentAsset) const {
         UObjectSerializer* ObjectSerializer = GetObjectSerializer();
-        ObjectSerializer->SetExportForDeserialization(JsonObject);
+        ObjectSerializer->SetExportForDeserialization(JsonObject, ParentAsset);
         ObjectSerializer->ParentAsset = ParentAsset;
         
         ObjectSerializer->DeserializeExports(AllJsonObjects);

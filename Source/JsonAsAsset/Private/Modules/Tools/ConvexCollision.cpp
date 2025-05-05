@@ -63,7 +63,7 @@ void FToolConvexCollision::Execute() {
 
 				StaticMesh->Sockets.Empty();
 
-				ObjectSerializer->SetExportForDeserialization(JsonObject);
+				ObjectSerializer->SetExportForDeserialization(JsonObject, StaticMesh);
 				ObjectSerializer->ParentAsset = StaticMesh;
 
 				ObjectSerializer->DeserializeExports(Exports);

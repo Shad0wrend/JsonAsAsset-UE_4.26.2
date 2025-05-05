@@ -8,7 +8,8 @@
 
 UJsonAsAssetSettings::UJsonAsAssetSettings():
 	/* Default initializers */
-	bEnableLocalFetch(false), 
+	bEnableExperiments(false),
+	bEnableLocalFetch(false),
 	UnrealVersion()
 {
 	CategoryName = TEXT("Plugins");

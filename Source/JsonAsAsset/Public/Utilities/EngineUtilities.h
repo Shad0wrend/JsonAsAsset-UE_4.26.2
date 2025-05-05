@@ -249,6 +249,22 @@ inline TSharedPtr<FJsonObject> GetExport(const FString& Type, TArray<TSharedPtr<
 	return nullptr;
 }
 
+inline TSharedPtr<FJsonObject> GetExportByName(const FString& Name, TArray<TSharedPtr<FJsonValue>> AllJsonObjects, const bool bGetProperties = false) {
+	for (const TSharedPtr<FJsonValue> Value : AllJsonObjects) {
+		const TSharedPtr<FJsonObject> ValueObject = Value->AsObject();
+
+		if (ValueObject->GetStringField(TEXT("Name")) == Name) {
+			if (bGetProperties) {
+				return ValueObject->GetObjectField(TEXT("Properties"));
+			}
+			
+			return ValueObject;
+		}
+	}
+	
+	return nullptr;
+}
+
 inline TSharedPtr<FJsonObject> GetExport(const FJsonObject* PackageIndex, TArray<TSharedPtr<FJsonValue>> AllJsonObjects) {
 	FString ObjectName = PackageIndex->GetStringField(TEXT("ObjectName")); /* Class'Asset:ExportName' */
 	FString ObjectPath = PackageIndex->GetStringField(TEXT("ObjectPath")); /* Path/Asset.Index */
@@ -947,6 +963,7 @@ inline TSubclassOf<UObject> LoadClassFromPath(const FString& ObjectName, const F
 
 inline TSubclassOf<UObject> LoadBlueprintClass(FString& ObjectPath) {
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
+	
 	if (!Settings->AssetSettings.GameName.IsEmpty()) {
 		ObjectPath = ObjectPath.Replace(*(Settings->AssetSettings.GameName + "/Content"), TEXT("/Game"));
 	}

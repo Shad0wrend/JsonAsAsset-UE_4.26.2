@@ -40,6 +40,10 @@ void LocalFetchModule::CloseLocalFetch() {
 }
 
 bool LocalFetchModule::IsSetup(const UJsonAsAssetSettings* Settings, TArray<FString>& Params) {
+	if (!Settings->bEnableLocalFetch) {
+		return true;
+	}
+	
 	if (Settings->MappingFilePath.FilePath.IsEmpty()) {
 		Params.Add("Mappings file is missing");
 	}

@@ -1,6 +1,6 @@
 ﻿/* Copyright JsonAsAsset Contributors 2024-2025 */
 
-#include "Importers/Types/UserDefinedEnumImporter.h"
+#include "Importers/Types/UserDefined/UserDefinedEnumImporter.h"
 
 #include "Engine/UserDefinedEnum.h"
 #include "Kismet2/EnumEditorUtils.h"

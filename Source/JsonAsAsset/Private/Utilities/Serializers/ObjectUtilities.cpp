@@ -45,8 +45,9 @@ void UObjectSerializer::SetPropertySerializer(UPropertySerializer* NewPropertySe
 	NewPropertySerializer->ObjectSerializer = this;
 }
 
-void UObjectSerializer::SetExportForDeserialization(const TSharedPtr<FJsonObject>& Object) {
-	ExportsToNotDeserialize.Add(Object->GetStringField(TEXT("Name")));
+void UObjectSerializer::SetExportForDeserialization(const TSharedPtr<FJsonObject>& JsonObject, UObject* Object) {
+	ExportsToNotDeserialize.Add(JsonObject->GetStringField(TEXT("Name")));
+	ConstructedObjects.Add(JsonObject->GetStringField(TEXT("Name")), Object);
 }
 
 void UObjectSerializer::DeserializeExports(TArray<TSharedPtr<FJsonValue>> InExports) {
@@ -57,7 +58,7 @@ void UObjectSerializer::DeserializeExports(TArray<TSharedPtr<FJsonValue>> InExpo
 	
 	for (TSharedPtr<FJsonValue> Object : InExports) {
 		Index++;
-		
+
 		TSharedPtr<FJsonObject> ExportObject = Object->AsObject();
 
 		/* No name = no export!! */
@@ -70,42 +71,14 @@ void UObjectSerializer::DeserializeExports(TArray<TSharedPtr<FJsonValue>> InExpo
 		if (ExportsToNotDeserialize.Contains(Name)) continue;
 		if (Type == "BodySetup" || Type == "NavCollision") continue;
 
-		FString ClassName = ExportObject->GetStringField(TEXT("Class"));
-
-		if (ExportObject->HasField(TEXT("Template"))) {
-			const TSharedPtr<FJsonObject> TemplateObject = ExportObject->GetObjectField(TEXT("Template"));
-			ClassName = ReadPathFromObject(&TemplateObject).Replace(TEXT("Default__"), TEXT(""));
-		}
-
-		UClass* Class = FindObject<UClass>(ANY_PACKAGE, *ClassName);
-
-		if (!Class) {
-			Class = FindObject<UClass>(ANY_PACKAGE, *Type);
-		}
-
-		if (!Class) continue;
-
 		FString Outer = ExportObject->GetStringField(TEXT("Outer"));
-		UObject* ObjectOuter = ParentAsset;
-
-		if (FUObjectExport Export = PropertySerializer->ExportsContainer.Find(Outer); Export.Object != nullptr) {
-			UObject* FoundObject = Export.Object;
-			ObjectOuter = FoundObject;
-		}
-
-		UObject* NewUObject = NewObject<UObject>(ObjectOuter, Class, FName(*Name));
-
-		if (ExportObject->HasField(TEXT("Properties"))) {
-			TSharedPtr<FJsonObject> Properties = ExportObject->GetObjectField(TEXT("Properties"));
-
-			ExportsMap.Add(Properties, NewUObject);
-		}
-
+		
 		/* Add it to the referenced objects */
-		PropertySerializer->ExportsContainer.Exports.Add(FUObjectExport(FName(*Name), FName(*Type), FName(*Outer), ExportObject, NewUObject, ParentAsset, Index));
+		PropertySerializer->ExportsContainer.Exports.Add(FUObjectExport(FName(*Name), FName(*Type), FName(*Outer), ExportObject, nullptr, ParentAsset, Index));
+	}
 
-		/* Already deserialized */
-		ExportsToNotDeserialize.Add(Name);
+	for (FUObjectExport& Export : PropertySerializer->ExportsContainer.Exports) {
+		DeserializeExport(Export, ExportsMap);
 	}
 
 	for (const auto Pair : ExportsMap) {
@@ -114,6 +87,72 @@ void UObjectSerializer::DeserializeExports(TArray<TSharedPtr<FJsonValue>> InExpo
 
 		DeserializeObjectProperties(Properties, Object);
 	}
+}
+
+void UObjectSerializer::DeserializeExport(FUObjectExport& Export, TMap<TSharedPtr<FJsonObject>, UObject*>& ExportsMap) {
+	if (Export.Object != nullptr) return;
+	
+	TSharedPtr<FJsonObject> ExportObject = Export.JsonObject;
+
+	/* No name = no export!! */
+	if (!ExportObject->HasField(TEXT("Name"))) return;
+
+	FString Name = ExportObject->GetStringField(TEXT("Name"));
+	FString Type = ExportObject->GetStringField(TEXT("Type")).Replace(TEXT("CommonWidgetSwitcher"), TEXT("CommonActivatableWidgetSwitcher"));
+		
+	/* Check if it's not supposed to be deserialized */
+	if (ExportsToNotDeserialize.Contains(Name)) return;
+	if (Type == "BodySetup" || Type == "NavCollision") return;
+
+	FString ClassName = ExportObject->GetStringField(TEXT("Class"));
+
+	if (ExportObject->HasField(TEXT("Template"))) {
+		const TSharedPtr<FJsonObject> TemplateObject = ExportObject->GetObjectField(TEXT("Template"));
+		ClassName = ReadPathFromObject(&TemplateObject).Replace(TEXT("Default__"), TEXT(""));
+	}
+
+	UClass* Class = FindObject<UClass>(ANY_PACKAGE, *ClassName);
+
+	if (!Class) {
+		Class = FindObject<UClass>(ANY_PACKAGE, *Type);
+	}
+
+	if (!Class) return;
+
+	FString Outer = ExportObject->GetStringField(TEXT("Outer"));
+	UObject* ObjectOuter = nullptr;
+
+	if (FUObjectExport& FoundExport = PropertySerializer->ExportsContainer.Find(Outer); FoundExport.JsonObject.IsValid()) {
+		if (FoundExport.Object == nullptr) {
+			DeserializeExport(FoundExport, ExportsMap);
+		}
+		
+		UObject* FoundObject = FoundExport.Object;
+		ObjectOuter = FoundObject;
+	}
+
+	if (UObject** ConstructedObject = ConstructedObjects.Find(Outer)) {
+		ObjectOuter = *ConstructedObject;
+	}
+
+	if (PathsToNotDeserialize.Contains(Outer + "." + Name)) return;
+	if (ObjectOuter == nullptr) {
+		ObjectOuter = ParentAsset;
+	}
+
+	UObject* NewUObject = NewObject<UObject>(ObjectOuter, Class, FName(*Name));
+
+	if (ExportObject->HasField(TEXT("Properties"))) {
+		TSharedPtr<FJsonObject> Properties = ExportObject->GetObjectField(TEXT("Properties"));
+
+		ExportsMap.Add(Properties, NewUObject);
+	}
+
+	/* Add it to the referenced objects */
+	Export.Object = NewUObject;
+
+	/* Already deserialized */
+	PathsToNotDeserialize.Add(Outer + "." + Name);
 }
 
 void UObjectSerializer::DeserializeObjectProperties(const TSharedPtr<FJsonObject>& Properties, UObject* Object) const {

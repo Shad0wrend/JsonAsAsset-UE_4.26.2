@@ -31,7 +31,8 @@ public class JsonAsAsset : ModuleRules
 			"MainFrame",
 			"GameplayTags",
 			"ApplicationCore",
-			"AnimGraph"
+			"AnimGraph",
+			"UMGEditor"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new[]

@@ -1,6 +1,6 @@
 /* Copyright JsonAsAsset Contributors 2024-2025 */
 
-#include "Importers/Types/UserDefinedStructImporter.h"
+#include "Importers/Types/UserDefined/UserDefinedStructImporter.h"
 
 #include "UserDefinedStructure/UserDefinedStructEditorData.h"
 #include "Kismet2/StructureEditorUtils.h"

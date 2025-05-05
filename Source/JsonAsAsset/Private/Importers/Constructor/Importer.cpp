@@ -236,18 +236,39 @@ bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FSt
 	return true;
 }
 
-TArray<TSharedPtr<FJsonValue>> IImporter::GetObjectsWithTypeStartingWith(const FString& StartsWithStr) {
+TArray<TSharedPtr<FJsonValue>> IImporter::GetObjectsWithPropertyNameStartingWith(const FString& StartsWithStr, const FString& PropertyName) {
 	TArray<TSharedPtr<FJsonValue>> FilteredObjects;
 
 	for (const TSharedPtr<FJsonValue>& JsonObjectValue : AllJsonObjects) {
 		if (JsonObjectValue->Type == EJson::Object) {
 			TSharedPtr<FJsonObject> JsonObjectType = JsonObjectValue->AsObject();
 
-			if (JsonObjectType.IsValid() && JsonObjectType->HasField(TEXT("Type"))) {
-				const FString TypeValue = JsonObjectType->GetStringField(TEXT("Type"));
+			if (JsonObjectType.IsValid() && JsonObjectType->HasField(PropertyName)) {
+				const FString TypeValue = JsonObjectType->GetStringField(PropertyName);
 
 				/* Check if the "Type" field starts with the specified string */
 				if (TypeValue.StartsWith(StartsWithStr)) {
+					FilteredObjects.Add(JsonObjectValue);
+				}
+			}
+		}
+	}
+
+	return FilteredObjects;
+}
+
+TArray<TSharedPtr<FJsonValue>> IImporter::FilterObjectsWithoutMatchingPropertyName(const FString& StartsWithStr, const FString& PropertyName) {
+	TArray<TSharedPtr<FJsonValue>> FilteredObjects;
+
+	for (const TSharedPtr<FJsonValue>& JsonObjectValue : AllJsonObjects) {
+		if (JsonObjectValue->Type == EJson::Object) {
+			TSharedPtr<FJsonObject> JsonObjectType = JsonObjectValue->AsObject();
+
+			if (JsonObjectType.IsValid() && JsonObjectType->HasField(PropertyName)) {
+				const FString TypeValue = JsonObjectType->GetStringField(PropertyName);
+
+				/* Check if the "Type" field starts with the specified string */
+				if (!TypeValue.StartsWith(StartsWithStr)) {
 					FilteredObjects.Add(JsonObjectValue);
 				}
 			}
@@ -372,7 +393,7 @@ void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectP
 	/* Try to load object using the object path and the object name combined */
 	TObjectPtr<T> LoadedObject = Cast<T>(StaticLoadObject(T::StaticClass(), nullptr, *(ObjectPath + "." + ObjectName)));
 
-	if (!Outer.IsEmpty()) {
+	if (!Outer.IsEmpty() && ParentObject->IsA(AActor::StaticClass())) {
 		const AActor* NewLoadedObject = Cast<AActor>(ParentObject);
 		auto Components = NewLoadedObject->GetComponents();
 		

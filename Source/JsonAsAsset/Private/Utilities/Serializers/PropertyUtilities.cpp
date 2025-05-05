@@ -186,9 +186,10 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 
 			FString ObjectName = JsonValueAsObject->GetStringField(TEXT("ObjectName"));
 			FString ObjectPath = JsonValueAsObject->GetStringField(TEXT("ObjectPath"));
+			FString ObjectOuter;
 
 			if (ObjectName.Contains(".")) {
-				ObjectName.Split(".", nullptr, &ObjectName);
+				ObjectName.Split(".", &ObjectOuter, &ObjectName);
 				ObjectName.Split("'", &ObjectName, nullptr);
 			}
 
@@ -205,14 +206,41 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 				}
 			}
 
-			if (UObject* Parent = ObjectSerializer->ParentAsset) {
-				FString Name = Parent->GetName();
+			if (ObjectName.Contains(".")) {
+				TArray<FString> Parts;
+				ObjectName.ParseIntoArray(Parts, TEXT("."), true);
 
-				if (FUObjectExport Export = ExportsContainer.Find(ObjectName, Name); Export.Object != nullptr) {
+				FString Penultimate = Parts.Num() > 1 ? Parts[Parts.Num() - 2] : TEXT("");
+				FString LastSegment = Parts.Num() > 0 ? Parts.Last() : TEXT("");
+
+				ObjectName = LastSegment;
+				ObjectOuter = Penultimate;
+			}
+
+			if (!ObjectOuter.IsEmpty()) {
+				if (ObjectOuter.Contains(":")) {
+					ObjectOuter.Split(":", nullptr, &ObjectOuter);
+				}
+				
+				if (FUObjectExport Export = ExportsContainer.Find(ObjectName, ObjectOuter); Export.Object != nullptr) {
 					UObject* FoundObject = Export.Object;
 
 					if (FoundObject) {
 						ObjectProperty->SetObjectPropertyValue(OutValue, FoundObject);
+					}
+				}
+			}
+
+			if (bFallbackToParentTrace) {
+				if (UObject* Parent = ObjectSerializer->ParentAsset) {
+					FString Name = Parent->GetName();
+
+					if (FUObjectExport Export = ExportsContainer.Find(ObjectName, Name); Export.Object != nullptr) {
+						UObject* FoundObject = Export.Object;
+
+						if (FoundObject) {
+							ObjectProperty->SetObjectPropertyValue(OutValue, FoundObject);
+						}
 					}
 				}
 			}

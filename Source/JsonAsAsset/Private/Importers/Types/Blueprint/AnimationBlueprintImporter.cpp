@@ -475,7 +475,7 @@ void IAnimationBlueprintImporter::HandleNodeDeserialization(FUObjectExportContai
 		TSharedPtr<FJsonObject> NodeProperties = NodeExport.JsonObject;
 
 		/* Post-processing modifications ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-		if (NodeProperties->HasField(TEXT("GroupRole"))) {
+		if (NodeProperties->HasField(TEXT("GroupRole")) && NodeProperties->HasField(TEXT("GroupIndex"))) {
 			const int GroupIndexInteger = NodeProperties->GetIntegerField(TEXT("GroupIndex"));
 
 			/* -1 is no group role */
