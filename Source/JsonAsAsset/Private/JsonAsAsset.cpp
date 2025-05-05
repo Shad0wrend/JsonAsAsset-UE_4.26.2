@@ -307,9 +307,7 @@ void FJsonAsAssetModule::RegisterMenus() {
 		FText::GetEmpty(),
 		TAttribute<FSlateIcon>::Create(
 			TAttribute<FSlateIcon>::FGetter::CreateLambda([this]() -> FSlateIcon {
-				return !IsSetup(Settings) || !LocalFetchModule::IsSetup(Settings)
-					? FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), FName("JsonAsAsset.Toolbar.Icon.Warning"))
-					: FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), FName("JsonAsAsset.Toolbar.Icon"));
+				return FSlateIcon(FJsonAsAssetStyle::Get().GetStyleSetName(), FName("JsonAsAsset.Toolbar.Icon"));
 			})
 		),
 		EUserInterfaceActionType::Button
@@ -884,7 +882,8 @@ void FJsonAsAssetModule::CheckForUpdates() {
             return;
         }
 
-    	const FString VersionName = JsonObject->GetStringField(TEXT("name"));
+    	FString VersionName = JsonObject->GetStringField(TEXT("name"));
+    	if (VersionName.IsEmpty()) VersionName = JsonObject->GetStringField(TEXT("tag_name"));
     	const FString CurrentVersionName = Plugin->GetDescriptor().VersionName;
 
     	const int LatestVersion = ConvertVersionStringToInt(VersionName);
