@@ -840,6 +840,10 @@ void FJsonAsAssetModule::SupportedAssetsDropdown(FMenuBuilder& InnerMenuBuilder,
 }
 
 void FJsonAsAssetModule::CheckForUpdates() {
+	if (IsRunningCommandlet() || IsRunningDedicatedServer()) {
+		return;
+	}
+	
 	Versioning.SetValid(false);
 
 	FHttpModule* HttpModule = &FHttpModule::Get();
@@ -849,49 +853,49 @@ void FJsonAsAssetModule::CheckForUpdates() {
 #else
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = HttpModule->CreateRequest();
 #endif
+
+	Request->SetURL(TEXT("https://api.github.com/repos/JsonAsAsset/JsonAsAsset/releases/latest"));
+	Request->SetVerb(TEXT("GET"));
+	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	Request->SetHeader(TEXT("User-Agent"), TEXT("JsonAsAsset"));
+
+	Request->OnProcessRequestComplete().BindLambda([this](FHttpRequestPtr Req, const FHttpResponsePtr& Resp, const bool bSuccess) {
+		/* Check if the request was successful and the response is valid */
+		if (!bSuccess || !Resp.IsValid()) {
+			UE_LOG(LogTemp, Warning, TEXT("HTTP request failed or no internet connection."));
+        		
+			return;
+		}
+
+		const FString ResponseString = Resp->GetContentAsString();
+
+		/* Deserialize the JSON response */
+		TSharedPtr<FJsonObject> JsonObject;
+		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(ResponseString);
+		if (!FJsonSerializer::Deserialize(Reader, JsonObject) || !JsonObject.IsValid()) {
+			return;
+		}
+
+		/* It must have the name property */
+		if (!JsonObject->HasField(TEXT("name"))) {
+			return;
+		}
+
+		const FString VersionName = JsonObject->GetStringField(TEXT("name"));
+		const FString CurrentVersionName = Plugin->GetDescriptor().VersionName;
+
+		const int LatestVersion = ConvertVersionStringToInt(VersionName);
+		const int CurrentVersion = ConvertVersionStringToInt(Plugin->GetDescriptor().VersionName);
+
+		Versioning = FJsonAsAssetVersioning(CurrentVersion, LatestVersion, JsonObject->GetStringField(TEXT("html_url")), VersionName, CurrentVersionName);
+		Versioning.SetValid(true);
+	});
 	
 #if ENGINE_UE5
 	const TSharedPtr<IHttpResponse> Response = FRemoteUtilities::ExecuteRequestSync(Request);
 #else
 	const TSharedPtr<IHttpResponse, ESPMode::ThreadSafe> Response = FRemoteUtilities::ExecuteRequestSync(Request);
 #endif
-	
-    Request->SetURL(TEXT("https://api.github.com/repos/JsonAsAsset/JsonAsAsset/releases/latest"));
-    Request->SetVerb(TEXT("GET"));
-    Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-
-    Request->OnProcessRequestComplete().BindLambda([this](FHttpRequestPtr Req, const FHttpResponsePtr& Resp, const bool bSuccess) {
-        /* Check if the request was successful and the response is valid */
-        if (!bSuccess || !Resp.IsValid()) {
-            UE_LOG(LogTemp, Warning, TEXT("HTTP request failed or no internet connection."));
-        	
-            return;
-        }
-
-        const FString ResponseString = Resp->GetContentAsString();
-
-        /* Deserialize the JSON response */
-        TSharedPtr<FJsonObject> JsonObject;
-        const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(ResponseString);
-        if (!FJsonSerializer::Deserialize(Reader, JsonObject) || !JsonObject.IsValid()) {
-            return;
-        }
-
-        /* It must have the name property */
-        if (!JsonObject->HasField(TEXT("name"))) {
-            return;
-        }
-
-    	FString VersionName = JsonObject->GetStringField(TEXT("name"));
-    	if (VersionName.IsEmpty()) VersionName = JsonObject->GetStringField(TEXT("tag_name"));
-    	const FString CurrentVersionName = Plugin->GetDescriptor().VersionName;
-
-    	const int LatestVersion = ConvertVersionStringToInt(VersionName);
-    	const int CurrentVersion = ConvertVersionStringToInt(Plugin->GetDescriptor().VersionName);
-
-    	Versioning = FJsonAsAssetVersioning(CurrentVersion, LatestVersion, JsonObject->GetStringField(TEXT("html_url")), VersionName, CurrentVersionName);
-    	Versioning.SetValid(true);
-    });
 
     Request->ProcessRequest();
 }
