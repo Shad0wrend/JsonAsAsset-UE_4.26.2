@@ -161,6 +161,8 @@ bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FSt
 		/* Convert from relative path to full path */
 		if (FPaths::IsRelative(File)) File = FPaths::ConvertRelativePathToFull(File);
 
+		RedirectPath(File);
+
 		UPackage* LocalOutermostPkg;
 		UPackage* LocalPackage = FAssetUtilities::CreateAssetPackage(Name, File, LocalOutermostPkg);
 
@@ -305,6 +307,8 @@ template <typename T>
 TObjectPtr<T> IImporter::DownloadWrapper(TObjectPtr<T> InObject, FString Type, const FString Name, const FString Path) {
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 
+	if (Type == "Texture") Type = "Texture2D";
+
 	FMessageLog MessageLogger = FMessageLog(FName("JsonAsAsset"));
 
 	if (Settings->bEnableLocalFetch && (
@@ -373,6 +377,8 @@ void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectP
 	ObjectPath = PackageIndex->Get()->GetStringField(TEXT("ObjectPath"));
 	ObjectPath.Split(".", &ObjectPath, nullptr);
 
+	RedirectPath(ObjectPath);
+
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 
 	if (!Settings->AssetSettings.GameName.IsEmpty()) {
@@ -430,6 +436,8 @@ TArray<TObjectPtr<T>> IImporter::LoadObject(const TArray<TSharedPtr<FJsonValue>>
 		
 		ObjectPtr->GetStringField(TEXT("ObjectName")).Split("'", &ObjectType, &ObjectName);
 		ObjectPtr->GetStringField(TEXT("ObjectPath")).Split(".", &ObjectPath, nullptr);
+		RedirectPath(ObjectPath);
+
 		ObjectName = ObjectName.Replace(TEXT("'"), TEXT(""));
 
 		TObjectPtr<T> LoadedObject = Cast<T>(StaticLoadObject(T::StaticClass(), nullptr, *(ObjectPath + "." + ObjectName)));

@@ -1001,3 +1001,11 @@ inline UClass* LoadClass(const TSharedPtr<FJsonObject>& SuperStruct) {
 
 	return nullptr;
 }
+
+inline void RedirectPath(FString& OutPath) {
+	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
+
+	for (FJPathRedirector Redirector : Settings->AssetSettings.PathRedirectors) {
+		OutPath = OutPath.Replace(*Redirector.Source, *Redirector.Target);
+	}
+}

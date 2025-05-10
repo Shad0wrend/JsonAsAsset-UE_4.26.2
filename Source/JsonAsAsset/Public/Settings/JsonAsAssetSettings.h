@@ -80,6 +80,18 @@ public:
 };
 
 USTRUCT()
+struct FJPathRedirector
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, Config, Category = "Path Redirector")
+	FString Source;
+
+	UPROPERTY(EditAnywhere, Config, Category = "Path Redirector")
+	FString Target;
+};
+
+USTRUCT()
 struct FAssetSettings
 {
 	GENERATED_BODY()
@@ -105,6 +117,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
 	FJAnimationBlueprintImportSettings AnimationBlueprintImportSettings;
+
+	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
+	TArray<FJPathRedirector> PathRedirectors;
 
 	UPROPERTY(EditAnywhere, Config, Category = AssetSettings, meta = (DisplayName = "Save Assets On Import"))
 	bool bSavePackagesOnImport;
