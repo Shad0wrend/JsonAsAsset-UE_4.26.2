@@ -3,7 +3,7 @@
 #include "Importers/Types/Tables/CurveTableImporter.h"
 #include "Dom/JsonObject.h"
 
-void CCurveTableDerived::ChangeTableMode(ECurveTableMode Mode) {
+void CCurveTableDerived::ChangeTableMode(const ECurveTableMode Mode) {
 	CurveTableMode = Mode;
 }
 
@@ -14,9 +14,7 @@ bool ICurveTableImporter::Import() {
 
 	/* Used to determine curve type */
 	ECurveTableMode CurveTableMode = ECurveTableMode::RichCurves; {
-		FString CurveMode;
-		
-		if (AssetData->TryGetStringField(TEXT("CurveTableMode"), CurveMode))
+		if (FString CurveMode; AssetData->TryGetStringField(TEXT("CurveTableMode"), CurveMode))
 			CurveTableMode = static_cast<ECurveTableMode>(StaticEnum<ECurveTableMode>()->GetValueByNameString(CurveMode));
 
 		DerivedCurveTable->ChangeTableMode(CurveTableMode);
@@ -34,31 +32,29 @@ bool ICurveTableImporter::Import() {
 				RealCurve = static_cast<FRealCurve>(NewRichCurve);
 			}
 
-			const TArray<TSharedPtr<FJsonValue>>* KeysPtr;
-			if (CurveData->TryGetArrayField(TEXT("Keys"), KeysPtr))
+			if (const TArray<TSharedPtr<FJsonValue>>* KeysPtr; CurveData->TryGetArrayField(TEXT("Keys"), KeysPtr))
 				for (const TSharedPtr<FJsonValue> KeyPtr : *KeysPtr) {
-					TSharedPtr<FJsonObject> Key = KeyPtr->AsObject(); {
-						NewRichCurve.AddKey(Key->GetNumberField(TEXT("Time")), Key->GetNumberField(TEXT("Value")));
-						FRichCurveKey RichKey = NewRichCurve.Keys.Last();
+					TSharedPtr<FJsonObject> Key = KeyPtr->AsObject();
+					NewRichCurve.AddKey(Key->GetNumberField(TEXT("Time")), Key->GetNumberField(TEXT("Value")));
+					FRichCurveKey RichKey = NewRichCurve.Keys.Last();
 
-						RichKey.InterpMode =
-							static_cast<ERichCurveInterpMode>(
-								StaticEnum<ERichCurveInterpMode>()->GetValueByNameString(Key->GetStringField(TEXT("InterpMode")))
-							);
-						RichKey.TangentMode =
-							static_cast<ERichCurveTangentMode>(
-								StaticEnum<ERichCurveTangentMode>()->GetValueByNameString(Key->GetStringField(TEXT("TangentMode")))
-							);
-						RichKey.TangentWeightMode =
-							static_cast<ERichCurveTangentWeightMode>(
-								StaticEnum<ERichCurveTangentWeightMode>()->GetValueByNameString(Key->GetStringField(TEXT("TangentWeightMode")))
-							);
+					RichKey.InterpMode =
+						static_cast<ERichCurveInterpMode>(
+							StaticEnum<ERichCurveInterpMode>()->GetValueByNameString(Key->GetStringField(TEXT("InterpMode")))
+						);
+					RichKey.TangentMode =
+						static_cast<ERichCurveTangentMode>(
+							StaticEnum<ERichCurveTangentMode>()->GetValueByNameString(Key->GetStringField(TEXT("TangentMode")))
+						);
+					RichKey.TangentWeightMode =
+						static_cast<ERichCurveTangentWeightMode>(
+							StaticEnum<ERichCurveTangentWeightMode>()->GetValueByNameString(Key->GetStringField(TEXT("TangentWeightMode")))
+						);
 
-						RichKey.ArriveTangent = Key->GetNumberField(TEXT("ArriveTangent"));
-						RichKey.ArriveTangentWeight = Key->GetNumberField(TEXT("ArriveTangentWeight"));
-						RichKey.LeaveTangent = Key->GetNumberField(TEXT("LeaveTangent"));
-						RichKey.LeaveTangentWeight = Key->GetNumberField(TEXT("LeaveTangentWeight"));
-					}
+					RichKey.ArriveTangent = Key->GetNumberField(TEXT("ArriveTangent"));
+					RichKey.ArriveTangentWeight = Key->GetNumberField(TEXT("ArriveTangentWeight"));
+					RichKey.LeaveTangent = Key->GetNumberField(TEXT("LeaveTangent"));
+					RichKey.LeaveTangentWeight = Key->GetNumberField(TEXT("LeaveTangentWeight"));
 				}
 		} else {
 			FSimpleCurve& NewSimpleCurve = CurveTable->AddSimpleCurve(FName(*Pair.Key)); {
@@ -71,13 +67,11 @@ bool ICurveTableImporter::Import() {
 					StaticEnum<ERichCurveInterpMode>()->GetValueByNameString(CurveData->GetStringField(TEXT("InterpMode")))
 				);
 
-			const TArray<TSharedPtr<FJsonValue>>* KeysPtr;
-			
-			if (CurveData->TryGetArrayField(TEXT("Keys"), KeysPtr)) {
+			if (const TArray<TSharedPtr<FJsonValue>>* KeysPtr; CurveData->TryGetArrayField(TEXT("Keys"), KeysPtr)) {
 				for (const TSharedPtr<FJsonValue> KeyPtr : *KeysPtr) {
-					TSharedPtr<FJsonObject> Key = KeyPtr->AsObject(); {
-						NewSimpleCurve.AddKey(Key->GetNumberField(TEXT("Time")), Key->GetNumberField(TEXT("Value")));
-					}
+					TSharedPtr<FJsonObject> Key = KeyPtr->AsObject();
+					
+					NewSimpleCurve.AddKey(Key->GetNumberField(TEXT("Time")), Key->GetNumberField(TEXT("Value")));
 				}
 			}
 		}

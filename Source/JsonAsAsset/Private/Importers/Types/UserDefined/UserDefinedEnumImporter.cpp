@@ -16,7 +16,7 @@ bool IUserDefinedEnumImporter::Import() {
 	UEnum::ECppForm CppForm = UEnum::ECppForm::Regular;
 
 	if (AssetData->HasField(TEXT("CppForm"))) {
-		FString CppForm_String = AssetData->GetStringField(TEXT("CppForm"));
+		const FString CppForm_String = AssetData->GetStringField(TEXT("CppForm"));
 
 		/*
 		 * Selector based on text
@@ -80,7 +80,6 @@ bool IUserDefinedEnumImporter::Import() {
 	}
 
 	/* Finalization ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	UserDefinedEnum->MarkPackageDirty();
 	UserDefinedEnum->Modify();
 	UserDefinedEnum->PostEditChange();
 

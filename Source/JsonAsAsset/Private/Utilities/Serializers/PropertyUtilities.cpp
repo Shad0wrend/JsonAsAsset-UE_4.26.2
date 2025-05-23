@@ -331,9 +331,13 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 	}
 	else if (const FNumericProperty* NumberProperty = CastField<const FNumericProperty>(Property)) {
 		const double NumberValue = NewJsonValue->AsNumber();
-		if (NumberProperty->IsFloatingPoint())
+		if (NumberProperty->IsFloatingPoint()) {
 			NumberProperty->SetFloatingPointPropertyValue(OutValue, NumberValue);
-		else NumberProperty->SetIntPropertyValue(OutValue, static_cast<int64>(NumberValue));
+		}
+		
+		else {
+			NumberProperty->SetIntPropertyValue(OutValue, static_cast<int64>(NumberValue));
+		}
 	}
 	else if (const FBoolProperty* BoolProperty = CastField<const FBoolProperty>(Property)) {
 		const bool bBooleanValue = NewJsonValue->AsBool();
@@ -412,7 +416,7 @@ bool UPropertySerializer::ShouldDeserializeProperty(FProperty* Property) const {
 		return false;
 	}
 	/* Skip blacklisted properties */
-	if (BlacklistedProperties.Contains(Property)) {
+	if (this != nullptr && this && BlacklistedProperties.IsValidIndex(0) && BlacklistedProperties.Contains(Property)) {
 		return false;
 	}
 	return true;

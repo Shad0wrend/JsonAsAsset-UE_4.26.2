@@ -146,6 +146,8 @@ void UObjectSerializer::DeserializeExport(FUObjectExport& Export, TMap<TSharedPt
 		TSharedPtr<FJsonObject> Properties = ExportObject->GetObjectField(TEXT("Properties"));
 
 		ExportsMap.Add(Properties, NewUObject);
+	} else {
+		ExportsMap.Add(ExportObject, NewUObject);
 	}
 
 	/* Add it to the referenced objects */

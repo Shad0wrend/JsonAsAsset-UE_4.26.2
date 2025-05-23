@@ -4,7 +4,7 @@
 #include "Animation/PoseAsset.h"
 
 bool IPoseAssetImporter::Import() {
-	UPoseAsset* PoseAsset = NewObject<UPoseAsset>(OutermostPkg, UPoseAsset::StaticClass(), *AssetName, RF_Standalone | RF_Public);
+	PoseAsset = NewObject<UPoseAsset>(OutermostPkg, UPoseAsset::StaticClass(), *AssetName, RF_Standalone | RF_Public);
 
 	/* Set Skeleton, so we can use it in the uncooking process */
 	GetObjectSerializer()->DeserializeObjectProperties(KeepPropertiesShared(AssetData,
@@ -22,7 +22,7 @@ bool IPoseAssetImporter::Import() {
 	if (UAnimSequence* OptionalAnimationSequence = GetSelectedAsset<UAnimSequence>(true)) {
 		PoseAsset->SourceAnimation = OptionalAnimationSequence;
 	}
-
+	
 	return OnAssetCreation(PoseAsset);
 }
 
@@ -109,6 +109,14 @@ void IPoseAssetImporter::ReverseCookLocalSpacePose(USkeleton* Skeleton) const {
 						FullTransform.SetTranslation(DefaultTransform.GetTranslation() + AdditiveTransform.GetTranslation());
 						FullTransform.SetScale3D(DefaultTransform.GetScale3D() + AdditiveTransform.GetScale3D());
 
+						if (const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>()) {
+							if (Settings->AssetSettings.PoseAssetImportSettings.bUseRawTransformData) {
+								FullTransform.SetRotation(AdditiveTransform.GetRotation());
+								FullTransform.SetTranslation(AdditiveTransform.GetTranslation());
+								FullTransform.SetScale3D(AdditiveTransform.GetScale3D());
+							}
+						}
+						
 						FullTransform.NormalizeRotation();
 					}
 
@@ -123,4 +131,87 @@ void IPoseAssetImporter::ReverseCookLocalSpacePose(USkeleton* Skeleton) const {
 		/* Update the Pose with SourceLocalSpacePose */
 		Pose->SetArrayField(TEXT("SourceLocalSpacePose"), SourceLocalSpacePose);
 	}
+
+	FString CleanName;
+
+	const FString PoseAssetPackagePath = OutermostPkg->GetName();
+	const FString ParentPath = FPackageName::GetLongPackagePath(PoseAssetPackagePath);
+
+	const FString PotentialAnimSequencePath = ParentPath / AssetName;
+	if (FPackageName::DoesPackageExist(PotentialAnimSequencePath)) {
+		CleanName = AssetName + "_Pose_Export";
+	} else if (AssetName.EndsWith(TEXT("_PoseAsset"))) {
+		CleanName.RemoveFromEnd(TEXT("_PoseAsset"));
+	}
+	
+	const FString AnimSequencePackagePath = ParentPath / CleanName;
+
+	UPackage* AnimPackage = CreatePackage(*AnimSequencePackagePath);
+
+	if (UAnimSequence* AnimSequence = CreateAnimSequenceFromPose(Skeleton, CleanName, PoseContainer, AnimPackage)) {
+		PoseAsset->SourceAnimation = AnimSequence;
+	}
+}
+
+UAnimSequence* IPoseAssetImporter::CreateAnimSequenceFromPose(USkeleton* Skeleton, const FString& SequenceName, const TSharedPtr<FJsonObject>& PoseContainer, UPackage* Outer) {
+	if (!Skeleton || !PoseContainer.IsValid()) {
+		return nullptr;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>> TracksJson = PoseContainer->GetArrayField(TEXT("Tracks"));
+	const TArray<TSharedPtr<FJsonValue>> PosesJson = PoseContainer->GetArrayField(TEXT("Poses"));
+	const int32 NumFrames = PosesJson.Num();
+	const int32 NumTracks = TracksJson.Num();
+
+	if (NumFrames == 0 || NumTracks == 0) {
+		return nullptr;
+	}
+
+	UAnimSequence* AnimSequence = NewObject<UAnimSequence>(Outer, FName(*SequenceName), RF_Public | RF_Standalone);
+	AnimSequence->SetSkeleton(Skeleton);
+
+	AnimSequence->SetRawNumberOfFrame(NumFrames);
+	AnimSequence->SequenceLength = (NumFrames > 1) ? static_cast<float>(NumFrames - 1) : 1.0f;
+
+	TMap<FName, FRawAnimSequenceTrack> TrackMap; {
+		for (int32 TrackIndex = 0; TrackIndex < NumTracks; ++TrackIndex) {
+			const FString TrackName = TracksJson[TrackIndex]->AsString();
+
+			if (const FName BoneName(*TrackName); Skeleton->GetReferenceSkeleton().FindBoneIndex(BoneName) != INDEX_NONE) {
+				TrackMap.Add(BoneName, FRawAnimSequenceTrack());
+			}
+		}
+	}
+
+	for (int32 FrameIndex = 0; FrameIndex < NumFrames; ++FrameIndex) {
+		const TSharedPtr<FJsonObject> Pose = PosesJson[FrameIndex]->AsObject();
+		if (!Pose.IsValid()) continue;
+
+		const TArray<TSharedPtr<FJsonValue>> SourceLocalSpacePose = Pose->GetArrayField(TEXT("SourceLocalSpacePose"));
+		
+		for (int32 TrackIndex = 0; TrackIndex < NumTracks; ++TrackIndex) {
+			const FString TrackName = TracksJson[TrackIndex]->AsString();
+			const FName BoneName(*TrackName);
+
+			if (!TrackMap.Contains(BoneName)) continue;
+
+			const TSharedPtr<FJsonObject> TransformJson = SourceLocalSpacePose[TrackIndex]->AsObject();
+			if (!TransformJson.IsValid()) continue;
+
+			const FTransform Transform = GetTransformFromJson(TransformJson);
+
+			auto& [PosKeys, RotKeys, ScaleKeys] = TrackMap[BoneName];
+			PosKeys.Add(Transform.GetTranslation());
+			RotKeys.Add(Transform.GetRotation());
+			ScaleKeys.Add(Transform.GetScale3D());
+		}
+	}
+
+	for (TPair<FName, FRawAnimSequenceTrack>& Pair : TrackMap) {
+		AnimSequence->AddNewRawTrack(Pair.Key, &Pair.Value);
+	}
+
+	AnimSequence->PostProcessSequence();
+	
+	return AnimSequence;
 }

@@ -79,6 +79,16 @@ public:
 	FString AudioFileExtension = "ogg";
 };
 
+/* Settings for pose assets */
+USTRUCT()
+struct FJPoseAssetImportSettings
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, Config, Category = "Pose Asset Import Settings", meta = (DisplayName = "Use Raw Transform Data (varies depending on Unreal Engine version)"))
+	bool bUseRawTransformData = false;
+};
+
 USTRUCT()
 struct FJPathRedirector
 {
@@ -104,6 +114,7 @@ public:
 		SoundImportSettings = FJSoundImportSettings();
 		TextureImportSettings = FJTextureImportSettings();
 		AnimationBlueprintImportSettings = FJAnimationBlueprintImportSettings();
+		PoseAssetImportSettings = FJPoseAssetImportSettings();
 	}
 
 	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
@@ -114,6 +125,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
 	FJSoundImportSettings SoundImportSettings;
+
+	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
+	FJPoseAssetImportSettings PoseAssetImportSettings;
 
 	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
 	FJAnimationBlueprintImportSettings AnimationBlueprintImportSettings;

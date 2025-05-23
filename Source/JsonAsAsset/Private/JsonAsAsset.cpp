@@ -38,6 +38,7 @@
 #include "Modules/Tools/ConvexCollision.h"
 
 /* ReSharper disable once CppUnusedIncludeDirective */
+#include "Modules/Tools/SkeletalMeshData.h"
 #include "Modules/UI/AboutJsonAsAsset.h"
 
 #include "Modules/UI/CommandsModule.h"
@@ -634,7 +635,7 @@ void FJsonAsAssetModule::CreateLocalFetchDropdown(FMenuBuilder MenuBuilder) cons
 
 						FUIAction(
 							FExecuteAction::CreateStatic(&FToolConvexCollision::Execute),
-							FCanExecuteAction::CreateLambda([this]() {
+							FCanExecuteAction::CreateLambda([this] {
 								return IsProcessRunning("LocalFetch.exe");
 							})
 						),
@@ -648,7 +649,21 @@ void FJsonAsAssetModule::CreateLocalFetchDropdown(FMenuBuilder MenuBuilder) cons
 
 						FUIAction(
 							FExecuteAction::CreateStatic(&FToolAnimationData::Execute),
-							FCanExecuteAction::CreateLambda([this]() {
+							FCanExecuteAction::CreateLambda([this] {
+								return IsProcessRunning("LocalFetch.exe");
+							})
+						),
+						NAME_None
+					);
+
+					InnerMenuBuilder.AddMenuEntry(
+						LOCTEXT("JsonAsAssetSkeletalMeshDataButton", "Import Skeletal Mesh Data from Local Fetch"),
+						LOCTEXT("JsonAsAssetSkeletalMeshDataButtonTooltip", "Imports skeletal mesh data using Local Fetch and applies it to the corresponding assets in the content browser folder."),
+						FSlateIcon(FAppStyle::GetAppStyleSetName(), "LevelEditor.BspMode"),
+
+						FUIAction(
+							FExecuteAction::CreateStatic(&FSkeletalMeshData::Execute),
+							FCanExecuteAction::CreateLambda([this] {
 								return IsProcessRunning("LocalFetch.exe");
 							})
 						),
@@ -662,7 +677,7 @@ void FJsonAsAssetModule::CreateLocalFetchDropdown(FMenuBuilder MenuBuilder) cons
 
 						FUIAction(
 							FExecuteAction::CreateStatic(&FToolClearImportData::Execute),
-							FCanExecuteAction::CreateLambda([this]() {
+							FCanExecuteAction::CreateLambda([this] {
 								return IsProcessRunning("LocalFetch.exe");
 							})
 						),

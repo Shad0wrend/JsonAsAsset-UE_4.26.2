@@ -4,7 +4,7 @@
 
 #include "Importers/Constructor/Graph/MaterialGraph.h"
 
-class IMaterialImporter : public IMaterialGraph {
+class IMaterialImporter final : public IMaterialGraph {
 public:
 	IMaterialImporter(const FString& AssetName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass):
 		IMaterialGraph(AssetName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass) {

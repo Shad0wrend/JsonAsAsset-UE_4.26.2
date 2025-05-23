@@ -76,12 +76,28 @@ bool IPhysicsAssetImporter::Import() {
 
 	/* If the user selected a skeletal mesh in the browser, set it in the physics asset */
 	const USkeletalMesh* SkeletalMesh = GetSelectedAsset<USkeletalMesh>(true);
+
+	if (!SkeletalMesh) {
+		FString CleanName = AssetName;
+		CleanName.RemoveFromEnd(TEXT("_PhysicsAsset"));
+		CleanName.RemoveFromEnd(TEXT("_Physics"));
+
+		const FString SearchPath = FPackageName::GetLongPackagePath(Package->GetName());
+		const FString Path1 = SearchPath / CleanName;
+		const FString Path2 = FString::Printf(TEXT("%s.%s"), *SearchPath, *CleanName);
+
+		SkeletalMesh = Cast<USkeletalMesh>(StaticLoadObject(USkeletalMesh::StaticClass(), nullptr, *Path1));
+		
+		if (!SkeletalMesh) {
+			SkeletalMesh = Cast<USkeletalMesh>(StaticLoadObject(USkeletalMesh::StaticClass(), nullptr, *Path2));
+		}
+	}
 	
 	if (SkeletalMesh) {
 		PhysicsAsset->PreviewSkeletalMesh = SkeletalMesh;
 		PhysicsAsset->PostEditChange();
 	}
-	
+
 	/* Finalize ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	PhysicsAsset->Modify();
 	PhysicsAsset->MarkPackageDirty();

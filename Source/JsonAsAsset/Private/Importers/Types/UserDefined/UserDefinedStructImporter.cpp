@@ -169,9 +169,7 @@ FEdGraphPinType IUserDefinedStructImporter::ResolvePropertyPinType(const TShared
     const FString Type = PropertyJsonObject->GetStringField(TEXT("Type"));
 
     /* Special handling for containers */
-    const EPinContainerType *ContainerType = ContainerTypeMap.Find(Type);
-    
-    if (ContainerType) {
+    if (const EPinContainerType* ContainerType = ContainerTypeMap.Find(Type)) {
         if (*ContainerType == EPinContainerType::Map) {
             TSharedPtr<FJsonObject> KeyPropObject = PropertyJsonObject->GetObjectField(TEXT("KeyProp"));
             
@@ -210,9 +208,8 @@ FEdGraphPinType IUserDefinedStructImporter::ResolvePropertyPinType(const TShared
     FEdGraphPinType ResolvedType = FEdGraphPinType(NAME_None, NAME_None, nullptr, EPinContainerType::None,false, FEdGraphTerminalType());
 
     /* Find main type from our PropertyCategoryMap */
-    const FName* TypeCategory = PropertyCategoryMap.Find(Type);
-    
-    if (TypeCategory) {
+
+    if (const FName* TypeCategory = PropertyCategoryMap.Find(Type)) {
         ResolvedType.PinCategory = *TypeCategory;
     } else {
         UE_LOG(LogJson, Warning, TEXT("Type '%s' not found in PropertyCategoryMap, defaulting to 'Byte'"), *Type);
