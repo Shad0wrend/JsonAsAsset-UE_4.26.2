@@ -84,9 +84,6 @@ USTRUCT()
 struct FJPoseAssetImportSettings
 {
 	GENERATED_BODY()
-public:
-	UPROPERTY(EditAnywhere, Config, Category = "Pose Asset Import Settings", meta = (DisplayName = "Use Raw Transform Data (varies depending on Unreal Engine version)"))
-	bool bUseRawTransformData = false;
 };
 
 USTRUCT()
@@ -126,7 +123,7 @@ public:
 	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
 	FJSoundImportSettings SoundImportSettings;
 
-	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
+	/* UPROPERTY(EditAnywhere, Config, Category = AssetSettings) */
 	FJPoseAssetImportSettings PoseAssetImportSettings;
 
 	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)

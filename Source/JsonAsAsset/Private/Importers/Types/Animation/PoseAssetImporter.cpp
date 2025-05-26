@@ -9,7 +9,8 @@ bool IPoseAssetImporter::Import() {
 	/* Set Skeleton, so we can use it in the uncooking process */
 	GetObjectSerializer()->DeserializeObjectProperties(KeepPropertiesShared(AssetData,
 	{
-		"Skeleton"
+		"Skeleton",
+		"bAdditivePose"
 	}), PoseAsset);
 
 	/* Reverse LocalSpacePose (cooked data) back to source data */
@@ -109,12 +110,10 @@ void IPoseAssetImporter::ReverseCookLocalSpacePose(USkeleton* Skeleton) const {
 						FullTransform.SetTranslation(DefaultTransform.GetTranslation() + AdditiveTransform.GetTranslation());
 						FullTransform.SetScale3D(DefaultTransform.GetScale3D() + AdditiveTransform.GetScale3D());
 
-						if (const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>()) {
-							if (Settings->AssetSettings.PoseAssetImportSettings.bUseRawTransformData) {
-								FullTransform.SetRotation(AdditiveTransform.GetRotation());
-								FullTransform.SetTranslation(AdditiveTransform.GetTranslation());
-								FullTransform.SetScale3D(AdditiveTransform.GetScale3D());
-							}
+						if (!PoseAsset->IsValidAdditive()) {
+							FullTransform.SetRotation(AdditiveTransform.GetRotation());
+							FullTransform.SetTranslation(AdditiveTransform.GetTranslation());
+							FullTransform.SetScale3D(AdditiveTransform.GetScale3D());
 						}
 						
 						FullTransform.NormalizeRotation();
@@ -132,16 +131,20 @@ void IPoseAssetImporter::ReverseCookLocalSpacePose(USkeleton* Skeleton) const {
 		Pose->SetArrayField(TEXT("SourceLocalSpacePose"), SourceLocalSpacePose);
 	}
 
-	FString CleanName;
+	FString CleanName = AssetName;
 
 	const FString PoseAssetPackagePath = OutermostPkg->GetName();
 	const FString ParentPath = FPackageName::GetLongPackagePath(PoseAssetPackagePath);
 
-	const FString PotentialAnimSequencePath = ParentPath / AssetName;
+	if (AssetName.EndsWith(TEXT("_PoseAsset"))) {
+		CleanName.RemoveFromEnd(TEXT("_PoseAsset"));
+	} else {
+		CleanName = AssetName + "_Pose_Export";
+	}
+
+	const FString PotentialAnimSequencePath = ParentPath / CleanName;
 	if (FPackageName::DoesPackageExist(PotentialAnimSequencePath)) {
 		CleanName = AssetName + "_Pose_Export";
-	} else if (AssetName.EndsWith(TEXT("_PoseAsset"))) {
-		CleanName.RemoveFromEnd(TEXT("_PoseAsset"));
 	}
 	
 	const FString AnimSequencePackagePath = ParentPath / CleanName;
