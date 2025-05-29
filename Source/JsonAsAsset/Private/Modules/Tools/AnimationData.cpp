@@ -7,7 +7,7 @@
 #include "Dom/JsonObject.h"
 #include "Animation/AnimSequence.h"
 
-#if ENGINE_MAJOR_VERSION == 5
+#if ENGINE_UE5
 #include "Animation/AnimData/IAnimationDataController.h"
 #if ENGINE_MINOR_VERSION >= 4
 #include "Animation/AnimData/IAnimationDataModel.h"
@@ -106,7 +106,7 @@ bool ReadAnimationData(const TSharedPtr<FJsonObject>& Properties, const TArray<T
 		ensureAlways(Skeleton->GetSmartNameByUID(USkeleton::AnimCurveMappingName, NewTrackName.UID, NewTrackName));
 #endif
 		
-#if ENGINE_MAJOR_VERSION == 5
+#if ENGINE_UE5
 #if ENGINE_MINOR_VERSION <= 3
 		FSmartName NewTrackName;
 

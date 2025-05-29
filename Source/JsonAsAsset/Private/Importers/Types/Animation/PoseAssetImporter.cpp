@@ -157,6 +157,7 @@ void IPoseAssetImporter::ReverseCookLocalSpacePose(USkeleton* Skeleton) const {
 }
 
 UAnimSequence* IPoseAssetImporter::CreateAnimSequenceFromPose(USkeleton* Skeleton, const FString& SequenceName, const TSharedPtr<FJsonObject>& PoseContainer, UPackage* Outer) {
+#if ENGINE_UE4
 	if (!Skeleton || !PoseContainer.IsValid()) {
 		return nullptr;
 	}
@@ -175,7 +176,7 @@ UAnimSequence* IPoseAssetImporter::CreateAnimSequenceFromPose(USkeleton* Skeleto
 
 	AnimSequence->SetRawNumberOfFrame(NumFrames);
 	AnimSequence->SequenceLength = (NumFrames > 1) ? static_cast<float>(NumFrames - 1) : 1.0f;
-
+	
 	TMap<FName, FRawAnimSequenceTrack> TrackMap; {
 		for (int32 TrackIndex = 0; TrackIndex < NumTracks; ++TrackIndex) {
 			const FString TrackName = TracksJson[TrackIndex]->AsString();
@@ -217,4 +218,7 @@ UAnimSequence* IPoseAssetImporter::CreateAnimSequenceFromPose(USkeleton* Skeleto
 	AnimSequence->PostProcessSequence();
 	
 	return AnimSequence;
+#else
+	return nullptr;
+#endif
 }

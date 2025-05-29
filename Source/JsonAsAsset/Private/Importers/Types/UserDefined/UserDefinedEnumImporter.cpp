@@ -43,7 +43,7 @@ bool IUserDefinedEnumImporter::Import() {
 
 		/* Update the enumeration with the enum names */
 		UserDefinedEnum->SetEnums(EnumNames, CppForm
-			#if ENGINE_UE5 || ((ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 26) && !(ENGINE_MINOR_VERSION == 26 && ENGINE_PATCH_VERSION == 0))
+			#if ENGINE_UE5 || ((ENGINE_UE4 && ENGINE_MINOR_VERSION >= 26) && !(ENGINE_MINOR_VERSION == 26 && ENGINE_PATCH_VERSION == 0))
 			, EEnumFlags::None, true
 			#endif
 		);

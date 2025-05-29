@@ -3,7 +3,7 @@
 #include "Importers/Types/Materials/MaterialImporter.h"
 
 /* Include Material.h (depends on UE Version) */
-#if (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 3) || ENGINE_UE4
+#if (ENGINE_UE5 && ENGINE_MINOR_VERSION < 3) || ENGINE_UE4
 #include "Materials/Material.h"
 #else
 #include "MaterialDomain.h"

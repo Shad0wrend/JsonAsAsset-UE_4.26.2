@@ -12,54 +12,6 @@
 #define JSONASASSET_EXPERIMENTAL 0
 #endif
 
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION == 26 && ENGINE_PATCH_VERSION == 0
-	#define UE4_26_0 1
-#else
-	#define UE4_26_0 0
-#endif
-
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION == 26
-	#define UE4_26 1
-#else
-	#define UE4_26 0
-#endif
-
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 27
-	#define UE4_27_BELOW 1
-#else
-	#define UE4_27_BELOW 0
-#endif
-
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 26
-	#define UE4_25_BELOW 1
-#else
-	#define UE4_25_BELOW 0
-#endif
-
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION < 27
-	#define UE4_27_ONLY_BELOW 1
-#else
-	#define UE4_27_ONLY_BELOW 0
-#endif
-
-#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION <= 26
-	#define UE4_26_BELOW 1
-#else
-	#define UE4_26_BELOW 0
-#endif
-
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 2
-	#define UE5_2_BEYOND 1
-#else
-	#define UE5_2_BEYOND 0
-#endif
-
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 2
-	#define UE5_1_BELOW 1
-#else
-	#define UE5_1_BELOW 0
-#endif
-
 #if ENGINE_MAJOR_VERSION == 5
 	#define ENGINE_UE5 1
 #else
@@ -72,11 +24,59 @@
 	#define ENGINE_UE4 0
 #endif
 
+#if ENGINE_UE4 && ENGINE_MINOR_VERSION == 26 && ENGINE_PATCH_VERSION == 0
+	#define UE4_26_0 1
+#else
+	#define UE4_26_0 0
+#endif
+
+#if ENGINE_UE4 && ENGINE_MINOR_VERSION == 26
+	#define UE4_26 1
+#else
+	#define UE4_26 0
+#endif
+
+#if ENGINE_UE4 && ENGINE_MINOR_VERSION <= 27
+	#define UE4_27_BELOW 1
+#else
+	#define UE4_27_BELOW 0
+#endif
+
+#if ENGINE_UE4 && ENGINE_MINOR_VERSION < 26
+	#define UE4_25_BELOW 1
+#else
+	#define UE4_25_BELOW 0
+#endif
+
+#if ENGINE_UE4 && ENGINE_MINOR_VERSION < 27
+	#define UE4_27_ONLY_BELOW 1
+#else
+	#define UE4_27_ONLY_BELOW 0
+#endif
+
+#if ENGINE_UE4 && ENGINE_MINOR_VERSION <= 26
+	#define UE4_26_BELOW 1
+#else
+	#define UE4_26_BELOW 0
+#endif
+
+#if ENGINE_UE5 && ENGINE_MINOR_VERSION >= 2
+	#define UE5_2_BEYOND 1
+#else
+	#define UE5_2_BEYOND 0
+#endif
+
+#if ENGINE_UE5 && ENGINE_MINOR_VERSION < 2
+	#define UE5_1_BELOW 1
+#else
+	#define UE5_1_BELOW 0
+#endif
+
 #if UE4_26_0
 #include "AssetRegistry/Public/AssetRegistryModule.h"
 #endif
 
-#if ENGINE_UE5 || ((ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 26) && !(ENGINE_MINOR_VERSION == 26 && ENGINE_PATCH_VERSION == 0))
+#if ENGINE_UE5 || ((ENGINE_UE4 && ENGINE_MINOR_VERSION >= 26) && !(ENGINE_MINOR_VERSION == 26 && ENGINE_PATCH_VERSION == 0))
 #include "AssetRegistry/AssetRegistryModule.h"
 #endif
 
@@ -141,3 +141,12 @@ public:
 	bool operator!=(std::nullptr_t) const { return Get() != nullptr; }
 };
 #endif
+
+template <typename T>
+bool IsObjectPtrValid(TObjectPtr<T> ObjectPtr) {
+#if ENGINE_UE5
+	return ObjectPtr.Get() != nullptr;
+#else
+	return LoadedObject.IsValid();
+#endif
+}

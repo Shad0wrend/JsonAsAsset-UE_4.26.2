@@ -47,7 +47,7 @@ bool ICurveLinearColorAtlasImporter::Import() {
 	}
 #endif
 
-#if ENGINE_MAJOR_VERSION == 5
+#if ENGINE_UE5
 	float TextureSize = 0.0f;
 	float TextureHeight = 0.0f;
 #else

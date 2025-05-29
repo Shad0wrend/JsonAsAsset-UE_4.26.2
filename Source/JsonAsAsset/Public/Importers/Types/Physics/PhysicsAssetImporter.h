@@ -7,7 +7,7 @@
 #include "PhysicsEngine/PhysicsAsset.h"
 
 /* SkeletalBodySetup is a separate file on UE5.5+ */
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 4
+#if ENGINE_UE5 && ENGINE_MINOR_VERSION > 4
 #include "PhysicsEngine/SkeletalBodySetup.h"
 #endif
 

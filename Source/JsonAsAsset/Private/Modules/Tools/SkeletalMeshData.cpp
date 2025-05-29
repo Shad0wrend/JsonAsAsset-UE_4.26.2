@@ -10,9 +10,14 @@
 #include "Dom/JsonObject.h"
 #include "Animation/AnimSequence.h"
 #include "ClothingSystemRuntimeCommon/Public/ClothingAsset.h"
+
+#if ENGINE_UE5
+#include "Engine/SkinnedAssetCommon.h"
+#endif
+
 #include "Importers/Constructor/Importer.h"
 
-#if ENGINE_MAJOR_VERSION == 5
+#if ENGINE_UE5
 #include "Animation/AnimData/IAnimationDataController.h"
 #if ENGINE_MINOR_VERSION >= 4
 #include "Animation/AnimData/IAnimationDataModel.h"
@@ -113,7 +118,7 @@ void FSkeletalMeshData::Execute() {
 						TObjectPtr<UObject> LoadedObject;
 						Importer->LoadObject<UObject>(&SkeletalMaterial, LoadedObject);
 
-						if (LoadedObject.IsValid()) MaterialSlot.MaterialInterface = Cast<UMaterialInterface>(LoadedObject.Get());
+						if (IsObjectPtrValid(LoadedObject)) MaterialSlot.MaterialInterface = Cast<UMaterialInterface>(LoadedObject.Get());
 					} else break;
 
 					SkeletalMaterialIndex++;
