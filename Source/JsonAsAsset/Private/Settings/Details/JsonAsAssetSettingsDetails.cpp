@@ -27,8 +27,6 @@ TSharedRef<IDetailCustomization> FJsonAsAssetSettingsDetails::MakeInstance() {
 
 void FJsonAsAssetSettingsDetails::InitializeAESKeys(UJsonAsAssetSettings* PluginSettings) {
 	const TSharedPtr<FJsonObject> AES = RequestObjectURL("https://fortnitecentral.genxgames.gg/api/v1/aes");
-
-	if (!AES.IsValid()) return;
 	
 	PluginSettings->DynamicKeys.Empty();
 	PluginSettings->ArchiveKey = AES->GetStringField(TEXT("mainKey"));

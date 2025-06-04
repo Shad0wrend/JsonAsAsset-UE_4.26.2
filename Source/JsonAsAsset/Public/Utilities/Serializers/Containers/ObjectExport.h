@@ -54,15 +54,14 @@ struct FUObjectExportContainer {
 	
 	FUObjectExportContainer() {};
 
-	FUObjectExport& Find(const FName Name) {
-		for (FUObjectExport& Export : Exports) {
+	FUObjectExport Find(const FName Name) {
+		for (FUObjectExport Export : Exports) {
 			if (Export.Name == Name) {
 				return Export;
 			}
 		}
 
-		static FUObjectExport Dummy;
-		return Dummy;
+		return FUObjectExport();
 	}
 
 	template<typename T>
@@ -106,40 +105,12 @@ struct FUObjectExportContainer {
 		return nullptr;
 	}
 
-	FUObjectExport& Find(const FString& Name) {
+	FUObjectExport Find(const FString& Name) {
 		return Find(FName(*Name));
 	}
 
 	FUObjectExport Find(const FString& Name, const FString& Outer) {
 		return Find(FName(*Name), FName(*Outer));
-	}
-
-	FUObjectExport FindByType(const FName Type) {
-		for (FUObjectExport Export : Exports) {
-			if (Export.Type == Type) {
-				return Export;
-			}
-		}
-
-		return FUObjectExport();
-	}
-
-	FUObjectExport FindByType(const FString& Type) {
-		return Find(FName(*Type));
-	}
-
-	FUObjectExport FindByType(const FName Type, const FName Outer) {
-		for (FUObjectExport Export : Exports) {
-			if (Export.Type == Type && Export.Outer == Outer) {
-				return Export;
-			}
-		}
-
-		return FUObjectExport();
-	}
-
-	FUObjectExport FindByType(const FString& Type, const FString& Outer) {
-		return FindByType(FName(*Type), FName(*Outer));
 	}
 	
 	bool Contains(const FName Name) {

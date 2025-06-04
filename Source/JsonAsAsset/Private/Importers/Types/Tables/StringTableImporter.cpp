@@ -7,7 +7,7 @@
 
 bool IStringTableImporter::Import() {
 	/* Create StringTable from Package */
-	UStringTable* StringTable = NewObject<UStringTable>(Package, UStringTable::StaticClass(), *AssetName, RF_Public | RF_Standalone);
+	UStringTable* StringTable = NewObject<UStringTable>(Package, UStringTable::StaticClass(), *FileName, RF_Public | RF_Standalone);
 
 	if (AssetData->HasField(TEXT("StringTable"))) {
 		const TSharedPtr<FJsonObject> StringTableData = AssetData->GetObjectField(TEXT("StringTable"));

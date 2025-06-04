@@ -249,22 +249,6 @@ inline TSharedPtr<FJsonObject> GetExport(const FString& Type, TArray<TSharedPtr<
 	return nullptr;
 }
 
-inline TSharedPtr<FJsonObject> GetExportByName(const FString& Name, TArray<TSharedPtr<FJsonValue>> AllJsonObjects, const bool bGetProperties = false) {
-	for (const TSharedPtr<FJsonValue> Value : AllJsonObjects) {
-		const TSharedPtr<FJsonObject> ValueObject = Value->AsObject();
-
-		if (ValueObject->GetStringField(TEXT("Name")) == Name) {
-			if (bGetProperties) {
-				return ValueObject->GetObjectField(TEXT("Properties"));
-			}
-			
-			return ValueObject;
-		}
-	}
-	
-	return nullptr;
-}
-
 inline TSharedPtr<FJsonObject> GetExport(const FJsonObject* PackageIndex, TArray<TSharedPtr<FJsonValue>> AllJsonObjects) {
 	FString ObjectName = PackageIndex->GetStringField(TEXT("ObjectName")); /* Class'Asset:ExportName' */
 	FString ObjectPath = PackageIndex->GetStringField(TEXT("ObjectPath")); /* Path/Asset.Index */
@@ -578,6 +562,7 @@ inline FString ReadPathFromObject(const TSharedPtr<FJsonObject>* PackageIndex) {
 
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 
+	/* Rare case of needing a GameName */
 	if (!Settings->AssetSettings.GameName.IsEmpty()) {
 		ObjectPath = ObjectPath.Replace(*(Settings->AssetSettings.GameName + "/Content"), TEXT("/Game"));
 	}
@@ -946,66 +931,3 @@ inline TArray<TSharedPtr<FJsonValue>> RequestArrayURL(const FString& URL) {
 	if (!DeserializeArrayJSON(Response->GetContentAsString(), DeserializedJSON)) return TArray<TSharedPtr<FJsonValue>>();
 	return DeserializedJSON;
 };
-
-inline TSubclassOf<UObject> LoadClassFromPath(const FString& ObjectName, const FString& ObjectPath) {
-	const FString FullPath = ObjectPath + TEXT(".") + ObjectName;
-	UObject* LoadedObject = StaticLoadObject(UObject::StaticClass(), nullptr, *FullPath);
-
-	if (LoadedObject) {
-		UClass* LoadedClass = Cast<UClass>(LoadedObject);
-		if (LoadedClass) {
-			return LoadedClass;
-		}
-	}
-
-	return nullptr;
-}
-
-inline TSubclassOf<UObject> LoadBlueprintClass(FString& ObjectPath) {
-	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
-	
-	if (!Settings->AssetSettings.GameName.IsEmpty()) {
-		ObjectPath = ObjectPath.Replace(*(Settings->AssetSettings.GameName + "/Content"), TEXT("/Game"));
-	}
-	
-	FString FullPath = ObjectPath; 
-	if (FullPath.EndsWith(TEXT(".1"))) {
-		FullPath = FullPath.LeftChop(2);
-	}
-
-	UObject* LoadedObject = StaticLoadObject(UObject::StaticClass(), nullptr, *FullPath);
-
-	if (LoadedObject) {
-		const UBlueprint* LoadedBlueprint = Cast<UBlueprint>(LoadedObject);
-		
-		if (LoadedBlueprint && LoadedBlueprint->GeneratedClass) {
-			return LoadedBlueprint->GeneratedClass;
-		}
-	}
-
-	return nullptr;
-}
-
-inline UClass* LoadClass(const TSharedPtr<FJsonObject>& SuperStruct) {
-	const FString ObjectName = SuperStruct->GetStringField("ObjectName").Replace(TEXT("Class'"), TEXT("")).Replace(TEXT("'"), TEXT(""));
-	FString ObjectPath = SuperStruct->GetStringField("ObjectPath");
-
-	/* It's a C++ class if it has Script in it */
-	if (ObjectPath.Contains("/Script/")) {
-		return LoadClassFromPath(ObjectName, ObjectPath);
-	} else {
-		ObjectPath.Split(".", &ObjectPath, nullptr);
-
-		return LoadBlueprintClass(ObjectPath);
-	}
-
-	return nullptr;
-}
-
-inline void RedirectPath(FString& OutPath) {
-	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
-
-	for (FJPathRedirector Redirector : Settings->AssetSettings.PathRedirectors) {
-		OutPath = OutPath.Replace(*Redirector.Source, *Redirector.Target);
-	}
-}

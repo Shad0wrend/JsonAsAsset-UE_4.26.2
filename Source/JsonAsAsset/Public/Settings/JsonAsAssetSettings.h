@@ -79,25 +79,6 @@ public:
 	FString AudioFileExtension = "ogg";
 };
 
-/* Settings for pose assets */
-USTRUCT()
-struct FJPoseAssetImportSettings
-{
-	GENERATED_BODY()
-};
-
-USTRUCT()
-struct FJPathRedirector
-{
-	GENERATED_BODY()
-public:
-	UPROPERTY(EditAnywhere, Config, Category = "Path Redirector")
-	FString Source;
-
-	UPROPERTY(EditAnywhere, Config, Category = "Path Redirector")
-	FString Target;
-};
-
 USTRUCT()
 struct FAssetSettings
 {
@@ -111,7 +92,6 @@ public:
 		SoundImportSettings = FJSoundImportSettings();
 		TextureImportSettings = FJTextureImportSettings();
 		AnimationBlueprintImportSettings = FJAnimationBlueprintImportSettings();
-		PoseAssetImportSettings = FJPoseAssetImportSettings();
 	}
 
 	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
@@ -123,14 +103,8 @@ public:
 	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
 	FJSoundImportSettings SoundImportSettings;
 
-	/* UPROPERTY(EditAnywhere, Config, Category = AssetSettings) */
-	FJPoseAssetImportSettings PoseAssetImportSettings;
-
 	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
 	FJAnimationBlueprintImportSettings AnimationBlueprintImportSettings;
-
-	UPROPERTY(EditAnywhere, Config, Category = AssetSettings)
-	TArray<FJPathRedirector> PathRedirectors;
 
 	UPROPERTY(EditAnywhere, Config, Category = AssetSettings, meta = (DisplayName = "Save Assets On Import"))
 	bool bSavePackagesOnImport;

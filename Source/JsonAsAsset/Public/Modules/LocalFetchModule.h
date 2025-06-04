@@ -118,8 +118,7 @@ enum ECUE4ParseVersion
 	GAME_UE5_4,
 	GAME_UE5_5,
 	GAME_UE5_6,
-	GAME_UE5_7,
 
 	/* Change this always to the last available enum above */
-	GAME_UE5_LATEST = GAME_UE5_7
+	GAME_UE5_LATEST = GAME_UE5_6
 };

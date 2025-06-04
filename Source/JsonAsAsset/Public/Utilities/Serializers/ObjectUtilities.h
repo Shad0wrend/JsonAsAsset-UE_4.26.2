@@ -4,7 +4,6 @@
 
 #include "UObject/Object.h"
 #include "Json.h"
-#include "Containers/ObjectExport.h"
 #include "ObjectUtilities.generated.h"
 
 class UPropertySerializer;
@@ -22,15 +21,11 @@ public:
 
     void DeserializeObjectProperties(const TSharedPtr<FJsonObject>& Properties, UObject* Object) const;
 
-    void SetExportForDeserialization(const TSharedPtr<FJsonObject>& JsonObject, UObject* Object);
+    void SetExportForDeserialization(const TSharedPtr<FJsonObject>& Object);
     void DeserializeExports(TArray<TSharedPtr<FJsonValue>> InExports);
-    void DeserializeExport(FUObjectExport& Export, TMap<TSharedPtr<FJsonObject>, UObject*>& ExportsMap);
 
     UPROPERTY()
     UObject* ParentAsset;
-
-    UPROPERTY()
-    TMap<FString, UObject*> ConstructedObjects;
     
     UPROPERTY()
     UPropertySerializer* PropertySerializer;
@@ -39,6 +34,4 @@ public:
 
     UPROPERTY()
     TArray<FString> ExportsToNotDeserialize;
-
-    TArray<FString> PathsToNotDeserialize;
 };

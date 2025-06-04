@@ -3,7 +3,7 @@
 #include "Importers/Types/Materials/MaterialImporter.h"
 
 /* Include Material.h (depends on UE Version) */
-#if (ENGINE_UE5 && ENGINE_MINOR_VERSION < 3) || ENGINE_UE4
+#if (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 3) || ENGINE_UE4
 #include "Materials/Material.h"
 #else
 #include "MaterialDomain.h"
@@ -15,7 +15,7 @@
 bool IMaterialImporter::Import() {
 	/* Create Material Factory (factory automatically creates the Material) */
 	UMaterialFactoryNew* MaterialFactory = NewObject<UMaterialFactoryNew>();
-	UMaterial* Material = Cast<UMaterial>(MaterialFactory->FactoryCreateNew(UMaterial::StaticClass(), OutermostPkg, *AssetName, RF_Standalone | RF_Public, nullptr, GWarn));
+	UMaterial* Material = Cast<UMaterial>(MaterialFactory->FactoryCreateNew(UMaterial::StaticClass(), OutermostPkg, *FileName, RF_Standalone | RF_Public, nullptr, GWarn));
 
 	/* Clear any default expressions the engine adds */
 #if ENGINE_UE5
