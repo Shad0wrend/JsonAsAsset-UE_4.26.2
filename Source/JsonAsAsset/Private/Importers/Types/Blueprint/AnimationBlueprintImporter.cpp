@@ -11,11 +11,9 @@
 #include "AnimGraphNode_UseCachedPose.h"
 #include "Animation/AnimBlueprint.h"
 #include "Kismet2/BlueprintEditorUtils.h"
-
 #include "Importers/Types/Blueprint/Utilities/AnimationBlueprintUtilities.h"
 #include "Importers/Types/Blueprint/Utilities/AnimNodeLayoutUtillties.h"
 #include "Importers/Types/Blueprint/Utilities/StateMachineUtilities.h"
-#include "Kismet2/KismetEditorUtilities.h"
 
 #if ENGINE_UE5
 #include "UObject/UnrealTypePrivate.h"
@@ -29,14 +27,7 @@ bool IAnimationBlueprintImporter::Import() {
 		GShowAnimationBlueprintImporterWarning = false;
 	}
 	
-	AnimBlueprint = GetSelectedAsset<UAnimBlueprint>(true);
-	if (!AnimBlueprint) {
-		const TSharedPtr<FJsonObject> SuperStruct = AssetData->GetObjectField("SuperStruct");
-		UClass* ParentClass = LoadClass(SuperStruct);
-
-		AnimBlueprint = CreateAnimBlueprint(ParentClass);
-	}
-
+	AnimBlueprint = GetSelectedAsset<UAnimBlueprint>();
 	if (!AnimBlueprint) return false;
 
 	const TSharedPtr<FJsonObject> RootAnimNodeDefaults = GetExportStartingWith("Default__", "Name", AllJsonObjects);
@@ -45,21 +36,11 @@ bool IAnimationBlueprintImporter::Import() {
 	RootAnimNodeProperties = RootAnimNodeDefaults->GetObjectField(TEXT("Properties"));
 	if (!RootAnimNodeProperties.IsValid()) return false;
 
-	const UBlueprintGeneratedClass* GeneratedClass = Cast<UBlueprintGeneratedClass>(AnimBlueprint->GeneratedClass);
+	UBlueprintGeneratedClass* GeneratedClass = Cast<UBlueprintGeneratedClass>(AnimBlueprint->GeneratedClass);
 	GObjectSerializer->Exports = AllJsonObjects;
 	GObjectSerializer->DeserializeObjectProperties(RemovePropertiesShared(RootAnimNodeProperties, {
 		"RootComponent"
 	}), GeneratedClass->GetDefaultObject());
-
-	GObjectSerializer->DeserializeObjectProperties(RemovePropertiesShared(AssetData, {
-		"FuncMap",
-		"bCooked",
-		"Children",
-		"RootAnimNodeIndex",
-		"UberGraphFunction",
-		"UberGraphFramePointerProperty",
-		"SuperStruct"
-	}), AnimBlueprint);
 
 	/* Newer Unreal Engine versions use CopyRecords and SerializedSparseClassData */
 	if (RootAnimNodeDefaults->HasField(TEXT("SerializedSparseClassData"))) {
@@ -137,35 +118,8 @@ bool IAnimationBlueprintImporter::Import() {
 	}
 
 	CreateGraph(RootGraphAnimProperties, AnimGraph, RootAnimNodeContainer);
-
-	FKismetEditorUtilities::CompileBlueprint(
-		AnimBlueprint,
-		EBlueprintCompileOptions::None
-	);
 	
-	return OnAssetCreation(AnimBlueprint);
-}
-
-UAnimBlueprint* IAnimationBlueprintImporter::CreateAnimBlueprint(UClass* ParentClass) const {
-	EBlueprintType BlueprintType = BPTYPE_Normal;
-
-	if (ParentClass->HasAnyClassFlags(CLASS_Const)) {
-		BlueprintType = BPTYPE_Const;
-	}
-	if (ParentClass == UBlueprintFunctionLibrary::StaticClass()) {
-		BlueprintType = BPTYPE_FunctionLibrary;
-	}
-	if (ParentClass == UInterface::StaticClass()) {
-		BlueprintType = BPTYPE_Interface;
-	}
-
-	UBlueprint* Blueprint = FKismetEditorUtilities::CreateBlueprint(ParentClass, Package, FName(*AssetName), BlueprintType, UAnimBlueprint::StaticClass(), UAnimBlueprintGeneratedClass::StaticClass());
-
-	if (Blueprint != nullptr) {
-		return Cast<UAnimBlueprint>(Blueprint);
-	}
-	
-	return nullptr;
+	return true;
 }
 
 void IAnimationBlueprintImporter::CreateGraph(const TSharedPtr<FJsonObject>& AnimNodeProperties, UEdGraph* AnimGraph, FUObjectExportContainer& Container) {
@@ -475,7 +429,7 @@ void IAnimationBlueprintImporter::HandleNodeDeserialization(FUObjectExportContai
 		TSharedPtr<FJsonObject> NodeProperties = NodeExport.JsonObject;
 
 		/* Post-processing modifications ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-		if (NodeProperties->HasField(TEXT("GroupRole")) && NodeProperties->HasField(TEXT("GroupIndex"))) {
+		if (NodeProperties->HasField(TEXT("GroupRole"))) {
 			const int GroupIndexInteger = NodeProperties->GetIntegerField(TEXT("GroupIndex"));
 
 			/* -1 is no group role */
@@ -487,16 +441,6 @@ void IAnimationBlueprintImporter::HandleNodeDeserialization(FUObjectExportContai
 				SyncGroup->SetStringField(TEXT("GroupRole"), NodeProperties->GetStringField(TEXT("GroupRole")));
 
 				NodeProperties->SetObjectField(TEXT("SyncGroup"), SyncGroup);
-			}
-		}
-
-		/* UE5+ games use PhysicsBodyDefinitions for AnimGraphNode_AnimDynamics */
-		if (NodeProperties->HasField(TEXT("PhysicsBodyDefinitions"))) {
-			TSharedPtr<FJsonObject> PhysicsBodyDefinition = NodeProperties->GetArrayField("PhysicsBodyDefinitions")[0]->AsObject();
-			if (PhysicsBodyDefinition.IsValid()) {
-				for (const auto& Pair : PhysicsBodyDefinition->Values) {
-					NodeExport.JsonObject->SetField(Pair.Key, Pair.Value);
-				}
 			}
 		}
 		

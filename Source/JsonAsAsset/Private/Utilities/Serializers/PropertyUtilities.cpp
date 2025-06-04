@@ -138,110 +138,80 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 			ObjectProperty->SetObjectPropertyValue(OutValue, nullptr);
 		}
 
-		if (NewJsonValue->Type == EJson::Object) {
-			auto JsonValueAsObject = NewJsonValue->AsObject();
-			bool bUseDefaultLoadObject = !JsonValueAsObject->GetStringField(TEXT("ObjectName")).Contains(":ParticleModule");
+		auto JsonValueAsObject = NewJsonValue->AsObject();
+		bool bUseDefaultLoadObject = !JsonValueAsObject->GetStringField(TEXT("ObjectName")).Contains(":ParticleModule");
 
-			if (bUseDefaultLoadObject) {
-				/* Use IImporter to import the object */
-				IImporter* Importer = new IImporter();
+		if (bUseDefaultLoadObject) {
+			/* Use IImporter to import the object */
+			IImporter* Importer = new IImporter();
 
-				Importer->ParentObject = ObjectSerializer->ParentAsset;
-				Importer->LoadObject(&JsonValueAsObject, Object);
+			Importer->ParentObject = ObjectSerializer->ParentAsset;
+			Importer->LoadObject(&JsonValueAsObject, Object);
 
-				if (Object == nullptr) {
-					if (ObjectProperty && ObjectProperty->PropertyClass) {
-						UStruct* Struct = ObjectProperty->PropertyClass;
+			if (Object == nullptr) {
+				if (ObjectProperty && ObjectProperty->PropertyClass) {
+					UStruct* Struct = ObjectProperty->PropertyClass;
 
-						FFailedPropertyInfo PropertyInfo;
-						PropertyInfo.ClassName = ObjectProperty->PropertyClass->GetName();
-						PropertyInfo.SuperStructName = Struct->GetSuperStruct() ? Struct->GetSuperStruct()->GetName() : TEXT("None");
-						PropertyInfo.ObjectPath = JsonValueAsObject->GetStringField(TEXT("ObjectPath"));
+					FFailedPropertyInfo PropertyInfo;
+					PropertyInfo.ClassName = ObjectProperty->PropertyClass->GetName();
+					PropertyInfo.SuperStructName = Struct->GetSuperStruct() ? Struct->GetSuperStruct()->GetName() : TEXT("None");
+					PropertyInfo.ObjectPath = JsonValueAsObject->GetStringField(TEXT("ObjectPath"));
+					
+					if (!FailedProperties.Contains(PropertyInfo)) {
+						FailedProperties.Add(PropertyInfo);
+					}
+				}
+			}
+
+			if (Object != nullptr && !Cast<UActorComponent>(Object.Get())) {
+				ObjectProperty->SetObjectPropertyValue(OutValue, Object);
+			}
+
+			if (Object != nullptr) {
+				/* Get the export */
+				if (TSharedPtr<FJsonObject> Export = GetExport(JsonValueAsObject.Get(), ObjectSerializer->Exports)) {
+					if (Export->HasField(TEXT("Properties"))) {
+						TSharedPtr<FJsonObject> Properties = Export->GetObjectField(TEXT("Properties"));
+
+						if (Export->HasField(TEXT("LODData"))) {
+							Properties->SetArrayField(TEXT("LODData"), Export->GetArrayField(TEXT("LODData")));
+						}
 						
-						if (!FailedProperties.Contains(PropertyInfo)) {
-							FailedProperties.Add(PropertyInfo);
-						}
-					}
-				}
-
-				if (Object != nullptr && !Cast<UActorComponent>(Object.Get())) {
-					ObjectProperty->SetObjectPropertyValue(OutValue, Object);
-				}
-
-				if (Object != nullptr) {
-					/* Get the export */
-					if (TSharedPtr<FJsonObject> Export = GetExport(JsonValueAsObject.Get(), ObjectSerializer->Exports)) {
-						if (Export->HasField(TEXT("Properties"))) {
-							TSharedPtr<FJsonObject> Properties = Export->GetObjectField(TEXT("Properties"));
-
-							if (Export->HasField(TEXT("LODData"))) {
-								Properties->SetArrayField(TEXT("LODData"), Export->GetArrayField(TEXT("LODData")));
-							}
-							
-							ObjectSerializer->DeserializeObjectProperties(Properties, Object);
-						}
+						ObjectSerializer->DeserializeObjectProperties(Properties, Object);
 					}
 				}
 			}
+		}
 
-			FString ObjectName = JsonValueAsObject->GetStringField(TEXT("ObjectName"));
-			FString ObjectPath = JsonValueAsObject->GetStringField(TEXT("ObjectPath"));
-			FString ObjectOuter;
+		FString ObjectName = JsonValueAsObject->GetStringField(TEXT("ObjectName"));
+		FString ObjectPath = JsonValueAsObject->GetStringField(TEXT("ObjectPath"));
 
-			if (ObjectName.Contains(".")) {
-				ObjectName.Split(".", &ObjectOuter, &ObjectName);
-				ObjectName.Split("'", &ObjectName, nullptr);
+		if (ObjectName.Contains(".")) {
+			ObjectName.Split(".", nullptr, &ObjectName);
+			ObjectName.Split("'", &ObjectName, nullptr);
+		}
+
+		if (ObjectName.Contains(":")) {
+			ObjectName.Split(":", nullptr, &ObjectName);
+			ObjectName.Split("'", &ObjectName, nullptr);
+		}
+
+		if (FUObjectExport Export = ExportsContainer.Find(ObjectName); Export.Object != nullptr) {
+			UObject* FoundObject = Export.Object;
+
+			if (FoundObject) {
+				ObjectProperty->SetObjectPropertyValue(OutValue, FoundObject);
 			}
+		}
 
-			if (ObjectName.Contains(":")) {
-				ObjectName.Split(":", nullptr, &ObjectName);
-				ObjectName.Split("'", &ObjectName, nullptr);
-			}
+		if (UObject* Parent = ObjectSerializer->ParentAsset) {
+			FString Name = Parent->GetName();
 
-			if (FUObjectExport Export = ExportsContainer.Find(ObjectName); Export.Object != nullptr) {
+			if (FUObjectExport Export = ExportsContainer.Find(ObjectName, Name); Export.Object != nullptr) {
 				UObject* FoundObject = Export.Object;
 
 				if (FoundObject) {
 					ObjectProperty->SetObjectPropertyValue(OutValue, FoundObject);
-				}
-			}
-
-			if (ObjectName.Contains(".")) {
-				TArray<FString> Parts;
-				ObjectName.ParseIntoArray(Parts, TEXT("."), true);
-
-				FString Penultimate = Parts.Num() > 1 ? Parts[Parts.Num() - 2] : TEXT("");
-				FString LastSegment = Parts.Num() > 0 ? Parts.Last() : TEXT("");
-
-				ObjectName = LastSegment;
-				ObjectOuter = Penultimate;
-			}
-
-			if (!ObjectOuter.IsEmpty()) {
-				if (ObjectOuter.Contains(":")) {
-					ObjectOuter.Split(":", nullptr, &ObjectOuter);
-				}
-				
-				if (FUObjectExport Export = ExportsContainer.Find(ObjectName, ObjectOuter); Export.Object != nullptr) {
-					UObject* FoundObject = Export.Object;
-
-					if (FoundObject) {
-						ObjectProperty->SetObjectPropertyValue(OutValue, FoundObject);
-					}
-				}
-			}
-
-			if (bFallbackToParentTrace) {
-				if (UObject* Parent = ObjectSerializer->ParentAsset) {
-					FString Name = Parent->GetName();
-
-					if (FUObjectExport Export = ExportsContainer.Find(ObjectName, Name); Export.Object != nullptr) {
-						UObject* FoundObject = Export.Object;
-
-						if (FoundObject) {
-							ObjectProperty->SetObjectPropertyValue(OutValue, FoundObject);
-						}
-					}
 				}
 			}
 		}
@@ -331,13 +301,9 @@ void UPropertySerializer::DeserializePropertyValue(FProperty* Property, const TS
 	}
 	else if (const FNumericProperty* NumberProperty = CastField<const FNumericProperty>(Property)) {
 		const double NumberValue = NewJsonValue->AsNumber();
-		if (NumberProperty->IsFloatingPoint()) {
+		if (NumberProperty->IsFloatingPoint())
 			NumberProperty->SetFloatingPointPropertyValue(OutValue, NumberValue);
-		}
-		
-		else {
-			NumberProperty->SetIntPropertyValue(OutValue, static_cast<int64>(NumberValue));
-		}
+		else NumberProperty->SetIntPropertyValue(OutValue, static_cast<int64>(NumberValue));
 	}
 	else if (const FBoolProperty* BoolProperty = CastField<const FBoolProperty>(Property)) {
 		const bool bBooleanValue = NewJsonValue->AsBool();
@@ -416,7 +382,7 @@ bool UPropertySerializer::ShouldDeserializeProperty(FProperty* Property) const {
 		return false;
 	}
 	/* Skip blacklisted properties */
-	if (this != nullptr && this && BlacklistedProperties.IsValidIndex(0) && BlacklistedProperties.Contains(Property)) {
+	if (BlacklistedProperties.Contains(Property)) {
 		return false;
 	}
 	return true;

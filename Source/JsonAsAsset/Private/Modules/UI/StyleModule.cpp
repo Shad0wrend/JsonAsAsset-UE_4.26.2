@@ -15,6 +15,7 @@ TSharedRef<FSlateStyleSet> FJsonAsAssetStyle::Create() {
 
 	/* Toolbar ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	Style->Set("JsonAsAsset.Toolbar.Icon", new IMAGE_BRUSH(TEXT("./Toolbar/40px"), Icon40x40));
+	Style->Set("JsonAsAsset.Toolbar.Icon.Warning", new IMAGE_BRUSH(TEXT("./Toolbar/40px_Warning"), Icon40x40));
 
 	/* AboutJsonAsAsset Widget ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	Style->Set("JsonAsAsset.FModel.Icon", new IMAGE_BRUSH(TEXT("./About/FModel"), Icon80x80));

@@ -4,11 +4,11 @@
 #include "Engine/DataAsset.h"
 
 bool IDataAssetImporter::Import() {
-	UDataAsset* DataAsset = NewObject<UDataAsset>(Package, AssetClass, FName(AssetName), RF_Public | RF_Standalone);
-	auto _ = DataAsset->MarkPackageDirty();
+	UDataAsset* DataAsset = NewObject<UDataAsset>(Package, AssetClass, FName(FileName), RF_Public | RF_Standalone);
+	DataAsset->MarkPackageDirty();
 
 	UObjectSerializer* ObjectSerializer = GetObjectSerializer();
-	ObjectSerializer->SetExportForDeserialization(JsonObject, DataAsset);
+	ObjectSerializer->SetExportForDeserialization(JsonObject);
 	ObjectSerializer->ParentAsset = DataAsset;
 
 	ObjectSerializer->DeserializeExports(AllJsonObjects);

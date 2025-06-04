@@ -7,14 +7,14 @@
 #include "PhysicsEngine/PhysicsAsset.h"
 
 /* SkeletalBodySetup is a separate file on UE5.5+ */
-#if ENGINE_UE5 && ENGINE_MINOR_VERSION > 4
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 4
 #include "PhysicsEngine/SkeletalBodySetup.h"
 #endif
 
 class IPhysicsAssetImporter : public IImporter {
 public:
-	IPhysicsAssetImporter(const FString& AssetName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass):
-		IImporter(AssetName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass) {
+	IPhysicsAssetImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass):
+		IImporter(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass) {
 	}
 	
 	virtual bool Import() override;

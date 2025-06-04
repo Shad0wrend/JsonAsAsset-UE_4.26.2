@@ -45,8 +45,6 @@ class JSONASASSET_API UPropertySerializer : public UObject
 public:
 	UPropertySerializer();
 
-	bool bFallbackToParentTrace = true;
-
 	FUObjectExportContainer ExportsContainer;
 	TArray<FString> BlacklistedPropertyNames;
 	TArray<FFailedPropertyInfo> FailedProperties;

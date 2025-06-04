@@ -33,12 +33,12 @@
 #define LOCTEXT_NAMESPACE "IImporter"
 
 /* Importer Constructor */
-IImporter::IImporter(const FString& AssetName, const FString& FilePath, 
+IImporter::IImporter(const FString& FileName, const FString& FilePath, 
 		  const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, 
 		  UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects,
 		  UClass* AssetClass)
 	: USerializerContainer(Package, OutermostPkg), AllJsonObjects(AllJsonObjects), JsonObject(JsonObject),
-	  AssetName(AssetName), FilePath(FilePath), AssetClass(AssetClass),
+	  FileName(FileName), FilePath(FilePath), AssetClass(AssetClass),
 	  ParentObject(nullptr)
 {
 	/* Create Properties field if it doesn't exist */
@@ -145,11 +145,6 @@ bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FSt
 		FString Type = DataObject->GetStringField(TEXT("Type"));
 		FString Name = DataObject->GetStringField(TEXT("Name"));
 
-		/* BlueprintGeneratedClass is postfixed with _C */
-		if (Type.Contains("BlueprintGeneratedClass")) {
-			Name.Split("_C", &Name, nullptr, ESearchCase::CaseSensitive, ESearchDir::FromEnd);
-		}
-
 		UClass* Class = FindObject<UClass>(ANY_PACKAGE, *Type);
 
 		if (Class == nullptr) continue;
@@ -160,8 +155,6 @@ bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FSt
 
 		/* Convert from relative path to full path */
 		if (FPaths::IsRelative(File)) File = FPaths::ConvertRelativePathToFull(File);
-
-		RedirectPath(File);
 
 		UPackage* LocalOutermostPkg;
 		UPackage* LocalPackage = FAssetUtilities::CreateAssetPackage(Name, File, LocalOutermostPkg);
@@ -238,39 +231,18 @@ bool IImporter::ReadExportsAndImport(TArray<TSharedPtr<FJsonValue>> Exports, FSt
 	return true;
 }
 
-TArray<TSharedPtr<FJsonValue>> IImporter::GetObjectsWithPropertyNameStartingWith(const FString& StartsWithStr, const FString& PropertyName) {
+TArray<TSharedPtr<FJsonValue>> IImporter::GetObjectsWithTypeStartingWith(const FString& StartsWithStr) {
 	TArray<TSharedPtr<FJsonValue>> FilteredObjects;
 
 	for (const TSharedPtr<FJsonValue>& JsonObjectValue : AllJsonObjects) {
 		if (JsonObjectValue->Type == EJson::Object) {
 			TSharedPtr<FJsonObject> JsonObjectType = JsonObjectValue->AsObject();
 
-			if (JsonObjectType.IsValid() && JsonObjectType->HasField(PropertyName)) {
-				const FString TypeValue = JsonObjectType->GetStringField(PropertyName);
+			if (JsonObjectType.IsValid() && JsonObjectType->HasField(TEXT("Type"))) {
+				const FString TypeValue = JsonObjectType->GetStringField(TEXT("Type"));
 
 				/* Check if the "Type" field starts with the specified string */
 				if (TypeValue.StartsWith(StartsWithStr)) {
-					FilteredObjects.Add(JsonObjectValue);
-				}
-			}
-		}
-	}
-
-	return FilteredObjects;
-}
-
-TArray<TSharedPtr<FJsonValue>> IImporter::FilterObjectsWithoutMatchingPropertyName(const FString& StartsWithStr, const FString& PropertyName) {
-	TArray<TSharedPtr<FJsonValue>> FilteredObjects;
-
-	for (const TSharedPtr<FJsonValue>& JsonObjectValue : AllJsonObjects) {
-		if (JsonObjectValue->Type == EJson::Object) {
-			TSharedPtr<FJsonObject> JsonObjectType = JsonObjectValue->AsObject();
-
-			if (JsonObjectType.IsValid() && JsonObjectType->HasField(PropertyName)) {
-				const FString TypeValue = JsonObjectType->GetStringField(PropertyName);
-
-				/* Check if the "Type" field starts with the specified string */
-				if (!TypeValue.StartsWith(StartsWithStr)) {
 					FilteredObjects.Add(JsonObjectValue);
 				}
 			}
@@ -306,8 +278,6 @@ template TObjectPtr<UObject> IImporter::DownloadWrapper<UObject>(TObjectPtr<UObj
 template <typename T>
 TObjectPtr<T> IImporter::DownloadWrapper(TObjectPtr<T> InObject, FString Type, const FString Name, const FString Path) {
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
-
-	if (Type == "Texture") Type = "Texture2D";
 
 	FMessageLog MessageLogger = FMessageLog(FName("JsonAsAsset"));
 
@@ -377,8 +347,6 @@ void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectP
 	ObjectPath = PackageIndex->Get()->GetStringField(TEXT("ObjectPath"));
 	ObjectPath.Split(".", &ObjectPath, nullptr);
 
-	RedirectPath(ObjectPath);
-
 	const UJsonAsAssetSettings* Settings = GetDefault<UJsonAsAssetSettings>();
 
 	if (!Settings->AssetSettings.GameName.IsEmpty()) {
@@ -399,7 +367,7 @@ void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectP
 	/* Try to load object using the object path and the object name combined */
 	TObjectPtr<T> LoadedObject = Cast<T>(StaticLoadObject(T::StaticClass(), nullptr, *(ObjectPath + "." + ObjectName)));
 
-	if (!Outer.IsEmpty() && ParentObject->IsA(AActor::StaticClass())) {
+	if (!Outer.IsEmpty()) {
 		const AActor* NewLoadedObject = Cast<AActor>(ParentObject);
 		auto Components = NewLoadedObject->GetComponents();
 		
@@ -412,9 +380,9 @@ void IImporter::LoadObject(const TSharedPtr<FJsonObject>* PackageIndex, TObjectP
 	
 	/* Material Expression case */
 	if (!LoadedObject && ObjectName.Contains("MaterialExpression")) {
-		FString SplitObjectName;
-		ObjectPath.Split("/", nullptr, &SplitObjectName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
-		LoadedObject = Cast<T>(StaticLoadObject(T::StaticClass(), nullptr, *(ObjectPath + "." + SplitObjectName + ":" + ObjectName)));
+		FString AssetName;
+		ObjectPath.Split("/", nullptr, &AssetName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+		LoadedObject = Cast<T>(StaticLoadObject(T::StaticClass(), nullptr, *(ObjectPath + "." + AssetName + ":" + ObjectName)));
 	}
 
 	Object = LoadedObject;
@@ -436,8 +404,6 @@ TArray<TObjectPtr<T>> IImporter::LoadObject(const TArray<TSharedPtr<FJsonValue>>
 		
 		ObjectPtr->GetStringField(TEXT("ObjectName")).Split("'", &ObjectType, &ObjectName);
 		ObjectPtr->GetStringField(TEXT("ObjectPath")).Split(".", &ObjectPath, nullptr);
-		RedirectPath(ObjectPath);
-
 		ObjectName = ObjectName.Replace(TEXT("'"), TEXT(""));
 
 		TObjectPtr<T> LoadedObject = Cast<T>(StaticLoadObject(T::StaticClass(), nullptr, *(ObjectPath + "." + ObjectName)));

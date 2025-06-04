@@ -8,7 +8,7 @@ bool ICurveLinearColorAtlasImporter::Import() {
 	float Width = 256;
 	float Height = 256;
 
-	UCurveLinearColorAtlas* Object = NewObject<UCurveLinearColorAtlas>(Package, UCurveLinearColorAtlas::StaticClass(), *AssetName, RF_Public | RF_Standalone);
+	UCurveLinearColorAtlas* Object = NewObject<UCurveLinearColorAtlas>(Package, UCurveLinearColorAtlas::StaticClass(), *FileName, RF_Public | RF_Standalone);
 	Object->Source.Init(Width, Height, 1, 1, TSF_RGBA16F);
 	const int32 TextureDataSize = Object->Source.CalcMipSize(0);
 	Object->SrcData.AddUninitialized(TextureDataSize);
@@ -47,7 +47,7 @@ bool ICurveLinearColorAtlasImporter::Import() {
 	}
 #endif
 
-#if ENGINE_UE5
+#if ENGINE_MAJOR_VERSION == 5
 	float TextureSize = 0.0f;
 	float TextureHeight = 0.0f;
 #else

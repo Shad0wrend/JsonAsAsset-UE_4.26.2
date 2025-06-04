@@ -6,7 +6,7 @@
 #include "Dom/JsonObject.h"
 #include "Animation/AnimSequence.h"
 
-#if ENGINE_UE5
+#if ENGINE_MAJOR_VERSION == 5
 #include "Animation/AnimData/IAnimationDataController.h"
 #if ENGINE_MINOR_VERSION >= 4
 #include "Animation/AnimData/IAnimationDataModel.h"
@@ -15,15 +15,15 @@
 #endif
 
 bool IAnimationBaseImporter::Import() {
-	const FString JsonName = JsonObject->GetStringField(TEXT("Name"));
+	const FString AssetName = JsonObject->GetStringField(TEXT("Name"));
 
 	TArray<TSharedPtr<FJsonValue>> FloatCurves;
 	TArray<TSharedPtr<FJsonValue>> Notifies;
 
-	UAnimSequenceBase* AnimSequenceBase = GetSelectedAsset<UAnimSequenceBase>(true, JsonName);
+	UAnimSequenceBase* AnimSequenceBase = GetSelectedAsset<UAnimSequenceBase>(true, AssetName);
 
 	if (!AnimSequenceBase && AssetClass->IsChildOf<UAnimMontage>()) {
-		AnimSequenceBase = NewObject<UAnimMontage>(Package, AssetClass, *JsonName, RF_Public | RF_Standalone);
+		AnimSequenceBase = NewObject<UAnimMontage>(Package, AssetClass, *FileName, RF_Public | RF_Standalone);
 	}
 
 	if (!AnimSequenceBase) {
@@ -46,7 +46,7 @@ bool IAnimationBaseImporter::Import() {
 	}
 
 	UObjectSerializer* ObjectSerializer = GetObjectSerializer();
-	ObjectSerializer->SetExportForDeserialization(JsonObject, AnimSequenceBase);
+	ObjectSerializer->SetExportForDeserialization(JsonObject);
 	ObjectSerializer->ParentAsset = AnimSequenceBase;
 
 	ObjectSerializer->DeserializeExports(AllJsonObjects);
@@ -115,7 +115,7 @@ bool IAnimationBaseImporter::Import() {
 		ensureAlways(Skeleton->GetSmartNameByUID(USkeleton::AnimCurveMappingName, NewTrackName.UID, NewTrackName));
 #endif
 		
-#if ENGINE_UE5
+#if ENGINE_MAJOR_VERSION == 5
 #if ENGINE_MINOR_VERSION <= 3
 		FSmartName NewTrackName;
 

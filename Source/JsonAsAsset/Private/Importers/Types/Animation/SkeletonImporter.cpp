@@ -6,14 +6,14 @@ bool ISkeletonImporter::Import() {
 	USkeleton* Skeleton = GetSelectedAsset<USkeleton>(true);
 
 	if (Skeleton) {
-		if (Skeleton->GetName() != AssetName) {
+		if (Skeleton->GetName() != FileName) {
 			Skeleton = nullptr;
 		}
 	}
 
 	/* If there is no skeleton, create one. */
 	if (!Skeleton) {
-		Skeleton = NewObject<USkeleton>(Package, USkeleton::StaticClass(), *AssetName, RF_Public | RF_Standalone);
+		Skeleton = NewObject<USkeleton>(Package, USkeleton::StaticClass(), *FileName, RF_Public | RF_Standalone);
 
 		ApplySkeletalChanges(Skeleton);
 	} else {

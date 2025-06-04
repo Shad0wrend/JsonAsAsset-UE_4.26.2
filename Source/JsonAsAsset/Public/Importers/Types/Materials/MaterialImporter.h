@@ -4,10 +4,10 @@
 
 #include "Importers/Constructor/Graph/MaterialGraph.h"
 
-class IMaterialImporter final : public IMaterialGraph {
+class IMaterialImporter : public IMaterialGraph {
 public:
-	IMaterialImporter(const FString& AssetName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass):
-		IMaterialGraph(AssetName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass) {
+	IMaterialImporter(const FString& FileName, const FString& FilePath, const TSharedPtr<FJsonObject>& JsonObject, UPackage* Package, UPackage* OutermostPkg, const TArray<TSharedPtr<FJsonValue>>& AllJsonObjects, UClass* AssetClass):
+		IMaterialGraph(FileName, FilePath, JsonObject, Package, OutermostPkg, AllJsonObjects, AssetClass) {
 	}
 
 	virtual bool Import() override;

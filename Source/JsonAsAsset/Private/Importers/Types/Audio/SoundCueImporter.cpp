@@ -5,7 +5,7 @@
 
 bool ISoundCueImporter::Import() {
 	/* Create Sound Cue */
-	USoundCue* SoundCue = NewObject<USoundCue>(Package, *AssetName, RF_Public | RF_Standalone);
+	USoundCue* SoundCue = NewObject<USoundCue>(Package, *FileName, RF_Public | RF_Standalone);
 	
 	SoundCue->PreEditChange(nullptr);
 	
